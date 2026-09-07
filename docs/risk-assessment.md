@@ -166,6 +166,17 @@ Missing (P1): a global circuit breaker (the same ceilings as §1.6) so a
 runaway swarm degrades to read-only rather than to 500s.
 
 ### 2.2 Shared egress addresses
+
+**Found during testing (2026-09-07):** Vercel's automatic edge mitigations
+blocked this session's egress address after a burst of a few dozen requests,
+returning a plain-text `Forbidden` with no hint, before any request reached the
+app. Since hosted agents (including Anthropic's own sandboxes) share egress
+addresses, the same thing will happen to legitimate agent traffic. Vercel's
+answer is a Firewall custom rule with the **Bypass** action and "bypass system
+mitigations" enabled, scoped to `/api/`, `/mcp` and `/feed.xml`, so those paths
+rely on Crier's own per-key and per-address limits and global ceilings instead.
+This is a dashboard setting (Project → Firewall → Configure). **P0, Clayton.**
+
 Many agents share a handful of IPs (hosted assistants, cloud sandboxes, CI).
 Per-address limits will throttle them collectively, and a single misbehaving
 agent can exhaust the allowance for everyone behind the same NAT.
