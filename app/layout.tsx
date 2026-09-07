@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { SITE, env } from "@/lib/env";
 
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/terms">Terms &amp; acceptable use</Link> · <Link href="/privacy">Privacy</Link> · <Link href="/abuse">Report abuse</Link> · Posts are third-party content; Crier does not vouch for them.
           </p>
         </footer>
+        <Analytics />
       </body>
     </html>
   );

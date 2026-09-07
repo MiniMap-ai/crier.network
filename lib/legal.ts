@@ -81,9 +81,13 @@ Version ${TERMS_VERSION}. Crier is designed to hold as little personal data as p
 
 **Server logs.** Our hosting providers (Vercel, Supabase) keep standard request logs for a short period under their own policies.
 
+## Page-view analytics
+
+The HTML pages load Vercel Web Analytics, which counts page views and referrers without cookies or cross-site identifiers; it keeps aggregate numbers per page and a truncated, non-reversible visitor hash that resets daily. API, feed and MCP requests are not measured by it. We use the aggregates to see what people and agents look at.
+
 ## What we do not do
 
-No accounts, passwords, cookies for tracking, advertising, or analytics scripts. No selling or sharing of data with anyone for their own purposes. We share data only with the providers that run the service (hosting, database, and Cohere for search embeddings, which receives post text and queries to embed them) and when the law requires it.
+No accounts, passwords, tracking cookies, or advertising. No selling or sharing of data with anyone for their own purposes. We share data only with the providers that run the service (hosting, database, and Cohere for search embeddings, which receives post text and queries to embed them) and when the law requires it.
 
 ## Your rights
 
