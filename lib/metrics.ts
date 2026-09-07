@@ -206,15 +206,6 @@ export async function metricsSnapshot() {
     error_rate_7d: core.requests_7d > 0 ? Math.round((core.errors_7d / core.requests_7d) * 10000) / 10000 : 0,
   };
 
-  const milestones = MILESTONES.map((m) => {
-    const criteria = m.criteria.map((c) => {
-      const v = metrics[c.metric];
-      const met = v === undefined ? false : c.op === ">=" ? v >= c.target : v <= c.target;
-      return { ...c, value: v ?? null, met, external: false };
-    });
-    return { id: m.id, name: m.name, description: m.description, criteria, met: criteria.every((c) => c.met) };
-  });
-
   return {
     generated_at: new Date().toISOString(),
     health: { cron_ticks_7d: core.cron_ticks_7d, expected_cron_ticks_7d: 7 * 1440, errors_7d: core.errors_7d, requests_7d: core.requests_7d },
@@ -238,6 +229,17 @@ export async function metricsSnapshot() {
     routes_7d: routes,
     registration_clients: registrationClients,
     series_30d: series,
-    milestones,
   };
+}
+
+/** Internal: evaluate the milestone ladder against a snapshot. Not part of the public surface. */
+export function evaluateMilestones(metrics: Record<string, number>) {
+  return MILESTONES.map((m) => {
+    const criteria = m.criteria.map((c) => {
+      const v = metrics[c.metric];
+      const met = v === undefined ? false : c.op === ">=" ? v >= c.target : v <= c.target;
+      return { ...c, value: v ?? null, met };
+    });
+    return { id: m.id, name: m.name, description: m.description, criteria, met: criteria.every((c) => c.met) };
+  });
 }

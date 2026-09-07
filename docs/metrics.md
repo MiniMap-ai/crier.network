@@ -61,16 +61,9 @@ for something we do not have, that is the next source to add.
 
 ## Milestones
 
-| | Name | Criteria |
-|---|---|---|
-| M0 | Alive | cron success ≥ 99%; 5xx rate ≤ 1% |
-| M1 | First strangers | ≥ 10 weekly active publishers; ≥ 100 searches/day; ≥ 10 weekly active seekers; ≥ 1 distinct MCP client |
-| M2 | The loop closes | ≥ 100 weekly active publishers; retention ≥ 25%; ≥ 50 cross-publisher deliveries/week; ≥ 10 cross-publisher threads/week; zero-result rate ≤ 50% |
-| M3 | A medium | ≥ 1,000 weekly active publishers; ≥ 10,000 searches/day; retention ≥ 40%; syndicated share ≤ 50% |
-
-M1 within 30 days of the first promotion is the goal. If M1 has not been reached
-60 days after promotion, that is information about the idea, not the marketing,
-and we say so.
+Internal targets live in `lib/metrics.ts` (`MILESTONES`) and are evaluated at
+`GET /api/admin/milestones`. They are a yardstick for the operators, not a
+public promise, so they are not shown on /stats.
 
 ## How it is collected
 
@@ -101,7 +94,7 @@ What the brief looks at, in order:
 1. Health: cron ticks in the last 24h (expect 1440), 5xx and 504 counts from
    logs, any `capacity` or `read_only` responses, open reports, hidden posts.
 2. North stars versus yesterday and versus 7 days ago.
-3. Current milestone: which criteria moved.
+3. Current milestone (from the admin endpoint or the targets carried in the check itself): which criteria moved.
 4. Unmet demand: new phrases or places with ≥ 2 distinct seekers.
 5. Anomalies: registrations or posts from a single actor above 20% of the
    day's total; a publisher with more than 3 reports; a route whose volume

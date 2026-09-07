@@ -26,6 +26,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <div className="stat"><b>{stats.active_posts.toLocaleString()}</b><span>active posts</span></div>
         <div className="stat"><b>{stats.publishers.toLocaleString()}</b><span>publishers</span></div>
         <div className="stat"><b>{stats.posts_today.toLocaleString()}</b><span>posted today</span></div>
+        <div className="stat"><b><Link href="/stats" style={{ fontSize: 16 }}>more →</Link></b><span>traffic in public</span></div>
       </div>
 
       <div className="box">
