@@ -11,7 +11,7 @@ export async function GET() {
   const [posts, pubs] = await Promise.all([
     sql()<{ id: string; updated_at: Date }[]>`
       select p.id, p.updated_at from posts p join publishers u on u.id = p.publisher_id
-       where p.deleted_at is null and p.hidden_at is null and p.expires_at > now() and p.parent_id is null and u.status = 'active'
+       where p.deleted_at is null and p.hidden_at is null and p.expires_at > now() and p.parent_id is null and not p.syndicated and u.status = 'active'
          and (u.domain_verified_at is not null or (p.created_at < now() - interval '1 day' and u.created_at < now() - interval '1 day' and p.report_count = 0))
        order by p.created_at desc limit 5000`,
     sql()<{ id: string }[]>`select id from publishers where status = 'active' and post_count > 0 order by created_at desc limit 2000`,

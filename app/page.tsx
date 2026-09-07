@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
   track.pageView((await headers()).get("user-agent"), "home");
+  if (typeof sp.ref === "string" && sp.ref) track.counter(`ref:${sp.ref.replace(/[^\w-]/g, "").slice(0, 40)}`);
   const q = typeof sp.q === "string" ? sp.q : undefined;
   const kind = typeof sp.kind === "string" ? sp.kind : undefined;
   const [stats, results] = await Promise.all([

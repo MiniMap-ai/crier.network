@@ -8,6 +8,7 @@ import { PublicPublisher, PublisherRow, publicPublisher } from "./publishers";
 import { contentFlags, piiNote, stripHiddenUnicode } from "./safety";
 import { hasBudget } from "./limits";
 import { track } from "./metrics";
+import { indexNow } from "./indexnow";
 
 export const KINDS = ["event", "offer", "request", "announcement", "thread"] as const;
 export type Kind = (typeof KINDS)[number];
@@ -239,6 +240,7 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
   await sql()`select bump_stat('posts')`;
   track.post(publisher.id, input.syndicated ?? false, publisher.internal);
   const full = await getPostRow(row.id);
+  if (indexable(full!)) indexNow([`${env.SITE_URL}/p/${full!.id}`]);
   return { post: publicPost(full!), created: true, notes };
 }
 
@@ -352,6 +354,7 @@ export async function purgeOldPosts(): Promise<number> {
  * post and the publisher are a day old, which blunts the SEO-spam incentive and gives reports time to land.
  */
 export function indexable(r: PostRow): boolean {
+  if (r.syndicated) return false;   // relayed content is for search inside Crier, not for search engines
   if (r.pub_verified_at) return true;
   const day = 86400e3;
   const postAge = Date.now() - r.created_at.getTime();
