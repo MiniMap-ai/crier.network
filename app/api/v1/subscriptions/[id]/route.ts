@@ -4,6 +4,7 @@ import { deleteSubscription, getSubscription, publicSubscription } from "@/lib/s
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 export const OPTIONS = () => corsPreflight();
 

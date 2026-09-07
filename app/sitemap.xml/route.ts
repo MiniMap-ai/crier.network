@@ -2,6 +2,7 @@ import { sql } from "@/lib/db";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 function esc(s: string) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 

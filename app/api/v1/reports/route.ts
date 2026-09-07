@@ -6,6 +6,7 @@ import { POST_ID_RE } from "@/lib/ids";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 export const OPTIONS = () => corsPreflight();
 

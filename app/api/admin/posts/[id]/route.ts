@@ -6,6 +6,7 @@ import { getPostRow, publicPost } from "@/lib/posts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 const Action = z.object({ action: z.enum(["hide", "unhide", "delete", "dismiss_reports"]), reason: z.string().max(500).optional() });
 

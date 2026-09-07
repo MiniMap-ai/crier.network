@@ -5,6 +5,7 @@ import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 /** Open reports, newest first, grouped with the post and publisher they concern. */
 export const GET = handler(async (req) => {

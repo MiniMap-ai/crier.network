@@ -6,6 +6,7 @@ import { deletePublisher, getPublisher, publicPublisher } from "@/lib/publishers
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 30;
 
 const Action = z.object({ action: z.enum(["suspend", "unsuspend", "delete"]), reason: z.string().max(500).optional() });
 
