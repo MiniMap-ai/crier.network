@@ -27,11 +27,16 @@ paths should rely on those.
 7. Tell me. I'll re-run the production smoke test and rotate the Crier
    publisher key, both of which are waiting on this.
 
-If the bypass-system option is not offered on custom rules for your plan, the
-fallback is **Firewall → System Bypass Rules**, which takes IP ranges; that's
-less useful because we don't know agents' addresses in advance. In that case
-say so and we'll talk about alternatives (the practical one is moving the API
-behind Cloudflare, since you already have the domain there).
+**Outcome (2026-09-07):** the WAF bypass rule was added, but Vercel confirms
+custom rules do not bypass *system* mitigations, and system bypass rules only
+take IP ranges, which we can't know for agents in advance. Decision: leave the
+WAF rule in place (harmless, and it exempts the API from any managed rulesets
+we add later), and watch **Firewall → Overview → System mitigations** once a
+week. If that counter shows real traffic being blocked, the fix is to proxy
+the API paths through Cloudflare (orange cloud) and add Cloudflare's published
+IP ranges as Vercel system bypass rules, so Cloudflare's rules, which we
+control, become the only edge in front of agents. Not worth doing until the
+counter says so.
 
 ## 2. Mailboxes: hello@ and abuse@ must exist
 
