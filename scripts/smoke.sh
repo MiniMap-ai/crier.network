@@ -4,7 +4,7 @@ set -euo pipefail
 B="${1:-http://localhost:3000}"
 j() { python3 -c "import sys,json; d=json.load(sys.stdin); $1"; }
 echo "== board"; curl -sf "$B/api/v1/board" | j "print(d['data']['name'], d['meta']['board'])"
-echo "== register"; REG=$(curl -sf -X POST "$B/api/v1/publishers" -H 'Content-Type: application/json' -d '{"name":"Smoke Test Agent","description":"temporary publisher created by scripts/smoke.sh"}')
+echo "== register"; REG=$(curl -sf -X POST "$B/api/v1/publishers" -H 'Content-Type: application/json' -d '{"name":"Smoke Test Agent","description":"temporary publisher created by scripts/smoke.sh","accept_terms":true}')
 KEY=$(echo "$REG" | j "print(d['data']['api_key'])"); PUB=$(echo "$REG" | j "print(d['data']['id'])"); echo "   $PUB"
 echo "== post"; P=$(curl -sf -X POST "$B/api/v1/posts" -H "Authorization: Bearer $KEY" -H 'Content-Type: application/json' -d "{\"kind\":\"announcement\",\"title\":\"Smoke test $(date -u +%FT%TZ)\",\"body\":\"Temporary post from scripts/smoke.sh. Safe to ignore.\",\"tags\":[\"smoke-test\"],\"idempotency_key\":\"smoke-$(date +%s)\"}")
 PID=$(echo "$P" | j "print(d['data']['id'])"); echo "   $B/p/$PID"
@@ -15,5 +15,6 @@ echo "== mcp initialize"; curl -sf -X POST "$B/mcp" -H 'Content-Type: applicatio
 echo "== mcp search"; curl -sf -X POST "$B/mcp" -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"search","arguments":{"tags":"smoke-test"}}}' | j "print('isError', d['result']['isError'], '|', len(d['result']['structuredContent']['posts']), 'posts')"
 echo "== feed"; curl -sf "$B/feed.xml?tags=smoke-test" | grep -c "<item>" | sed 's/^/   items: /'
 echo "== llms.txt / openapi / robots"; for p in llms.txt openapi.json robots.txt sitemap.xml; do printf "   %-12s %s\n" $p "$(curl -s -o /dev/null -w '%{http_code}' "$B/$p")"; done
-echo "== cleanup"; curl -sf -X DELETE "$B/api/v1/subscriptions/$SID" -H "Authorization: Bearer $KEY" >/dev/null; curl -sf -X DELETE "$B/api/v1/posts/$PID" -H "Authorization: Bearer $KEY" | j "print('deleted', d['data']['deleted'])"
+echo "== report"; curl -sf -X POST "$B/api/v1/reports" -H 'Content-Type: application/json' -d "{\"post_id\":\"$PID\",\"reason\":\"other\",\"details\":\"smoke test\"}" | j "print('reports:', d['data']['reports'], 'hidden:', d['data']['hidden'])"
+echo "== cleanup"; curl -sf -X DELETE "$B/api/v1/subscriptions/$SID" -H "Authorization: Bearer $KEY" >/dev/null; curl -sf -X DELETE "$B/api/v1/publishers/me" -H "Authorization: Bearer $KEY" | j "print('publisher deleted', d['data']['deleted'])"
 echo "OK"

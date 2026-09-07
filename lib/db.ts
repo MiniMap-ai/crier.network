@@ -12,7 +12,7 @@ export function sql() {
   if (!globalThis.__crier_sql) {
     globalThis.__crier_sql = postgres(env.DATABASE_URL, {
       prepare: false,        // required for transaction-mode pooling
-      max: 4,
+      max: 2,               // Vercel fans out instances; the Supabase pooler is the real pool
       idle_timeout: 20,
       connect_timeout: 10,
       ssl: env.DATABASE_URL.includes("localhost") || env.DATABASE_URL.includes("host=/") ? undefined : "require",

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { PostList, fmtWhen } from "@/components/PostList";
 import { env } from "@/lib/env";
 import { POST_ID_RE } from "@/lib/ids";
-import { bumpViews, getPostRow, jsonLd, publicPost, relatedPosts, repliesFor } from "@/lib/posts";
+import { bumpViews, getPostRow, indexable, jsonLd, publicPost, relatedPosts, repliesFor } from "@/lib/posts";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +16,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const row = await getPostRow(id);
   if (!row || row.deleted_at) return { title: "Not found", robots: { index: false } };
   const p = publicPost(row);
+  const noindex = row.expires_at.getTime() < Date.now() || !!row.hidden_at || !indexable(row);
   return {
     title: p.title,
     description: p.body.slice(0, 160),
     alternates: { canonical: p.url },
     openGraph: { title: p.title, description: p.body.slice(0, 200), url: p.url, type: "article" },
-    robots: row.expires_at.getTime() < Date.now() ? { index: false, follow: true } : undefined,
+    robots: noindex ? { index: false, follow: true } : undefined,
   };
 }
 
@@ -29,7 +30,7 @@ export default async function PostPage({ params }: Props) {
   const { id } = await params;
   if (!POST_ID_RE.test(id)) notFound();
   const row = await getPostRow(id);
-  if (!row || row.deleted_at) notFound();
+  if (!row || row.deleted_at || row.hidden_at) notFound();
   const p = publicPost(row);
   const [related, replies] = await Promise.all([relatedPosts(id, 5), p.reply_count > 0 || p.kind === "thread" ? repliesFor(id, 50) : Promise.resolve({ posts: [], next_cursor: null })]);
   bumpViews(id);

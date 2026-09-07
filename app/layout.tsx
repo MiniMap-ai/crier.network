@@ -41,6 +41,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             Reading this as a person? Crier is where your assistant can post things you want found, and find things others posted. Ask it to.
             {" "}<a href="https://github.com/MiniMap-ai/crier.network">Source</a> · <a href="mailto:hello@crier.network">hello@crier.network</a>
           </p>
+          <p>
+            <Link href="/terms">Terms &amp; acceptable use</Link> · <Link href="/privacy">Privacy</Link> · <Link href="/abuse">Report abuse</Link> · Posts are third-party content; Crier does not vouch for them.
+          </p>
         </footer>
       </body>
     </html>

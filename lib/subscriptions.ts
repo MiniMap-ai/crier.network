@@ -8,13 +8,14 @@ import { embedQuery } from "./cohere";
 import { POST_COLUMNS, PostRow, PublicPost, publicPost } from "./posts";
 import { PublisherRow } from "./publishers";
 import { SearchQuery, SearchQuerySchema, describeQuery, parseSearchQuery } from "./search";
+import { assertSafeOutboundUrl } from "./safety";
 
 // Cosine distance at or below which a post is considered a semantic match for a subscription's q.
 const SEMANTIC_MATCH_DISTANCE = Number(process.env.CRIER_SEMANTIC_MATCH_DISTANCE || 0.65);
 
 export const SubscriptionInputSchema = z.object({
   query: z.record(z.string(), z.union([z.string(), z.number()])).refine((q) => Object.keys(q).length > 0, { message: "query must have at least one filter" }),
-  webhook_url: z.url().max(1000).refine((u) => u.startsWith("https://") || u.startsWith("http://localhost"), { message: "webhook_url must be https" }).optional(),
+  webhook_url: z.url().max(1000).optional(),
   label: z.string().trim().max(120).optional(),
 });
 
@@ -29,6 +30,8 @@ export type SubscriptionRow = {
   last_matched_at: Date | null;
   last_polled_at: Date | null;
   failures: number;
+  webhook_verified_at: Date | null;
+  webhook_challenge: string | null;
 };
 
 export type PublicSubscription = {
@@ -37,6 +40,7 @@ export type PublicSubscription = {
   query: Record<string, string>;
   describes: string;
   webhook_url: string | null;
+  webhook_verified: boolean;
   poll_url: string;
   active: boolean;
   created_at: string;
@@ -53,6 +57,7 @@ export function publicSubscription(s: SubscriptionRow, opts: { withSecret?: bool
     query,
     describes: describeQuery(query as SearchQuery),
     webhook_url: s.webhook_url,
+    webhook_verified: !!s.webhook_verified_at,
     poll_url: `${env.SITE_URL}/api/v1/subscriptions/${s.id}/pending`,
     active: s.active,
     created_at: s.created_at.toISOString(),
@@ -77,12 +82,43 @@ export async function createSubscription(publisher: PublisherRow, input: z.infer
   if (input.label) query.label = input.label;
   const [{ n }] = await sql()<{ n: number }[]>`select count(*)::int as n from subscriptions where publisher_id = ${publisher.id} and active`;
   if (n >= 50) throw new HttpError(409, "too_many_subscriptions", "A publisher can hold at most 50 active subscriptions.", "Delete one you no longer need, or combine filters.");
+  if (input.webhook_url) await assertSafeOutboundUrl(input.webhook_url, "webhook_url");
   const vec = query.q ? await embedQuery(query.q) : null;
   const [row] = await sql()<SubscriptionRow[]>`
-    insert into subscriptions (id, publisher_id, query, query_embedding, webhook_url, secret)
-    values (${newSubscriptionId()}, ${publisher.id}, ${sql().json(query)}, ${vec ? toVectorLiteral(vec) : null}::vector, ${input.webhook_url ?? null}, ${newSecret()})
+    insert into subscriptions (id, publisher_id, query, query_embedding, webhook_url, secret, webhook_challenge)
+    values (${newSubscriptionId()}, ${publisher.id}, ${sql().json(query)}, ${vec ? toVectorLiteral(vec) : null}::vector, ${input.webhook_url ?? null}, ${newSecret()}, ${input.webhook_url ? newSecret() : null})
     returning *`;
+  if (row.webhook_url) return (await verifyWebhook(row)).sub;
   return row;
+}
+
+/**
+ * Webhook consent. Before Crier will ever deliver to a URL, the endpoint has to prove it wants the
+ * traffic by echoing a challenge. This is what stops subscriptions being used to flood third parties.
+ */
+export async function verifyWebhook(sub: SubscriptionRow): Promise<{ sub: SubscriptionRow; verified: boolean; status: number }> {
+  if (!sub.webhook_url) return { sub, verified: false, status: 0 };
+  const challenge = sub.webhook_challenge ?? newSecret();
+  const body = JSON.stringify({ type: "webhook.verify", subscription_id: sub.id, challenge, meta: { docs: `${env.SITE_URL}/llms.txt`, how: "Respond 2xx with the challenge string in the body (raw, or as JSON {\"challenge\": ...}) to confirm you want deliveries." } });
+  let status = 0; let ok = false;
+  try {
+    const target = await assertSafeOutboundUrl(sub.webhook_url, "webhook_url");
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(target, {
+      method: "POST", body, redirect: "manual", signal: ctrl.signal,
+      headers: { "Content-Type": "application/json", "User-Agent": "Crier-Webhook/1.0 (+https://crier.network/llms.txt)", "X-Crier-Signature": signPayload(sub.secret, body), "X-Crier-Subscription": sub.id, "X-Crier-Event": "webhook.verify" },
+    });
+    clearTimeout(t);
+    status = res.status;
+    if (res.ok) {
+      const text = (await res.text()).slice(0, 4096);
+      ok = text.includes(challenge);
+    }
+  } catch { ok = false; }
+  const [updated] = await sql()<SubscriptionRow[]>`
+    update subscriptions set webhook_challenge = ${challenge}, webhook_verified_at = ${ok ? sql()`now()` : sql()`webhook_verified_at`} where id = ${sub.id} returning *`;
+  return { sub: updated, verified: !!updated.webhook_verified_at, status };
 }
 
 export async function getSubscription(id: string): Promise<SubscriptionRow | null> {
@@ -116,7 +152,7 @@ export async function pendingForSubscription(sub: SubscriptionRow, cursor: strin
   sql()`update subscriptions set last_polled_at = now() where id = ${sub.id}`.catch(() => {});
   if (page.length) {
     const ids = page.map((r) => r.delivery_id);
-    sql()`update deliveries set status = 'polled' where id = any(${ids}::bigint[]) and status = 'pending' and subscription_id in (select id from subscriptions where webhook_url is null)`.catch(() => {});
+    sql()`update deliveries set status = 'polled' where id = any(${ids}::bigint[]) and status = 'pending' and subscription_id in (select id from subscriptions where webhook_url is null or webhook_verified_at is null)`.catch(() => {});
   }
   return {
     posts: page.map((r) => ({ ...publicPost(r), delivery_id: r.delivery_id, matched_at: r.matched_at.toISOString() })),
@@ -134,7 +170,7 @@ export async function matchNewPosts(): Promise<{ scanned: number; matched: numbe
   const afterId = state?.value?.id ?? "";
   const posts = await s<{ id: string; created_at: Date }[]>`
     select id, created_at from posts
-     where deleted_at is null and (created_at, id) > (${after}, ${afterId})
+     where deleted_at is null and hidden_at is null and (created_at, id) > (${after}, ${afterId})
      order by created_at asc, id asc limit 500`;
   if (posts.length === 0) return { scanned: 0, matched: 0 };
   const ids = posts.map((p) => p.id);
@@ -196,7 +232,7 @@ export async function deliverWebhooks(): Promise<{ attempted: number; delivered:
        join subscriptions sub on sub.id = d.subscription_id
        join posts p on p.id = d.post_id
        join publishers u on u.id = p.publisher_id
-      where d.status = 'pending' and d.next_attempt_at <= now() and sub.webhook_url is not null and sub.active
+      where d.status = 'pending' and d.next_attempt_at <= now() and sub.webhook_url is not null and sub.webhook_verified_at is not null and sub.active
       order by d.id asc
       limit 100`);
   let delivered = 0, failed = 0;

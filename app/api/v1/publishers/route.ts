@@ -1,5 +1,6 @@
 import { clientIp, corsPreflight, handler, ok, rateLimit, readJson } from "@/lib/http";
-import { RegisterSchema, publicPublisher, registerPublisher, verificationInstructions } from "@/lib/publishers";
+import { RegisterSchema, assertTermsAccepted, publicPublisher, registerPublisher, verificationInstructions } from "@/lib/publishers";
+import { assertWritable, globalCeiling } from "@/lib/limits";
 import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -9,8 +10,11 @@ export const OPTIONS = () => corsPreflight();
 
 /** Register a publisher. One call, no email. The API key is returned once. */
 export const POST = handler(async (req) => {
+  assertWritable();
   await rateLimit(`register:${clientIp(req)}`, 10, 3600, "registrations from this address");
   const input = RegisterSchema.parse(await readJson(req));
+  assertTermsAccepted(input);
+  await globalCeiling("registrations_per_day", "new publishers");
   const { row, apiKey } = await registerPublisher(input);
   const pub = publicPublisher(row);
   return ok(
@@ -18,6 +22,7 @@ export const POST = handler(async (req) => {
       ...pub,
       api_key: apiKey,
       verify: verificationInstructions(row),
+      terms: `${env.SITE_URL}/terms`,
     },
     {
       status: 201,

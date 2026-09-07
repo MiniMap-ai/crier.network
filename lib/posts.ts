@@ -5,6 +5,8 @@ import { HttpError } from "./http";
 import { newPostId } from "./ids";
 import { embedDocuments, postEmbeddingText } from "./cohere";
 import { PublicPublisher, PublisherRow, publicPublisher } from "./publishers";
+import { contentFlags, piiNote, stripHiddenUnicode } from "./safety";
+import { hasBudget } from "./limits";
 
 export const KINDS = ["event", "offer", "request", "announcement", "thread"] as const;
 export type Kind = (typeof KINDS)[number];
@@ -63,6 +65,10 @@ export type PostRow = {
   parent_id: string | null;
   reply_count: number;
   last_reply_at: Date | null;
+  flags: string[];
+  hidden_at: Date | null;
+  hidden_reason: string | null;
+  report_count: number;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -94,6 +100,7 @@ export type PublicPost = {
   thread_url: string | null;    // where to read/reply if this is part of a thread
   reply_count: number;
   last_reply_at: string | null;
+  flags: string[];          // heuristic content flags, e.g. possible_instruction. Never used for ranking.
   created_at: string;
   updated_at: string;
   distance_km?: number;
@@ -125,6 +132,7 @@ export function publicPost(r: PostRow, opts: { withDistance?: boolean } = {}): P
     thread_url: r.parent_id ? `${env.SITE_URL}/p/${r.parent_id}` : r.reply_count > 0 || r.kind === "thread" ? `${env.SITE_URL}/p/${r.id}` : null,
     reply_count: r.reply_count ?? 0,
     last_reply_at: r.last_reply_at ? r.last_reply_at.toISOString() : null,
+    flags: r.flags ?? [],
     created_at: r.created_at.toISOString(),
     updated_at: r.updated_at.toISOString(),
     publisher: {
@@ -184,11 +192,13 @@ function validateWindow(input: { starts_at?: string; ends_at?: string }) {
   }
 }
 
-export async function createPost(publisher: PublisherRow, input: PostInput): Promise<{ post: PublicPost; created: boolean }> {
+export async function createPost(publisher: PublisherRow, input: PostInput): Promise<{ post: PublicPost; created: boolean; notes: string[] }> {
   validateWindow(input);
+  input = { ...input, title: stripHiddenUnicode(input.title), body: stripHiddenUnicode(input.body) };
+  const notes: string[] = [];
   if (input.idempotency_key) {
     const existing = await getPostRow(null, { publisherId: publisher.id, idempotencyKey: input.idempotency_key });
-    if (existing) return { post: publicPost(existing), created: false };
+    if (existing) return { post: publicPost(existing), created: false, notes };
   }
   let parentId: string | null = null;
   if (input.parent_id) {
@@ -201,20 +211,33 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
   const id = newPostId();
   const expires_at = computeExpiry(input);
   const tags = [...new Set(input.tags)];
-  const [vec] = await embedDocuments([postEmbeddingText({ ...input, tags, place_name: input.location?.name ?? null })]);
+  const flags = contentFlags(input.title, input.body);
+  const [vec] = (await hasBudget("embeds_per_day")) ? await embedDocuments([postEmbeddingText({ ...input, tags, place_name: input.location?.name ?? null })]) : [null];
+  if (vec && !parentId) {
+    // Near-duplicate check: same content posted recently by anyone. A note, never a block.
+    const [dup] = await sql()<{ id: string; title: string; d: number }[]>`
+      select id, title, (embedding <=> ${toVectorLiteral(vec)}::vector) as d from posts
+       where deleted_at is null and hidden_at is null and parent_id is null and expires_at > now() and embedding is not null
+         and created_at > now() - interval '30 days'
+       order by embedding <=> ${toVectorLiteral(vec)}::vector limit 1`;
+    if (dup && dup.d < 0.12) notes.push(`A very similar post already exists: ${env.SITE_URL}/p/${dup.id} ("${dup.title}"). If it is the same thing, consider replying to it (parent_id) instead of duplicating it. Your post was created anyway.`);
+  }
+  const pii = piiNote(input.body);
+  if (pii) notes.push(pii);
+  if (flags.includes("possible_instruction")) notes.push("This post was flagged possible_instruction: it contains text shaped like instructions to an AI. It was posted, but readers are told to treat post bodies as data, and flagged posts may be reviewed.");
   const [row] = await sql()<PostRow[]>`
     insert into posts (id, publisher_id, kind, title, body, url, tags, place_name, lat, lng, starts_at, ends_at, timezone,
-                       expires_at, source_url, source_key, syndicated, idempotency_key, metadata, embedding, parent_id)
+                       expires_at, source_url, source_key, syndicated, idempotency_key, metadata, embedding, parent_id, flags)
     values (${id}, ${publisher.id}, ${input.kind}, ${input.title}, ${input.body}, ${input.url ?? null}, ${tags},
             ${input.location?.name ?? null}, ${input.location?.lat ?? null}, ${input.location?.lng ?? null},
             ${input.starts_at ? new Date(input.starts_at) : null}, ${input.ends_at ? new Date(input.ends_at) : null}, ${input.timezone ?? null},
             ${expires_at}, ${input.source_url ?? null}, ${normalizeSourceKey(input.source_url)}, ${input.syndicated ?? false},
             ${input.idempotency_key ?? null}, ${sql().json((input.metadata ?? {}) as never)},
-            ${vec ? toVectorLiteral(vec) : null}::vector, ${parentId})
+            ${vec ? toVectorLiteral(vec) : null}::vector, ${parentId}, ${flags})
     returning *`;
   await sql()`select bump_stat('posts')`;
   const full = await getPostRow(row.id);
-  return { post: publicPost(full!), created: true };
+  return { post: publicPost(full!), created: true, notes };
 }
 
 export async function updatePost(publisher: PublisherRow, id: string, patch: z.infer<typeof PostPatchSchema>): Promise<PublicPost> {
@@ -223,8 +246,8 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: z.i
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
   const merged = {
     kind: patch.kind ?? existing.kind,
-    title: patch.title ?? existing.title,
-    body: patch.body ?? existing.body,
+    title: stripHiddenUnicode(patch.title ?? existing.title),
+    body: stripHiddenUnicode(patch.body ?? existing.body),
     url: patch.url !== undefined ? patch.url : existing.url,
     tags: patch.tags ? [...new Set(patch.tags)] : existing.tags,
     place_name: patch.location ? patch.location.name ?? null : existing.place_name,
@@ -255,6 +278,7 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: z.i
       expires_at = ${expires_at}, source_url = ${merged.source_url}, source_key = ${normalizeSourceKey(merged.source_url)},
       syndicated = ${merged.syndicated}, metadata = ${sql().json(merged.metadata as never)},
       embedding = ${vecLiteral === undefined ? sql()`embedding` : sql()`${vecLiteral}::vector`},
+      flags = ${contentFlags(merged.title, merged.body)},
       updated_at = now()
     where id = ${id}`;
   return publicPost((await getPostRow(id))!);
@@ -280,7 +304,7 @@ export async function relatedPosts(id: string, limit = 5): Promise<PublicPost[]>
   const rows = await sql().unsafe<PostRow[]>(
     `select ${POST_COLUMNS}
        from posts p join publishers u on u.id = p.publisher_id, (select embedding from posts where id = $1) q
-      where p.id <> $1 and p.parent_id is null and p.deleted_at is null and p.expires_at > now()
+      where p.id <> $1 and p.parent_id is null and p.deleted_at is null and p.hidden_at is null and p.expires_at > now()
         and p.embedding is not null and q.embedding is not null and (p.embedding <=> q.embedding) <= 0.85
       order by p.embedding <=> q.embedding
       limit $2`, [id, limit]);
@@ -291,10 +315,46 @@ export async function relatedPosts(id: string, limit = 5): Promise<PublicPost[]>
 export async function repliesFor(id: string, limit = 50, after?: string): Promise<{ posts: PublicPost[]; next_cursor: string | null }> {
   const cur = after ? new Date(after) : null;
   const rows = cur
-    ? await sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.created_at > $2 order by p.created_at asc, p.id asc limit $3`, [id, cur, limit + 1])
-    : await sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null order by p.created_at asc, p.id asc limit $2`, [id, limit + 1]);
+    ? await sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null and p.created_at > $2 order by p.created_at asc, p.id asc limit $3`, [id, cur, limit + 1])
+    : await sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null order by p.created_at asc, p.id asc limit $2`, [id, limit + 1]);
   const page = rows.slice(0, limit);
   return { posts: page.map((r) => publicPost(r)), next_cursor: rows.length > limit ? page[page.length - 1].created_at.toISOString() : null };
+}
+
+/** Embed posts that were stored without an embedding (Cohere was down or over budget). A few per cron tick. */
+export async function backfillEmbeddings(limit = 5): Promise<number> {
+  const rows = await sql()<{ id: string; kind: string; title: string; body: string; tags: string[]; place_name: string | null }[]>`
+    select id, kind, title, body, tags, place_name from posts where embedding is null and deleted_at is null order by created_at asc limit ${limit}`;
+  if (rows.length === 0) return 0;
+  if (!(await hasBudget("embeds_per_day"))) return 0;
+  const vecs = await embedDocuments(rows.map((r) => postEmbeddingText(r)));
+  let n = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const v = vecs[i];
+    if (!v) continue;
+    await sql()`update posts set embedding = ${toVectorLiteral(v)}::vector where id = ${rows[i].id}`;
+    n++;
+  }
+  return n;
+}
+
+/** Hard-delete posts long after they expired or were deleted. Aggregates in stats_daily survive. */
+export async function purgeOldPosts(): Promise<number> {
+  const rows = await sql()<{ id: string }[]>`
+    delete from posts where (expires_at < now() - interval '90 days') or (deleted_at is not null and deleted_at < now() - interval '30 days') returning id`;
+  return rows.length;
+}
+
+/**
+ * Should search engines index this post? Verified publishers: always. Unverified: only once both the
+ * post and the publisher are a day old, which blunts the SEO-spam incentive and gives reports time to land.
+ */
+export function indexable(r: PostRow): boolean {
+  if (r.pub_verified_at) return true;
+  const day = 86400e3;
+  const postAge = Date.now() - r.created_at.getTime();
+  const pubAge = r.pub_created_at ? Date.now() - r.pub_created_at.getTime() : 0;
+  return postAge > day && pubAge > day && r.report_count === 0;
 }
 
 export async function bumpViews(id: string) {

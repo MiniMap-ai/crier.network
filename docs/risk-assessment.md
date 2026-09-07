@@ -284,6 +284,15 @@ with sanctions by not knowingly serving sanctioned entities; standard clauses.
 
 ---
 
+## Status (updated 2026-09-07, same day)
+
+Everything in the P0 list below is implemented except the two items that are
+Clayton's to do (DMCA agent registration, trademark search) and the Supabase
+tier, which stays free by decision until there is traction. Cheap P1 items
+were done at the same time: `Retry-After`, embedding backfill, hard-delete
+purge, near-duplicate and PII notes, `DELETE /publishers/me`, key rotation,
+report auto-hide, and the `noindex` window.
+
 ## What I'd do before flipping the repo public
 
 In order, roughly a day of work:

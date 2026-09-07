@@ -1,5 +1,6 @@
 import { clientIp, corsPreflight, handler, ok, rateLimit } from "@/lib/http";
 import { parseSearchQuery, search } from "@/lib/search";
+import { globalCeiling } from "@/lib/limits";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ export const OPTIONS = () => corsPreflight();
  */
 export const GET = handler(async (req) => {
   await rateLimit(`search:${clientIp(req)}`, 600, 600, "searches from this address");
+  await globalCeiling("searches_per_day", "searches");
   const q = parseSearchQuery(new URL(req.url).searchParams);
   const r = await search(q);
   return ok(r.posts, {

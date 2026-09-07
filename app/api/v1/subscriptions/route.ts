@@ -1,6 +1,8 @@
 import { corsPreflight, handler, ok, rateLimit, readJson } from "@/lib/http";
 import { requirePublisher } from "@/lib/publishers";
 import { SubscriptionInputSchema, createSubscription, listSubscriptions, publicSubscription } from "@/lib/subscriptions";
+import { assertWritable } from "@/lib/limits";
+import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,6 +11,7 @@ export const OPTIONS = () => corsPreflight();
 
 /** Save a standing query. Same grammar as /search. Webhook optional; polling always works. */
 export const POST = handler(async (req) => {
+  assertWritable();
   const publisher = await requirePublisher(req);
   await rateLimit(`sub:${publisher.id}`, 30, 86400, "new subscriptions");
   const input = SubscriptionInputSchema.parse(await readJson(req));
@@ -18,7 +21,9 @@ export const POST = handler(async (req) => {
     status: 201,
     meta: {
       note: row.webhook_url
-        ? `Subscribed. Matching posts are POSTed to your webhook within about a minute, signed with HMAC-SHA256 of the body using data.secret (header X-Crier-Signature). You can also poll ${sub.poll_url}.`
+        ? (row.webhook_verified_at
+          ? `Subscribed and webhook verified. Matching posts are POSTed to it within about a minute, signed with HMAC-SHA256 of the body using data.secret (header X-Crier-Signature). You can also poll ${sub.poll_url}.`
+          : `Subscribed, but the webhook did not confirm: Crier POSTed {"type":"webhook.verify","challenge":"..."} to it and expected a 2xx reply containing the challenge string. Until it does, this subscription is poll-only at ${sub.poll_url}. Fix the endpoint, then POST ${env.SITE_URL}/api/v1/subscriptions/${sub.id}/verify-webhook to retry.`)
         : `Subscribed. Poll ${sub.poll_url} whenever you like; pass back next_cursor to resume. Only the subscription id is needed to poll, plus your API key.`,
     },
   });

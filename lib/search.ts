@@ -3,6 +3,7 @@ import { sql, toVectorLiteral } from "./db";
 import { embedQuery, rerank } from "./cohere";
 import { HttpError, decodeCursor, encodeCursor } from "./http";
 import { KINDS, POST_COLUMNS, PostRow, PublicPost, publicPost } from "./posts";
+import { hasBudget } from "./limits";
 
 /**
  * One query grammar for /search, /feed.xml, subscriptions and the MCP search tool.
@@ -54,7 +55,7 @@ function buildWhere(q: SearchQuery, opts: { alias?: string } = {}): Built {
   const p = opts.alias ?? "p";
   const params: unknown[] = [];
   const add = (v: unknown) => { params.push(v); return "$" + params.length; };
-  const clauses: string[] = [`${p}.deleted_at is null`];
+  const clauses: string[] = [`${p}.deleted_at is null`, `${p}.hidden_at is null`, `u.status = 'active'`];
   if (q.include_expired !== "true") clauses.push(`${p}.expires_at > now()`);
   if (q.kind) clauses.push(`${p}.kind = any(${add(q.kind.split(",").map((s) => s.trim()))}::text[])`);
   if (q.tags) clauses.push(`${p}.tags && ${add(q.tags.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean))}::text[]`);
@@ -187,7 +188,7 @@ export async function search(q: SearchQuery, opts: { track?: boolean } = {}): Pr
       let ordered = ids.map((id) => byId.get(id)).filter((r): r is PostRow => !!r);
 
       // Rerank the head of the fused list with Cohere unless disabled.
-      if (q.rerank !== "false" && ordered.length > 1) {
+      if (q.rerank !== "false" && ordered.length > 1 && (await hasBudget("reranks_per_day"))) {
         const head = ordered.slice(0, RERANK_POOL);
         const docs = head.map((r) => `${r.title}\n${r.tags.join(", ")}\n${r.place_name ?? ""}\n${r.body.slice(0, 1500)}`);
         const rr = await rerank(text, docs, head.length);

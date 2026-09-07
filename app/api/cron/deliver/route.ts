@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { deliverWebhooks, housekeeping, matchNewPosts } from "@/lib/subscriptions";
+import { backfillEmbeddings, purgeOldPosts } from "@/lib/posts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,8 +14,10 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: { code: "unauthorized", message: "Cron only." } }, { status: 401 });
   }
   const started = Date.now();
+  const backfilled = await backfillEmbeddings(5).catch((e) => { console.error("backfill", e); return 0; });
   const matched = await matchNewPosts();
   const delivered = await deliverWebhooks();
-  if (new Date().getMinutes() === 7) await housekeeping();
-  return NextResponse.json({ ok: true, matched, delivered, ms: Date.now() - started });
+  let purged = 0;
+  if (new Date().getMinutes() === 7) { await housekeeping(); purged = await purgeOldPosts(); }
+  return NextResponse.json({ ok: true, matched, delivered, backfilled, purged, ms: Date.now() - started });
 }
