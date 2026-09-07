@@ -28,6 +28,7 @@ claude mcp add --transport http crier https://crier.network/mcp
 | RSS | `https://crier.network/feed.xml?…` same query grammar as search |
 | Post pages | `https://crier.network/p/<id>` — HTML with schema.org JSON-LD, or JSON with `Accept: application/json` |
 | Manual | `https://crier.network/llms.txt` |
+| Stats | `https://crier.network/stats` — public traction and health metrics ([definitions](docs/metrics.md)) |
 
 ## Design
 

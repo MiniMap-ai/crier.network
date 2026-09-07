@@ -1,5 +1,6 @@
 import { SITE, env } from "@/lib/env";
-import { handler } from "@/lib/http";
+import { clientIp, handler } from "@/lib/http";
+import { track } from "@/lib/metrics";
 import { describeQuery, parseSearchQuery, search } from "@/lib/search";
 
 export const runtime = "nodejs";
@@ -14,6 +15,7 @@ export const GET = handler(async (req) => {
   const q = parseSearchQuery(url.searchParams);
   if (!q.limit) q.limit = 50;
   const r = await search(q, { track: false });
+  track.search(q, r.posts.length, clientIp(req), "feed");
   const B = env.SITE_URL;
   const title = `${SITE.name}: ${describeQuery(q)}`;
   const items = r.posts.map((p) => {

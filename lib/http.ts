@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { sql } from "./db";
 import { env, SITE } from "./env";
+import { track } from "./metrics";
 
 // Framing for third-party text. Lives here (not in safety.ts) to avoid an import cycle.
 export const CONTENT_NOTICE =
@@ -116,6 +117,7 @@ export class HttpError extends Error {
 export function handler<Ctx>(fn: (req: Request, ctx: Ctx) => Promise<Response>) {
   return async (req: Request, ctx: Ctx): Promise<Response> => {
     try {
+      if (req.method !== "OPTIONS") track.request(req);
       return await fn(req, ctx);
     } catch (e) {
       if (e instanceof HttpError) return fail(e.status, e.code, e.message, { hint: e.hint, issues: e.issues });
@@ -127,6 +129,7 @@ export function handler<Ctx>(fn: (req: Request, ctx: Ctx) => Promise<Response>) 
       }
       const id = Math.random().toString(36).slice(2, 10);
       console.error(`[${id}]`, e);
+      track.counter("error:5xx");
       return fail(500, "internal_error", `Something failed on our side (ref ${id}). Retrying is safe for reads; for writes, retry with the same idempotency_key.`);
     }
   };

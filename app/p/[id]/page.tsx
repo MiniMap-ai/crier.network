@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { track } from "@/lib/metrics";
+import { headers } from "next/headers";
 import { PostList, fmtWhen } from "@/components/PostList";
 import { env } from "@/lib/env";
 import { POST_ID_RE } from "@/lib/ids";
@@ -32,6 +34,7 @@ export default async function PostPage({ params }: Props) {
   const row = await getPostRow(id);
   if (!row || row.deleted_at || row.hidden_at) notFound();
   const p = publicPost(row);
+  track.pageView((await headers()).get("user-agent"), "post");
   const [related, replies] = await Promise.all([relatedPosts(id, 5), p.reply_count > 0 || p.kind === "thread" ? repliesFor(id, 50) : Promise.resolve({ posts: [], next_cursor: null })]);
   bumpViews(id);
   const when = fmtWhen(p);

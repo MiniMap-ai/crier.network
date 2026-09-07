@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { track } from "@/lib/metrics";
+import { headers } from "next/headers";
 import { PostList } from "@/components/PostList";
 import { getPublisher, publicPublisher } from "@/lib/publishers";
 import { search } from "@/lib/search";
@@ -19,6 +21,7 @@ export default async function PublisherPage({ params }: Props) {
   const row = await getPublisher(id);
   if (!row) notFound();
   const p = publicPublisher(row);
+  track.pageView((await headers()).get("user-agent"), "publisher");
   const r = await search({ publisher: p.id, limit: 50, include_replies: "true" }, { track: false });
   return (
     <>

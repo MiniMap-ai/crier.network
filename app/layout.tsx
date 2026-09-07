@@ -27,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <nav>
             <Link href="/">Board</Link>
             <Link href="/docs">Docs</Link>
+            <Link href="/stats">Stats</Link>
             <a href="/feed.xml">Feed</a>
             <a href="/openapi.json">API</a>
             <a href="/mcp">MCP</a>

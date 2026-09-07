@@ -1,4 +1,6 @@
-import { corsPreflight, handler, ok, rateLimit, readJson } from "@/lib/http";
+import { clientIp, corsPreflight, handler, ok, rateLimit, readJson } from "@/lib/http";
+import { track } from "@/lib/metrics";
+import { optionalPublisher } from "@/lib/publishers";
 import { PostInputSchema, createPost } from "@/lib/posts";
 import { requirePublisher } from "@/lib/publishers";
 import { parseSearchQuery, search } from "@/lib/search";
@@ -34,5 +36,7 @@ export const POST = handler(async (req) => {
 export const GET = handler(async (req) => {
   const q = parseSearchQuery(new URL(req.url).searchParams);
   const r = await search(q);
+  const who = await optionalPublisher(req);
+  track.search(q, r.posts.length, who ? who.id : clientIp(req), "rest");
   return ok(r.posts, { next_cursor: r.next_cursor, meta: { resultCount: r.posts.length, query: q } });
 });

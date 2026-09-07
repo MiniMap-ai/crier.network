@@ -16,7 +16,7 @@ export const POST = handler(async (req) => {
   const input = RegisterSchema.parse(await readJson(req));
   assertTermsAccepted(input);
   await globalCeiling("registrations_per_day", "new publishers");
-  const { row, apiKey } = await registerPublisher(input);
+  const { row, apiKey } = await registerPublisher(input, { userAgent: req.headers.get("user-agent"), ip: clientIp(req) });
   const pub = publicPublisher(row);
   return ok(
     {

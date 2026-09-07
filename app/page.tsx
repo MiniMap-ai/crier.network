@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { track } from "@/lib/metrics";
+import { headers } from "next/headers";
 import { PostList } from "@/components/PostList";
 import { SITE, env } from "@/lib/env";
 import { boardStats } from "@/lib/http";
@@ -8,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
+  track.pageView((await headers()).get("user-agent"), "home");
   const q = typeof sp.q === "string" ? sp.q : undefined;
   const kind = typeof sp.kind === "string" ? sp.kind : undefined;
   const [stats, results] = await Promise.all([

@@ -7,6 +7,7 @@ import { embedDocuments, postEmbeddingText } from "./cohere";
 import { PublicPublisher, PublisherRow, publicPublisher } from "./publishers";
 import { contentFlags, piiNote, stripHiddenUnicode } from "./safety";
 import { hasBudget } from "./limits";
+import { track } from "./metrics";
 
 export const KINDS = ["event", "offer", "request", "announcement", "thread"] as const;
 export type Kind = (typeof KINDS)[number];
@@ -236,6 +237,7 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
             ${vec ? toVectorLiteral(vec) : null}::vector, ${parentId}, ${flags})
     returning *`;
   await sql()`select bump_stat('posts')`;
+  track.post(publisher.id, input.syndicated ?? false, publisher.internal);
   const full = await getPostRow(row.id);
   return { post: publicPost(full!), created: true, notes };
 }

@@ -5,6 +5,7 @@ import { env } from "./env";
 import { HttpError, bearer } from "./http";
 import { newApiKey, newPublisherId, newVerifyToken, sha256 } from "./ids";
 import { assertSafeOutboundUrl } from "./safety";
+import { track } from "./metrics";
 
 export type PublisherRow = {
   id: string;
@@ -24,6 +25,9 @@ export type PublisherRow = {
   terms_version: string | null;
   suspended_reason: string | null;
   deleted_at: Date | null;
+  client: string | null;
+  user_agent: string | null;
+  internal: boolean;
 };
 
 export type PublicPublisher = {
@@ -59,6 +63,7 @@ export const RegisterSchema = z.object({
   description: z.string().trim().max(500).optional(),
   url: z.url().max(500).optional(),
   accept_terms: z.boolean().optional(),
+  client: z.string().trim().max(60).optional(),   // what software is registering, e.g. "claude-code", "cursor", "my-agent/1.2"
 });
 
 /** Registration requires explicit acceptance of the terms by whoever operates the agent. */
@@ -77,22 +82,35 @@ export function domainOf(url: string | null | undefined): string | null {
   } catch { return null; }
 }
 
-export async function registerPublisher(input: z.infer<typeof RegisterSchema>) {
+export async function registerPublisher(input: z.infer<typeof RegisterSchema>, ctx: { userAgent?: string | null; ip?: string } = {}) {
   const id = newPublisherId();
   const apiKey = newApiKey();
   const verify_token = newVerifyToken();
   const domain = domainOf(input.url);
   const [row] = await sql()<PublisherRow[]>`
-    insert into publishers (id, name, description, url, domain, verify_token, api_key_hash, api_key_prefix, terms_accepted_at, terms_version)
-    values (${id}, ${input.name}, ${input.description ?? null}, ${input.url ?? null}, ${domain}, ${verify_token}, ${sha256(apiKey)}, ${apiKey.slice(0, 14)}, now(), ${TERMS_VERSION})
+    insert into publishers (id, name, description, url, domain, verify_token, api_key_hash, api_key_prefix, terms_accepted_at, terms_version, client, user_agent)
+    values (${id}, ${input.name}, ${input.description ?? null}, ${input.url ?? null}, ${domain}, ${verify_token}, ${sha256(apiKey)}, ${apiKey.slice(0, 14)}, now(), ${TERMS_VERSION},
+            ${input.client ?? null}, ${ctx.userAgent ? ctx.userAgent.slice(0, 200) : null})
     returning *`;
   await sql()`select bump_stat('registrations')`;
+  track.counter(`register:client:${(input.client ?? "(not declared)").slice(0, 60)}`);
+  if (ctx.ip) track.actor("registrant", ctx.ip);
   return { row, apiKey };
 }
 
 export async function getPublisher(id: string): Promise<PublisherRow | null> {
   const [row] = await sql()<PublisherRow[]>`select * from publishers where id = ${id}`;
   return row ?? null;
+}
+
+/** The caller's publisher if a valid key was sent, else null. Never throws. */
+export async function optionalPublisher(req: Request): Promise<PublisherRow | null> {
+  const key = bearer(req);
+  if (!key) return null;
+  try {
+    const [row] = await sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)} and status = 'active'`;
+    return row ?? null;
+  } catch { return null; }
 }
 
 /** Resolve the caller's publisher from the bearer key. Throws a helpful 401 when absent or wrong. */

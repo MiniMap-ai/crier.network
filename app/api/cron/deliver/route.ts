@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { deliverWebhooks, housekeeping, matchNewPosts } from "@/lib/subscriptions";
 import { backfillEmbeddings, purgeOldPosts } from "@/lib/posts";
+import { track } from "@/lib/metrics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,6 +15,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, error: { code: "unauthorized", message: "Cron only." } }, { status: 401 });
   }
   const started = Date.now();
+  track.counter("cron:tick");
   const backfilled = await backfillEmbeddings(5).catch((e) => { console.error("backfill", e); return 0; });
   const matched = await matchNewPosts();
   const delivered = await deliverWebhooks();
