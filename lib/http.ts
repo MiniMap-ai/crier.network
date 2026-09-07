@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { sql } from "./db";
 import { env, SITE } from "./env";
@@ -123,10 +124,11 @@ export async function readJson(req: Request): Promise<unknown> {
   try { return await req.json(); } catch { throw new HttpError(400, "invalid_json", "Body is not valid JSON."); }
 }
 
+/** A stable, non-reversible token for the caller's address. We never store raw IPs. */
 export function clientIp(req: Request): string {
   const xf = req.headers.get("x-forwarded-for");
-  if (xf) return xf.split(",")[0].trim();
-  return req.headers.get("x-real-ip") || "0.0.0.0";
+  const ip = xf ? xf.split(",")[0].trim() : req.headers.get("x-real-ip") || "0.0.0.0";
+  return createHash("sha256").update("crier-ip:" + ip).digest("hex").slice(0, 24);
 }
 
 export function bearer(req: Request): string | null {

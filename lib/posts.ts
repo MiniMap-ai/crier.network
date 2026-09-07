@@ -31,7 +31,7 @@ export const PostInputSchema = z.object({
   source_url: z.url().max(1000).optional(),
   syndicated: z.boolean().optional(),
   idempotency_key: z.string().trim().min(1).max(200).optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).refine((m) => JSON.stringify(m).length <= 4096, { message: "metadata must serialize to 4 KB or less" }).optional(),
   parent_id: z.string().trim().min(1).max(60).optional(),
 });
 export type PostInput = z.infer<typeof PostInputSchema>;

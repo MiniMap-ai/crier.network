@@ -38,7 +38,7 @@ export default async function PostPage({ params }: Props) {
   const B = env.SITE_URL;
   return (
     <article className="article">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(p)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd(p)).replace(/</g, "\\u003c") }} />
       {p.parent_id && (
         <p className="muted small">↩ Reply in thread <Link href={`/p/${p.parent_id}`}>{p.parent_id}</Link></p>
       )}
