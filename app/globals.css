@@ -1,0 +1,91 @@
+:root {
+  --bg: #fbfaf7;
+  --fg: #1c1b18;
+  --muted: #6b675e;
+  --line: #e6e2d8;
+  --accent: #b5471f;
+  --accent-soft: #f6e6dd;
+  --card: #ffffff;
+  --code: #f1efe9;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151412;
+    --fg: #ebe7df;
+    --muted: #9c978c;
+    --line: #2c2a26;
+    --accent: #e8794a;
+    --accent-soft: #3a241a;
+    --card: #1d1c19;
+    --code: #232220;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.55;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+main { max-width: 760px; margin: 0 auto; padding: 0 20px 64px; }
+header.site {
+  max-width: 760px; margin: 0 auto; padding: 22px 20px 10px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+header.site .brand { font-weight: 700; font-size: 20px; color: var(--fg); letter-spacing: -0.01em; }
+header.site .brand span { color: var(--muted); font-weight: 400; font-size: 14px; margin-left: 10px; }
+header.site nav a { color: var(--muted); margin-left: 16px; font-size: 14px; }
+header.site nav a:hover { color: var(--fg); }
+footer.site {
+  max-width: 760px; margin: 0 auto; padding: 28px 20px 40px;
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px;
+}
+footer.site code { font-size: 12.5px; }
+h1 { font-size: 30px; line-height: 1.2; letter-spacing: -0.015em; margin: 18px 0 10px; }
+h2 { font-size: 20px; margin: 34px 0 10px; letter-spacing: -0.01em; }
+h3 { font-size: 16px; margin: 22px 0 8px; }
+p { margin: 0 0 14px; }
+.lede { font-size: 18px; color: var(--fg); }
+.muted { color: var(--muted); }
+.small { font-size: 13.5px; }
+code, pre { font-family: var(--mono); }
+code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 0.9em; }
+pre { background: var(--code); padding: 12px 14px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 0 0 16px; }
+pre code { background: none; padding: 0; font-size: inherit; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 0 0 16px; display: block; overflow-x: auto; }
+th, td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; }
+ul, ol { padding-left: 22px; margin: 0 0 14px; }
+li { margin-bottom: 4px; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 28px 0; }
+.stats { display: flex; gap: 28px; flex-wrap: wrap; margin: 6px 0 18px; }
+.stat b { display: block; font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+.stat span { color: var(--muted); font-size: 13px; }
+.posts { list-style: none; padding: 0; margin: 0; }
+.post { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.post:last-child { border-bottom: 0; }
+.post .title { font-size: 17px; font-weight: 600; }
+.post .title a { color: var(--fg); }
+.post .line { color: var(--muted); font-size: 13.5px; margin-top: 3px; }
+.post .body { margin-top: 6px; color: var(--fg); }
+.kind {
+  display: inline-block; font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--accent); background: var(--accent-soft); padding: 2px 7px; border-radius: 4px; margin-right: 8px; vertical-align: 1px;
+}
+.tag { display: inline-block; font-size: 12.5px; color: var(--muted); background: var(--code); padding: 1px 7px; border-radius: 4px; margin: 0 6px 4px 0; }
+.verified { color: #2e7d4f; font-weight: 600; font-size: 12.5px; }
+.article .body { white-space: pre-wrap; font-size: 16.5px; margin: 16px 0; }
+.meta { color: var(--muted); font-size: 13.5px; }
+.meta dt { float: left; clear: left; width: 110px; font-weight: 600; }
+.meta dd { margin: 0 0 4px 110px; }
+.box { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 0 0 16px; }
+.reply { padding: 10px 0 10px 14px; border-left: 2px solid var(--line); margin: 10px 0; }
+@media (max-width: 520px) { h1 { font-size: 26px; } .meta dt { width: 90px; } .meta dd { margin-left: 90px; } }

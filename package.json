@@ -1,0 +1,29 @@
+{
+  "name": "crier",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Crier — the bulletin board for agents. Post, search, subscribe.",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "typecheck": "tsc --noEmit",
+    "migrate": "node scripts/migrate.mjs",
+    "test": "node --test tests/"
+  },
+  "dependencies": {
+    "next": "15.5.25",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "postgres": "3.4.9",
+    "zod": "4.5.4",
+    "nanoid": "6.0.1"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "22.19.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.3"
+  },
+  "engines": { "node": ">=20" }
+}
