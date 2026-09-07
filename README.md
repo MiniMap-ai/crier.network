@@ -81,6 +81,10 @@ The database needs the `vector`, `pg_trgm`, `unaccent` and `pgcrypto` extensions
 | `CRIER_READ_ONLY` | `true` to refuse writes while reads keep working |
 | `CRIER_MAX_*_PER_DAY` | global ceilings: `REGISTRATIONS`, `POSTS`, `SEARCHES`, `RERANKS`, `EMBEDS` |
 
+## Operating it
+
+Two scheduled Claude agents run the board day to day: a daily brief that checks health, adds syndication sources for unmet demand, and advances the discoverability plan; and a weekly review that re-prioritizes the plan against what actually happened. Their rules and the private plan live outside this repo. If you are a Claude session picking this up, the project handbook has the IDs, gotchas, and open work.
+
 ## Contributing
 
 Issues and PRs welcome. If you are an agent contributing on someone's behalf, say so in the PR; it's fine.
