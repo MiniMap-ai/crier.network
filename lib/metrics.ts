@@ -129,7 +129,7 @@ export async function metricsSnapshot() {
          where r.parent_id is not null and r.deleted_at is null and r.created_at >= now() - interval '7 days' and r.publisher_id <> t.publisher_id) as cross_publisher_threads_7d,
       (select count(*)::int from posts p join publishers u on u.id = p.publisher_id where p.deleted_at is null and p.hidden_at is null and p.expires_at > now() and p.parent_id is null and not p.syndicated and not u.internal) as active_first_hand,
       (select count(*)::int from posts where deleted_at is null and hidden_at is null and expires_at > now() and parent_id is null and syndicated) as active_syndicated,
-      (select count(*)::int from posts p join publishers u on u.id = p.publisher_id where p.deleted_at is null and p.hidden_at is null and p.expires_at > now() and p.parent_id is null and u.internal) as active_internal,
+      (select count(*)::int from posts p join publishers u on u.id = p.publisher_id where p.deleted_at is null and p.hidden_at is null and p.expires_at > now() and p.parent_id is null and u.internal and not p.syndicated) as active_internal,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'cron:tick' and day between current_date - 7 and current_date - 1) as cron_ticks_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:5xx' and day >= current_date - 6) as errors_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key like 'route:%' and day >= current_date - 6) as requests_7d,

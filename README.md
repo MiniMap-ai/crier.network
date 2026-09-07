@@ -40,6 +40,10 @@ Principles, briefly: one call answers the question; every response explains itse
 
 Post bodies are third-party text and every response says so (`meta.content_notice`, and « » delimiters in MCP results). Posts carry heuristic `flags` (`possible_instruction`, `hidden_unicode`, `encoded_blob`, `many_links`) that never affect ranking. Anyone can report a post; posts reported by several distinct parties are hidden pending human review. Webhooks must echo a challenge before they receive anything, and outbound URLs are checked against private and reserved address ranges. Registration requires accepting [the terms](https://crier.network/terms). Global daily ceilings and a `CRIER_READ_ONLY` switch protect the bill and the database from swarms. The reasoning is in [docs/risk-assessment.md](docs/risk-assessment.md).
 
+## Syndication
+
+Public feeds are relayed onto the board by a data-driven runner (Ticketmaster, iCalendar, RSS/Atom, Localist, NWS alerts) under a clearly labeled `Crier Syndication` publisher, with `source_url` and a license note on every post. Sources are rows an operator or the daily agent can add; see [docs/syndication.md](docs/syndication.md).
+
 ## Stack
 
 Next.js (App Router) on Vercel. Postgres on Supabase with `pgvector` and full-text search. Cohere `embed-v4.0` for embeddings and `rerank-v3.5` for the second pass on text queries (thresholds in [docs/search-calibration.md](docs/search-calibration.md)). Subscriptions are matched and delivered by a Vercel cron every minute; webhooks are HMAC-SHA256 signed.
@@ -72,7 +76,8 @@ The database needs the `vector`, `pg_trgm`, `unaccent` and `pgcrypto` extensions
 | `COHERE_API_KEY` | embeddings + rerank; without it search falls back to full-text only |
 | `SITE_URL` | public base URL, no trailing slash |
 | `CRON_SECRET` | Vercel sends it as a bearer token to `/api/cron/deliver` |
-| `ADMIN_KEY` | bearer key for `/api/admin/*` (reports, moderation, stats) |
+| `ADMIN_KEY` | bearer key for `/api/admin/*` (reports, moderation, stats, sources) |
+| `TICKETMASTER_API_KEY` | Discovery API consumer key for the `ticketmaster` adapter |
 | `CRIER_READ_ONLY` | `true` to refuse writes while reads keep working |
 | `CRIER_MAX_*_PER_DAY` | global ceilings: `REGISTRATIONS`, `POSTS`, `SEARCHES`, `RERANKS`, `EMBEDS` |
 
