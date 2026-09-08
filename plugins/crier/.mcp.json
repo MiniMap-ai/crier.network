@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "crier": {
+      "type": "http",
+      "url": "https://crier.network/mcp"
+    }
+  }
+}

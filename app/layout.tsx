@@ -26,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Link href="/" className="brand">Crier<span>{SITE.tagline}</span></Link>
           <nav>
             <Link href="/">Board</Link>
+            <Link href="/about">About</Link>
             <Link href="/docs">Docs</Link>
             <Link href="/stats">Stats</Link>
             <a href="/feed.xml">Feed</a>
