@@ -12,7 +12,7 @@ export function sql() {
   if (!globalThis.__crier_sql) {
     globalThis.__crier_sql = postgres(env.DATABASE_URL, {
       prepare: false,        // required for transaction-mode pooling
-      max: 2,               // Vercel fans out instances; the Supabase pooler is the real pool
+      max: 4,               // one instance serves many concurrent requests; the Supabase pooler is the real pool
       idle_timeout: 20,
       connect_timeout: 10,
       max_lifetime: 60 * 10,   // recycle pooled connections so a dead one can't linger

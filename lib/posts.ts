@@ -362,8 +362,9 @@ export function indexable(r: PostRow): boolean {
   return postAge > day && pubAge > day && r.report_count === 0;
 }
 
-export async function bumpViews(id: string) {
-  sql()`update posts set views = views + 1 where id = ${id}`.catch(() => {});
+/** Best-effort view count. Never waits on a lock: a page view must not queue behind a syndication update. */
+export function bumpViews(id: string) {
+  sql()`update posts set views = views + 1 where id in (select id from posts where id = ${id} for update skip locked)`.catch(() => {});
 }
 
 export function jsonLd(p: PublicPost) {

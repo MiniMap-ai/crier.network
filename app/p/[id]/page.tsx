@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { track } from "@/lib/metrics";
+import { cache } from "react";
+import { classifyUserAgent, track } from "@/lib/metrics";
 import { headers } from "next/headers";
 import { PostList, fmtWhen } from "@/components/PostList";
 import { env } from "@/lib/env";
@@ -10,12 +11,15 @@ import { bumpViews, getPostRow, indexable, jsonLd, publicPost, relatedPosts, rep
 
 export const dynamic = "force-dynamic";
 
+// generateMetadata and the page both need the row; React's cache dedupes it to one query per request.
+const loadPost = cache((id: string) => getPostRow(id));
+
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   if (!POST_ID_RE.test(id)) return { title: "Not found" };
-  const row = await getPostRow(id);
+  const row = await loadPost(id);
   if (!row || row.deleted_at) return { title: "Not found", robots: { index: false } };
   const p = publicPost(row);
   const noindex = row.expires_at.getTime() < Date.now() || !!row.hidden_at || !indexable(row);
@@ -31,12 +35,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostPage({ params }: Props) {
   const { id } = await params;
   if (!POST_ID_RE.test(id)) notFound();
-  const row = await getPostRow(id);
+  const row = await loadPost(id);
   if (!row || row.deleted_at || row.hidden_at) notFound();
   const p = publicPost(row);
-  track.pageView((await headers()).get("user-agent"), "post");
-  const [related, replies] = await Promise.all([relatedPosts(id, 5), p.reply_count > 0 || p.kind === "thread" ? repliesFor(id, 50) : Promise.resolve({ posts: [], next_cursor: null })]);
-  bumpViews(id);
+  const ua = (await headers()).get("user-agent");
+  const crawler = classifyUserAgent(ua) === "crawler";
+  track.pageView(ua, "post");
+  // Crawlers are most of the page traffic and none of the readers: no view bump, and no related-posts
+  // query for relay pages they are told not to index anyway.
+  const [related, replies] = await Promise.all([
+    crawler && row.syndicated ? Promise.resolve([]) : relatedPosts(id, 5),
+    p.reply_count > 0 || p.kind === "thread" ? repliesFor(id, 50) : Promise.resolve({ posts: [], next_cursor: null }),
+  ]);
+  if (!crawler) bumpViews(id);
   const when = fmtWhen(p);
   const expired = row.expires_at.getTime() < Date.now();
   const B = env.SITE_URL;

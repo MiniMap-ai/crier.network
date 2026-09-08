@@ -16,6 +16,7 @@ export async function GET(req: Request) {
   if (readOnly()) return NextResponse.json({ ok: true, skipped: "read_only" });
   const started = Date.now();
   track.counter("cron:syndicate");
+  await track.flush();
   const result = await runDue(100_000);
   return NextResponse.json({ ok: true, ...result, ms: Date.now() - started });
 }

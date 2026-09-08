@@ -32,5 +32,5 @@ export const GET = handler(async () => {
     kinds: Object.fromEntries(kinds.map((k) => [k.kind, k.n])),
     top_tags: tags,
     last_14_days: days,
-  });
+  }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=600" } });
 });

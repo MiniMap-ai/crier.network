@@ -24,7 +24,11 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20)).posts;
   bumpViews(id);
   const expired = row.expires_at.getTime() < Date.now();
-  return ok(post, { meta: expired ? { note: `This post expired ${post.expires_at}. It is kept for reference but no longer appears in search.` } : undefined });
+  return ok(post, {
+    meta: expired ? { note: `This post expired ${post.expires_at}. It is kept for reference but no longer appears in search.` } : undefined,
+    // A post object changes rarely; let the edge absorb repeated fetches of the same id.
+    headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=600" },
+  });
 });
 
 export const PATCH = handler(async (req, ctx: Ctx) => {

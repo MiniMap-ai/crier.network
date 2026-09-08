@@ -4,6 +4,7 @@ import { embedQuery, rerank } from "./cohere";
 import { HttpError, decodeCursor, encodeCursor } from "./http";
 import { KINDS, POST_COLUMNS, PostRow, PublicPost, publicPost } from "./posts";
 import { hasBudget } from "./limits";
+import { track } from "./metrics";
 
 /**
  * One query grammar for /search, /feed.xml, subscriptions and the MCP search tool.
@@ -221,10 +222,11 @@ export async function search(q: SearchQuery, opts: { track?: boolean } = {}): Pr
   });
   if (opts.track !== false && posts.length) {
     const ids = posts.map((p) => p.id);
-    s`update posts set retrievals = retrievals + 1 where id = any(${ids}::text[])`.catch(() => {});
-    s`select bump_stat('retrievals', ${ids.length})`.catch(() => {});
+    // Best-effort counts; skip rows something else is updating rather than queue behind them.
+    s`update posts set retrievals = retrievals + 1 where id in (select id from posts where id = any(${ids}::text[]) for update skip locked)`.catch(() => {});
+    track.stat("retrievals", ids.length);
   }
-  if (opts.track !== false) s`select bump_stat('searches')`.catch(() => {});
+  if (opts.track !== false) track.stat("searches");
   return { posts, next_cursor, mode, reranked, sort: sortUsed };
 }
 

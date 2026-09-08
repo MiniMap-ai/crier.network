@@ -2,16 +2,71 @@
  * Metrics: what we count, how, and the public snapshot. Everything here is aggregate.
  * No raw addresses, no per-person history. See docs/metrics.md for definitions.
  */
+import { after } from "next/server";
 import { sql } from "./db";
 import type { SearchQuery } from "./search";
 
-/* ---------------- recording (fire-and-forget) ---------------- */
+/* ---------------- recording (batched, fire-and-forget) ----------------
+ *
+ * Counters are not written one upsert per hit. They accumulate in this process and are flushed
+ * as one statement after the response goes out (next/server `after`), so a page view costs the
+ * database one write instead of three, and concurrent requests in the same instance share it.
+ * The flush runs inside a transaction with a short lock/statement timeout: a metrics write must
+ * never hold a pool connection for 20 s while it waits on a lock, because that starves the
+ * request that comes next. Losing a few counters under duress is fine; losing requests is not.
+ */
+
+const pendingCounters = new Map<string, number>();
+const pendingActors = new Map<string, { role: string; actor: string; n: number }>();
+const pendingStats = new Map<string, number>();     // stats_daily column -> n
+let flushScheduled = false;
+
+async function flush() {
+  flushScheduled = false;
+  if (pendingCounters.size === 0 && pendingActors.size === 0 && pendingStats.size === 0) return;
+  const counters = [...pendingCounters.entries()];
+  const actors = [...pendingActors.values()];
+  const stats = [...pendingStats.entries()];
+  pendingCounters.clear();
+  pendingActors.clear();
+  pendingStats.clear();
+  try {
+    await sql().begin(async (tx) => {
+      await tx`select set_config('statement_timeout', '3000', true), set_config('lock_timeout', '1500', true)`;
+      if (counters.length) {
+        await tx`insert into daily_counters (day, key, n)
+                 select current_date, k, n from unnest(${counters.map((c) => c[0])}::text[], ${counters.map((c) => c[1])}::bigint[]) as t(k, n)
+                 on conflict (day, key) do update set n = daily_counters.n + excluded.n`;
+      }
+      if (actors.length) {
+        await tx`insert into daily_actors (day, role, actor, n)
+                 select current_date, r, a, n from unnest(${actors.map((a) => a.role)}::text[], ${actors.map((a) => a.actor)}::text[], ${actors.map((a) => a.n)}::integer[]) as t(r, a, n)
+                 on conflict (day, role, actor) do update set n = daily_actors.n + excluded.n`;
+      }
+      for (const [col, n] of stats) await tx`select bump_stat(${col}, ${n})`;
+    });
+  } catch (e) {
+    console.error("metrics flush", (e as Error).message);
+  }
+}
+
+function scheduleFlush() {
+  if (flushScheduled) return;
+  flushScheduled = true;
+  // Inside a request: run after the response is sent (the platform keeps the instance alive for it).
+  // Outside one (tests, scripts): next tick.
+  try { after(flush); } catch { setTimeout(flush, 0); }
+}
 
 function fire(p: Promise<unknown>) { p.catch((e) => console.error("metrics", (e as Error).message)); }
 
 export const track = {
-  counter(key: string, n = 1) { fire(sql()`select bump_counter(${key}, ${n})`); },
-  actor(role: "seeker" | "publisher" | "syndicator" | "mcp_client" | "registrant", actor: string) { fire(sql()`select touch_actor(${role}, ${actor})`); },
+  counter(key: string, n = 1) { pendingCounters.set(key, (pendingCounters.get(key) ?? 0) + n); scheduleFlush(); },
+  actor(role: "seeker" | "publisher" | "syndicator" | "mcp_client" | "registrant", actor: string) { const k = role + ":" + actor; const cur = pendingActors.get(k); if (cur) cur.n++; else pendingActors.set(k, { role, actor, n: 1 }); scheduleFlush(); },
+  /** A stats_daily column (searches, retrievals, ...), batched like counters. */
+  stat(col: "searches" | "retrievals", n = 1) { pendingStats.set(col, (pendingStats.get(col) ?? 0) + n); scheduleFlush(); },
+  /** Write everything pending now. Cron handlers call this so their tick is never lost. */
+  flush,
 
   /** Every API request, by normalized route. Called from the handler wrapper. */
   request(req: Request) {

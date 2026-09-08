@@ -16,6 +16,7 @@ export async function GET(req: Request) {
   }
   const started = Date.now();
   track.counter("cron:tick");
+  await track.flush();   // the tick is the liveness signal; write it before anything that can time out
   const backfilled = await backfillEmbeddings(5).catch((e) => { console.error("backfill", e); return 0; });
   const matched = await matchNewPosts();
   const delivered = await deliverWebhooks();

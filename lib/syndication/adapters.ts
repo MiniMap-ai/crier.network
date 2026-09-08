@@ -38,7 +38,9 @@ export const ticketmaster: Adapter = async (source, ctx) => {
       const city = ((venue.city ?? {}) as Record<string, unknown>).name;
       const state = ((venue.state ?? {}) as Record<string, unknown>).stateCode;
       const cls = ((e.classifications as Record<string, unknown>[] | undefined)?.[0] ?? {}) as Record<string, Record<string, unknown>>;
-      const segment = str(cls.segment?.name), genre = str(cls.genre?.name), sub = str(cls.subGenre?.name);
+      // Ticketmaster fills empty classifications with the literal name "Undefined"; treat it as absent.
+      const cname = (v: unknown) => { const t = str(v); return /^undefined$/i.test(t) ? "" : t; };
+      const segment = cname(cls.segment?.name), genre = cname(cls.genre?.name), sub = cname(cls.subGenre?.name);
       const price = ((e.priceRanges as Record<string, unknown>[] | undefined)?.[0] ?? {}) as Record<string, unknown>;
       const priceStr = num(price.min) !== undefined ? `${str(price.currency, "USD")} ${num(price.min)}${num(price.max) !== undefined && num(price.max) !== num(price.min) ? "–" + num(price.max) : ""}` : "";
       const place = [str(venue.name), [city, state].filter(Boolean).join(", ")].filter(Boolean).join(", ");

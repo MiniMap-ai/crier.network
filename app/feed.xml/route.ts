@@ -51,5 +51,5 @@ ${p.ends_at ? `    <crier:ends_at>${esc(p.ends_at)}</crier:ends_at>` : ""}
 ${items}
 </channel>
 </rss>`;
-  return new Response(xml, { headers: { "Content-Type": "application/rss+xml; charset=utf-8", "Cache-Control": "public, max-age=120" } });
+  return new Response(xml, { headers: { "Content-Type": "application/rss+xml; charset=utf-8", "Cache-Control": "public, max-age=120, s-maxage=120, stale-while-revalidate=600" } });
 });
