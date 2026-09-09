@@ -287,7 +287,7 @@ export async function deliverWebhooks(): Promise<{ attempted: number; delivered:
   return { attempted: due.length, delivered, failed };
 }
 
-/** Housekeeping: drop old delivery rows, stale rate-limit windows, and day-scoped actor tokens past 90 days. */
+/** Housekeeping: drop old delivery rows, stale rate-limit windows, and actor/unmet-query tokens past 90 days. */
 export async function housekeeping() {
   const s = sql();
   await s`delete from deliveries where created_at < now() - interval '30 days'`;

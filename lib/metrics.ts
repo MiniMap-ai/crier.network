@@ -3,20 +3,8 @@
  * No raw addresses, no per-person history. See docs/metrics.md for definitions.
  */
 import { after } from "next/server";
-import { createHash } from "node:crypto";
 import { sql } from "./db";
 import type { SearchQuery } from "./search";
-
-/**
- * Address tokens are day-scoped before they are stored as actors: sha256(token:YYYY-MM-DD), so a
- * row in daily_actors or unmet_queries cannot be joined to another day's rows or to rate-limit keys.
- * Publisher ids (pub_…) and MCP client names are not addresses and pass through unchanged.
- */
-export function dayScoped(actor: string): string {
-  if (actor.startsWith("pub_")) return actor;
-  const day = new Date().toISOString().slice(0, 10);
-  return createHash("sha256").update(`${actor}:${day}`).digest("hex").slice(0, 24);
-}
 
 /* ---------------- recording (batched, fire-and-forget) ----------------
  *
@@ -74,11 +62,8 @@ function fire(p: Promise<unknown>) { p.catch((e) => console.error("metrics", (e 
 
 export const track = {
   counter(key: string, n = 1) { pendingCounters.set(key, (pendingCounters.get(key) ?? 0) + n); scheduleFlush(); },
-  /** seekers and registrants are address tokens and get day-scoped; publishers and MCP clients are ids/names. */
-  actor(role: "seeker" | "publisher" | "syndicator" | "mcp_client" | "registrant", actor: string) {
-    if (role === "seeker" || role === "registrant") actor = dayScoped(actor);
-    const k = role + ":" + actor; const cur = pendingActors.get(k); if (cur) cur.n++; else pendingActors.set(k, { role, actor, n: 1 }); scheduleFlush();
-  },
+  /** actor is a publisher id, a salted address token (clientIp), or an MCP client name; never a raw address. Rows are purged after 90 days. */
+  actor(role: "seeker" | "publisher" | "syndicator" | "mcp_client" | "registrant", actor: string) { const k = role + ":" + actor; const cur = pendingActors.get(k); if (cur) cur.n++; else pendingActors.set(k, { role, actor, n: 1 }); scheduleFlush(); },
   /** A stats_daily column (searches, retrievals, ...), batched like counters. */
   stat(col: "searches" | "retrievals", n = 1) { pendingStats.set(col, (pendingStats.get(col) ?? 0) + n); scheduleFlush(); },
   /** Write everything pending now. Cron handlers call this so their tick is never lost. */
@@ -97,7 +82,7 @@ export const track = {
     this.counter(`pageview:${kind}`);
   },
 
-  /** A search happened. seeker is an address hash (day-scoped before storage) or a publisher id. */
+  /** A search happened. seeker is a salted address token or a publisher id. */
   search(q: SearchQuery, results: number, seeker: string, source: "rest" | "mcp" | "feed") {
     this.counter("search:total");
     this.counter(`search:source:${source}`);
@@ -106,7 +91,7 @@ export const track = {
     if (results === 0) {
       this.counter("search:zero");
       fire(sql()`insert into unmet_queries (q, kind, tags, near, radius_km, seeker, source)
-                 values (${normalizeQuery(q.q)}, ${q.kind ?? null}, ${q.tags ? q.tags.toLowerCase().slice(0, 200) : null}, ${roundNear(q.near)}, ${q.radius_km ?? null}, ${dayScoped(seeker)}, ${source})`);
+                 values (${normalizeQuery(q.q)}, ${q.kind ?? null}, ${q.tags ? q.tags.toLowerCase().slice(0, 200) : null}, ${roundNear(q.near)}, ${q.radius_km ?? null}, ${seeker}, ${source})`);
     }
   },
 

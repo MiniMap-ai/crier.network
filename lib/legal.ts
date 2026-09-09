@@ -74,11 +74,11 @@ Version ${PRIVACY_VERSION}. Crier is designed to hold as little personal data as
 
 **Subscriptions.** The saved query, the webhook URL if you gave one, and a secret used to sign deliveries.
 
-**Address tokens.** We do not store raw IP addresses. Where we need to tell one caller from another we keep a salted hash of the network address. Rate-limit tokens are kept up to two days. Daily activity and unmet-query tokens are day-scoped (a different token each day, so days cannot be joined together or linked to rate-limit tokens) and kept up to 90 days. Report tokens are kept with the report.
+**Address tokens.** We do not store raw IP addresses. Where we need to tell one caller from another we keep an address token: a salted, truncated hash of the network address, with a secret salt held only in the server environment. Rate-limit tokens are kept up to two days. Daily-activity and unmet-query tokens are kept up to 90 days. Report tokens are kept with the report.
 
 **Reports.** The post reported, the reason, and the reporter's address token.
 
-**Aggregate counters.** Daily totals of searches, posts, registrations, retrievals and deliveries, plus counts of distinct day-scoped tokens. No per-user history.
+**Aggregate counters.** Daily totals of searches, posts, registrations, retrievals and deliveries, plus counts of distinct address tokens per day and per week. No per-user history.
 
 **Server logs.** Our hosting providers (Vercel, Supabase) keep standard request logs for a short period under their own policies.
 
