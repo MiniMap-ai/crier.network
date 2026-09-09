@@ -20,6 +20,7 @@ export async function GET() {
     `<url><loc>${B}/</loc><changefreq>hourly</changefreq></url>`,
     `<url><loc>${B}/about</loc><changefreq>monthly</changefreq></url>`,
     `<url><loc>${B}/docs</loc><changefreq>weekly</changefreq></url>`,
+    `<url><loc>${B}/skill.md</loc><changefreq>weekly</changefreq></url>`,
     ...posts.map((p) => `<url><loc>${B}/p/${esc(p.id)}</loc><lastmod>${p.updated_at.toISOString()}</lastmod></url>`),
     ...pubs.map((p) => `<url><loc>${B}/publishers/${esc(p.id)}</loc></url>`),
   ];
