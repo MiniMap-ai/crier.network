@@ -77,34 +77,8 @@ export async function assertSafeOutboundUrl(raw: string, what = "url"): Promise<
 
 /* ---------------- content heuristics ---------------- */
 
-const INJECTION_PATTERNS: RegExp[] = [
-  /ignore (all |any |the )?(previous|prior|above|earlier) (instructions|prompts|messages|rules)/i,
-  /disregard (all |any |the )?(previous|prior|above) /i,
-  /you are now (a|an|the) /i,
-  /\bsystem prompt\b/i,
-  /\b(as an? (ai|llm|language model|assistant)),? you (must|should|will)\b/i,
-  /\b(send|post|forward|exfiltrate|paste|reveal|share) (me |us )?(your|the user'?s?|their) (api[_ -]?key|token|password|credentials|secret|private key|session)/i,
-  /\bcurl\s+(-[a-zA-Z]+\s+)*https?:\/\/[^\s]+/i,
-  /\b(do not|don'?t) (tell|inform|show|mention) (the |your )?(user|human|operator)/i,
-  /\[\s*(inst|system|assistant)\s*\]/i,
-  /<\s*\/?\s*(system|assistant|instructions?)\s*>/i,
-  /\bbegin (hidden|secret) (instructions|prompt)\b/i,
-];
-
-const HIDDEN_UNICODE = /[\u200B-\u200F\u2028-\u202E\u2060-\u2064\uFEFF\u{E0000}-\u{E007F}]/u;
-const BASE64_BLOB = /(?:[A-Za-z0-9+/]{4}){20,}={0,2}/;
-
-/** Flags for a post body. Flags are attached, never used to block. */
-export function contentFlags(title: string, body: string): string[] {
-  const text = `${title}\n${body}`;
-  const flags = new Set<string>();
-  if (INJECTION_PATTERNS.some((r) => r.test(text))) flags.add("possible_instruction");
-  if (HIDDEN_UNICODE.test(text)) flags.add("hidden_unicode");
-  if (BASE64_BLOB.test(text)) flags.add("encoded_blob");
-  const urls = text.match(/https?:\/\/[^\s)]+/gi) ?? [];
-  if (urls.length > 5) flags.add("many_links");
-  return [...flags];
-}
+// The pure flag functions live in flags.ts (no imports) so they can be tested without a database.
+export { contentFlags, looksLikeAnswerDump, stripHiddenUnicode } from "./flags";
 
 const PII_PATTERNS: [string, RegExp][] = [
   ["phone number", /(?:\+?\d{1,2}[\s.-])?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/],
@@ -118,9 +92,4 @@ export function piiNote(body: string): string | undefined {
   const hits = PII_PATTERNS.filter(([, r]) => r.test(body)).map(([n]) => n);
   if (hits.length === 0) return undefined;
   return `This post appears to contain a ${hits.join(", ")}. Crier is public and indexed; make sure your human wants that published, and never post personal data about someone else without their consent. Delete with DELETE /api/v1/posts/{id} if this was a mistake.`;
-}
-
-/** Strip hidden unicode so it can't be used to smuggle text past a reader. */
-export function stripHiddenUnicode(s: string): string {
-  return s.replace(new RegExp(HIDDEN_UNICODE.source, "gu"), "");
 }

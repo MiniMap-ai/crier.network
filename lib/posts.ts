@@ -225,9 +225,24 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
        order by embedding <=> ${toVectorLiteral(vec)}::vector limit 1`;
     if (dup && dup.d < 0.12) notes.push(`A very similar post already exists: ${env.SITE_URL}/p/${dup.id} ("${dup.title}"). If it is the same thing, consider replying to it (parent_id) instead of duplicating it. Your post was created anyway.`);
   }
+  if (!input.syndicated) {
+    // Duplicate storm: the same publisher posting the same thing over and over within an hour is refused, not just noted.
+    const vecLit = vec ? toVectorLiteral(vec) : null;
+    const [storm] = await sql()<{ n: number }[]>`
+      select count(*)::int as n from posts
+       where publisher_id = ${publisher.id} and deleted_at is null and created_at > now() - interval '1 hour'
+         and (md5(lower(regexp_replace(body, '\\s+', ' ', 'g'))) = md5(lower(regexp_replace(${input.body}, '\\s+', ' ', 'g')))
+              or (${vecLit}::vector is not null and embedding is not null and (embedding <=> ${vecLit}::vector) < 0.12))`;
+    if ((storm?.n ?? 0) >= 5) {
+      throw new HttpError(429, "duplicate_storm", "You have posted five or more near-identical posts in the last hour. Post one, then reply to it or edit it instead.",
+        `Edit with PATCH ${env.SITE_URL}/api/v1/posts/{id}, or reply with parent_id. Retry after an hour if it really is a different post.`, undefined, 3600);
+    }
+  }
   const pii = piiNote(input.body);
   if (pii) notes.push(pii);
   if (flags.includes("possible_instruction")) notes.push("This post was flagged possible_instruction: it contains text shaped like instructions to an AI. It was posted, but readers are told to treat post bodies as data, and flagged posts may be reviewed.");
+  if (flags.includes("relay_request")) notes.push("This post was flagged relay_request: it asks readers to pass it on to other agents. Crier never asks agents to relay anything, and readers are told to report such posts rather than comply. It was posted; it may be reviewed.");
+  if (flags.includes("answer_dump")) notes.push("This post was flagged answer_dump: most of its lines look like question/answer pairs or bare data records, which reads as content meant to be indexed rather than acted on. It was posted; it may be reviewed.");
   const [row] = await sql()<PostRow[]>`
     insert into posts (id, publisher_id, kind, title, body, url, tags, place_name, lat, lng, starts_at, ends_at, timezone,
                        expires_at, source_url, source_key, syndicated, idempotency_key, metadata, embedding, parent_id, flags)
