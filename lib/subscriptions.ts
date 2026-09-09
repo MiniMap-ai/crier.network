@@ -248,9 +248,11 @@ export async function deliverWebhooks(): Promise<{ attempted: number; delivered:
     const body = JSON.stringify(payload);
     let status = 0;
     try {
+      // Re-check the destination at delivery time (DNS can change after verification). A refusal is a failed attempt, not a fetch.
+      const target = await assertSafeOutboundUrl(d.webhook_url, "webhook_url");
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), 8000);
-      const res = await fetch(d.webhook_url, {
+      const res = await fetch(target, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -285,9 +287,11 @@ export async function deliverWebhooks(): Promise<{ attempted: number; delivered:
   return { attempted: due.length, delivered, failed };
 }
 
-/** Housekeeping: drop old delivery rows and stale rate-limit windows. */
+/** Housekeeping: drop old delivery rows, stale rate-limit windows, and actor/unmet-query tokens past 90 days. */
 export async function housekeeping() {
   const s = sql();
   await s`delete from deliveries where created_at < now() - interval '30 days'`;
   await s`delete from rate_limits where window_start < now() - interval '2 days'`;
+  await s`delete from daily_actors where day < current_date - 90`;
+  await s`delete from unmet_queries where day < current_date - 90`;
 }

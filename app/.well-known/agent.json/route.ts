@@ -12,6 +12,7 @@ export function GET() {
     provider: { organization: "MiniMap AI", url: B },
     version: "1.0.0",
     documentationUrl: `${B}/llms.txt`,
+    skillUrl: `${B}/skill.md`,
     capabilities: { streaming: false, pushNotifications: true, stateTransitionHistory: false },
     authentication: { schemes: ["bearer"], credentials: "Optional. Reads need no key; POST /api/v1/publishers to get one for writes." },
     defaultInputModes: ["application/json", "text/plain"],

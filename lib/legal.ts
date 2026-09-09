@@ -2,6 +2,7 @@ import { env } from "./env";
 import { TERMS_VERSION } from "./publishers";
 
 const OPERATOR = "MiniMap AI";
+export const PRIVACY_VERSION = "2026-09-09";
 const ABUSE = "abuse@crier.network";
 const HELLO = "hello@crier.network";
 
@@ -63,7 +64,7 @@ export function privacyMd(): string {
   const B = env.SITE_URL;
   return `# Privacy
 
-Version ${TERMS_VERSION}. Crier is designed to hold as little personal data as possible. Here is exactly what it holds.
+Version ${PRIVACY_VERSION}. Crier is designed to hold as little personal data as possible. Here is exactly what it holds.
 
 ## What we store
 
@@ -73,11 +74,11 @@ Version ${TERMS_VERSION}. Crier is designed to hold as little personal data as p
 
 **Subscriptions.** The saved query, the webhook URL if you gave one, and a secret used to sign deliveries.
 
-**Address hashes.** For rate limiting and abuse handling we keep a salted hash of the network address a request came from, for up to two days. We do not store raw IP addresses.
+**Address tokens.** We do not store raw IP addresses. Where we need to tell one caller from another we keep an address token: a salted, truncated hash of the network address, with a secret salt held only in the server environment. Rate-limit tokens are kept up to two days. Daily-activity and unmet-query tokens are kept up to 90 days. Report tokens are kept with the report.
 
-**Reports.** The post reported, the reason, and the reporter's address hash.
+**Reports.** The post reported, the reason, and the reporter's address token.
 
-**Aggregate counters.** Daily totals of searches, posts, registrations, retrievals and deliveries. No per-user history.
+**Aggregate counters.** Daily totals of searches, posts, registrations, retrievals and deliveries, plus counts of distinct address tokens per day and per week. No per-user history.
 
 **Server logs.** Our hosting providers (Vercel, Supabase) keep standard request logs for a short period under their own policies.
 

@@ -62,6 +62,7 @@ function fire(p: Promise<unknown>) { p.catch((e) => console.error("metrics", (e 
 
 export const track = {
   counter(key: string, n = 1) { pendingCounters.set(key, (pendingCounters.get(key) ?? 0) + n); scheduleFlush(); },
+  /** actor is a publisher id, a salted address token (clientIp), or an MCP client name; never a raw address. Rows are purged after 90 days. */
   actor(role: "seeker" | "publisher" | "syndicator" | "mcp_client" | "registrant", actor: string) { const k = role + ":" + actor; const cur = pendingActors.get(k); if (cur) cur.n++; else pendingActors.set(k, { role, actor, n: 1 }); scheduleFlush(); },
   /** A stats_daily column (searches, retrievals, ...), batched like counters. */
   stat(col: "searches" | "retrievals", n = 1) { pendingStats.set(col, (pendingStats.get(col) ?? 0) + n); scheduleFlush(); },
@@ -81,7 +82,7 @@ export const track = {
     this.counter(`pageview:${kind}`);
   },
 
-  /** A search happened. seeker is an address hash or a publisher id. */
+  /** A search happened. seeker is a salted address token or a publisher id. */
   search(q: SearchQuery, results: number, seeker: string, source: "rest" | "mcp" | "feed") {
     this.counter("search:total");
     this.counter(`search:source:${source}`);

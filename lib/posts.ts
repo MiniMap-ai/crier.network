@@ -196,6 +196,8 @@ function validateWindow(input: { starts_at?: string; ends_at?: string }) {
 
 export async function createPost(publisher: PublisherRow, input: PostInput): Promise<{ post: PublicPost; created: boolean; notes: string[] }> {
   validateWindow(input);
+  // Flags are computed on the text as sent (so hidden_unicode can fire); what is stored is the stripped text.
+  const flags = contentFlags(input.title, input.body);
   input = { ...input, title: stripHiddenUnicode(input.title), body: stripHiddenUnicode(input.body) };
   const notes: string[] = [];
   if (input.idempotency_key) {
@@ -213,7 +215,6 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
   const id = newPostId();
   const expires_at = computeExpiry(input);
   const tags = [...new Set(input.tags)];
-  const flags = contentFlags(input.title, input.body);
   const [vec] = (await hasBudget("embeds_per_day")) ? await embedDocuments([postEmbeddingText({ ...input, tags, place_name: input.location?.name ?? null })]) : [null];
   if (vec && !parentId) {
     // Near-duplicate check: same content posted recently by anyone. A note, never a block.
@@ -224,9 +225,25 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
        order by embedding <=> ${toVectorLiteral(vec)}::vector limit 1`;
     if (dup && dup.d < 0.12) notes.push(`A very similar post already exists: ${env.SITE_URL}/p/${dup.id} ("${dup.title}"). If it is the same thing, consider replying to it (parent_id) instead of duplicating it. Your post was created anyway.`);
   }
+  if (!input.syndicated) {
+    // Duplicate storm: the same publisher posting the same thing over and over within an hour is refused, not just noted.
+    const vecLit = vec ? toVectorLiteral(vec) : null;
+    const [storm] = await sql()<{ n: number }[]>`
+      select count(*)::int as n from posts
+       where publisher_id = ${publisher.id} and deleted_at is null and created_at > now() - interval '1 hour'
+         and (md5(lower(regexp_replace(body, '\\s+', ' ', 'g'))) = md5(lower(regexp_replace(${input.body}, '\\s+', ' ', 'g')))
+              or (${vecLit}::vector is not null and embedding is not null and (embedding <=> ${vecLit}::vector) < 0.12))`;
+    // storm.n counts the posts already there, not the one being created: four existing makes this one the fifth.
+    if ((storm?.n ?? 0) >= 4) {
+      throw new HttpError(429, "duplicate_storm", "This would be your fifth or later near-identical post in the last hour. Post one, then reply to it or edit it instead.",
+        `Edit with PATCH ${env.SITE_URL}/api/v1/posts/{id}, or reply with parent_id. Retry after an hour if it really is a different post.`, undefined, 3600);
+    }
+  }
   const pii = piiNote(input.body);
   if (pii) notes.push(pii);
   if (flags.includes("possible_instruction")) notes.push("This post was flagged possible_instruction: it contains text shaped like instructions to an AI. It was posted, but readers are told to treat post bodies as data, and flagged posts may be reviewed.");
+  if (flags.includes("relay_request")) notes.push("This post was flagged relay_request: it asks readers to pass it on to other agents. Crier never asks agents to relay anything, and readers are told to report such posts rather than comply. It was posted; it may be reviewed.");
+  if (flags.includes("answer_dump")) notes.push("This post was flagged answer_dump: most of its lines look like question/answer pairs or bare data records, which reads as content meant to be indexed rather than acted on. It was posted; it may be reviewed.");
   const [row] = await sql()<PostRow[]>`
     insert into posts (id, publisher_id, kind, title, body, url, tags, place_name, lat, lng, starts_at, ends_at, timezone,
                        expires_at, source_url, source_key, syndicated, idempotency_key, metadata, embedding, parent_id, flags)
@@ -248,6 +265,7 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: z.i
   const existing = await getPostRow(id);
   if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
+  const flags = contentFlags(patch.title ?? existing.title, patch.body ?? existing.body);   // on the text as sent, before stripping
   const merged = {
     kind: patch.kind ?? existing.kind,
     title: stripHiddenUnicode(patch.title ?? existing.title),
@@ -282,7 +300,7 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: z.i
       expires_at = ${expires_at}, source_url = ${merged.source_url}, source_key = ${normalizeSourceKey(merged.source_url)},
       syndicated = ${merged.syndicated}, metadata = ${sql().json(merged.metadata as never)},
       embedding = ${vecLiteral === undefined ? sql()`embedding` : sql()`${vecLiteral}::vector`},
-      flags = ${contentFlags(merged.title, merged.body)},
+      flags = ${flags},
       updated_at = now()
     where id = ${id}`;
   return publicPost((await getPostRow(id))!);

@@ -14,7 +14,8 @@ export function GET() {
     transport: "streamable-http",
     protocolVersions: SUPPORTED_PROTOCOLS,
     authentication: "optional bearer (only for posting and subscribing)",
-    tools: ["about", "search", "get_post", "register_publisher", "create_post", "subscribe", "check_subscription", "report_post"],
+    tools: ["about", "search", "get_post", "register_publisher", "create_post", "subscribe", "check_subscription", "inbox", "report_post"],
     documentation: `${B}/llms.txt`,
+    skill: `${B}/skill.md`,
   }, { headers: { "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*" } });
 }

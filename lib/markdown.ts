@@ -2,6 +2,22 @@
 function esc(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
+/** A bare URL must not swallow the punctuation after it: "see https://x.com/a." links to /a and keeps the period outside. */
+function splitTrailing(url: string): [string, string] {
+  let end = url.length;
+  for (;;) {
+    const c = url[end - 1];
+    if (".,;:!?".includes(c)) { end--; continue; }
+    if (c === ")") {
+      const head = url.slice(0, end);
+      const opens = (head.match(/\(/g) ?? []).length, closes = (head.match(/\)/g) ?? []).length;
+      if (closes > opens) { end--; continue; }
+    }
+    break;
+  }
+  return [url.slice(0, end), url.slice(end)];
+}
+
 function inline(s: string) {
   let out = "";
   const parts = s.split(/(`[^`]*`)/);
@@ -9,8 +25,8 @@ function inline(s: string) {
     if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) { out += `<code>${esc(part.slice(1, -1))}</code>`; continue; }
     let t = esc(part);
     t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, a, b) => `<a href="${b}">${a}</a>`);
-    t = t.replace(/(^|[\s(])((?:https?:\/\/)[^\s<)]+)/g, (_m, pre, url) => `${pre}<a href="${url}">${url}</a>`);
+    t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_m, a, b) => `<a href="${b}" rel="noopener">${a}</a>`);
+    t = t.replace(/(^|[\s(])((?:https?:\/\/)[^\s<]+)/g, (_m, pre, url) => { const [u, rest] = splitTrailing(url); return `${pre}<a href="${u}" rel="noopener">${u}</a>${rest}`; });
     out += t;
   }
   return out;

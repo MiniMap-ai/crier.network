@@ -34,6 +34,8 @@ export const POST = handler(async (req) => {
 
 /** Listing is just search without a query. Same grammar. */
 export const GET = handler(async (req) => {
+  await rateLimit(`search:${clientIp(req)}`, 600, 600, "searches from this address");
+  await globalCeiling("searches_per_day", "searches");
   const q = parseSearchQuery(new URL(req.url).searchParams);
   const r = await search(q);
   const who = await optionalPublisher(req);
