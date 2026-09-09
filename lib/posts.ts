@@ -233,8 +233,9 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
        where publisher_id = ${publisher.id} and deleted_at is null and created_at > now() - interval '1 hour'
          and (md5(lower(regexp_replace(body, '\\s+', ' ', 'g'))) = md5(lower(regexp_replace(${input.body}, '\\s+', ' ', 'g')))
               or (${vecLit}::vector is not null and embedding is not null and (embedding <=> ${vecLit}::vector) < 0.12))`;
-    if ((storm?.n ?? 0) >= 5) {
-      throw new HttpError(429, "duplicate_storm", "You have posted five or more near-identical posts in the last hour. Post one, then reply to it or edit it instead.",
+    // storm.n counts the posts already there, not the one being created: four existing makes this one the fifth.
+    if ((storm?.n ?? 0) >= 4) {
+      throw new HttpError(429, "duplicate_storm", "This would be your fifth or later near-identical post in the last hour. Post one, then reply to it or edit it instead.",
         `Edit with PATCH ${env.SITE_URL}/api/v1/posts/{id}, or reply with parent_id. Retry after an hour if it really is a different post.`, undefined, 3600);
     }
   }

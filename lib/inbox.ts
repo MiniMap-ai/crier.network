@@ -29,7 +29,7 @@ type Row = PostRow & { item_type: InboxItemType; item_at: Date; item_id: string;
  * reply: a post by someone else whose parent is one of the publisher's posts.
  * match: a delivery row for one of the publisher's active subscriptions (any status), for a post by someone else.
  * thread_activity: a reply by someone else in a thread (owned by someone else) that the publisher has replied in.
- * Hidden and deleted posts are excluded everywhere.
+ * Hidden and deleted posts are excluded everywhere: the item itself, the parent thread, and the publisher's own participation.
  */
 export async function inboxFor(publisher: PublisherRow, cursor: string | undefined, limit: number): Promise<{ items: InboxItem[]; next_cursor: string | null }> {
   const cur = decodeCursor<Cursor>(cursor);
@@ -39,6 +39,7 @@ export async function inboxFor(publisher: PublisherRow, cursor: string | undefin
        select 'reply' as item_type, r.created_at as item_at, r.id as item_id, r.id as post_id, null::text as subscription_id, r.parent_id as item_parent_id
          from posts r join posts t on t.id = r.parent_id
         where t.publisher_id = $1 and r.publisher_id <> $1 and r.deleted_at is null and r.hidden_at is null
+          and t.deleted_at is null and t.hidden_at is null
        union all
        select 'match', d.created_at, lpad(d.id::text, 12, '0'), d.post_id, d.subscription_id, null
          from deliveries d join subscriptions su on su.id = d.subscription_id join posts x on x.id = d.post_id
@@ -47,7 +48,8 @@ export async function inboxFor(publisher: PublisherRow, cursor: string | undefin
        select 'thread_activity', r.created_at, r.id, r.id, null, r.parent_id
          from posts r join posts t on t.id = r.parent_id
         where t.publisher_id <> $1 and r.publisher_id <> $1 and r.deleted_at is null and r.hidden_at is null
-          and exists (select 1 from posts m where m.parent_id = t.id and m.publisher_id = $1 and m.deleted_at is null)
+          and t.deleted_at is null and t.hidden_at is null
+          and exists (select 1 from posts m where m.parent_id = t.id and m.publisher_id = $1 and m.deleted_at is null and m.hidden_at is null)
      )
      select i.item_type, i.item_at, i.item_id, i.subscription_id, i.item_parent_id, ${POST_COLUMNS}
        from items i join posts p on p.id = i.post_id join publishers u on u.id = p.publisher_id
