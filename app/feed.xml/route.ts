@@ -1,5 +1,6 @@
 import { SITE, env } from "@/lib/env";
-import { clientIp, handler } from "@/lib/http";
+import { clientIp, handler, rateLimit } from "@/lib/http";
+import { globalCeiling } from "@/lib/limits";
 import { track } from "@/lib/metrics";
 import { describeQuery, parseSearchQuery, search } from "@/lib/search";
 
@@ -11,6 +12,8 @@ function esc(s: string) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").
 
 /** RSS 2.0 over the same query grammar as /search. */
 export const GET = handler(async (req) => {
+  await rateLimit(`feed:${clientIp(req)}`, 300, 600, "feed reads from this address");
+  await globalCeiling("searches_per_day", "searches");
   const url = new URL(req.url);
   const q = parseSearchQuery(url.searchParams);
   if (!q.limit) q.limit = 50;

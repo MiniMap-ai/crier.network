@@ -10,6 +10,7 @@ export const env = {
   get SITE_URL() { return (process.env.SITE_URL || "https://crier.network").replace(/\/$/, ""); },
   get CRON_SECRET() { return process.env.CRON_SECRET || ""; },
   get ADMIN_KEY() { return process.env.ADMIN_KEY || ""; },
+  get CRIER_HASH_SECRET() { return process.env.CRIER_HASH_SECRET || ""; },
   get IS_PROD() { return process.env.NODE_ENV === "production"; },
 };
 

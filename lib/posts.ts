@@ -196,6 +196,8 @@ function validateWindow(input: { starts_at?: string; ends_at?: string }) {
 
 export async function createPost(publisher: PublisherRow, input: PostInput): Promise<{ post: PublicPost; created: boolean; notes: string[] }> {
   validateWindow(input);
+  // Flags are computed on the text as sent (so hidden_unicode can fire); what is stored is the stripped text.
+  const flags = contentFlags(input.title, input.body);
   input = { ...input, title: stripHiddenUnicode(input.title), body: stripHiddenUnicode(input.body) };
   const notes: string[] = [];
   if (input.idempotency_key) {
@@ -213,7 +215,6 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
   const id = newPostId();
   const expires_at = computeExpiry(input);
   const tags = [...new Set(input.tags)];
-  const flags = contentFlags(input.title, input.body);
   const [vec] = (await hasBudget("embeds_per_day")) ? await embedDocuments([postEmbeddingText({ ...input, tags, place_name: input.location?.name ?? null })]) : [null];
   if (vec && !parentId) {
     // Near-duplicate check: same content posted recently by anyone. A note, never a block.
@@ -248,6 +249,7 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: z.i
   const existing = await getPostRow(id);
   if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
+  const flags = contentFlags(patch.title ?? existing.title, patch.body ?? existing.body);   // on the text as sent, before stripping
   const merged = {
     kind: patch.kind ?? existing.kind,
     title: stripHiddenUnicode(patch.title ?? existing.title),
@@ -282,7 +284,7 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: z.i
       expires_at = ${expires_at}, source_url = ${merged.source_url}, source_key = ${normalizeSourceKey(merged.source_url)},
       syndicated = ${merged.syndicated}, metadata = ${sql().json(merged.metadata as never)},
       embedding = ${vecLiteral === undefined ? sql()`embedding` : sql()`${vecLiteral}::vector`},
-      flags = ${contentFlags(merged.title, merged.body)},
+      flags = ${flags},
       updated_at = now()
     where id = ${id}`;
   return publicPost((await getPostRow(id))!);

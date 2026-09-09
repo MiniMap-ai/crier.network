@@ -108,8 +108,11 @@ export async function fail(status: number, code: string, message: string, extra:
 }
 
 export class HttpError extends Error {
-  constructor(public status: number, public code: string, message: string, public hint?: string, public issues?: unknown) {
+  /** Seconds for the Retry-After header on 429/503; the default is 60 for 429 and 300 for 503. */
+  retryAfter?: number;
+  constructor(public status: number, public code: string, message: string, public hint?: string, public issues?: unknown, retryAfter?: number) {
     super(message);
+    if (retryAfter) this.retryAfter = retryAfter;
   }
 }
 
@@ -120,7 +123,7 @@ export function handler<Ctx>(fn: (req: Request, ctx: Ctx) => Promise<Response>) 
       if (req.method !== "OPTIONS") track.request(req);
       return await fn(req, ctx);
     } catch (e) {
-      if (e instanceof HttpError) return fail(e.status, e.code, e.message, { hint: e.hint, issues: e.issues });
+      if (e instanceof HttpError) return fail(e.status, e.code, e.message, { hint: e.hint, issues: e.issues, headers: e.retryAfter ? { "Retry-After": String(e.retryAfter) } : undefined });
       if (e instanceof z.ZodError) {
         return fail(400, "invalid_request", "Request did not match the schema.", {
           issues: e.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
@@ -146,11 +149,19 @@ export async function readJson(req: Request): Promise<unknown> {
   try { return await req.json(); } catch { throw new HttpError(400, "invalid_json", "Body is not valid JSON."); }
 }
 
-/** A stable, non-reversible token for the caller's address. We never store raw IPs. */
+let warnedNoSecret = false;
+
+/**
+ * A stable, non-reversible token for the caller's address. We never store raw IPs.
+ * Salted with CRIER_HASH_SECRET; without it we fall back to the legacy unsalted scheme so
+ * existing rate-limit windows keep working until the variable is set.
+ */
 export function clientIp(req: Request): string {
   const xf = req.headers.get("x-forwarded-for");
   const ip = xf ? xf.split(",")[0].trim() : req.headers.get("x-real-ip") || "0.0.0.0";
-  return createHash("sha256").update("crier-ip:" + ip).digest("hex").slice(0, 24);
+  const secret = env.CRIER_HASH_SECRET;
+  if (!secret && !warnedNoSecret) { warnedNoSecret = true; console.warn("CRIER_HASH_SECRET is unset; address tokens are unsalted. Set it in the environment."); }
+  return createHash("sha256").update(secret ? `${secret}:${ip}` : "crier-ip:" + ip).digest("hex").slice(0, 24);
 }
 
 export function bearer(req: Request): string | null {
