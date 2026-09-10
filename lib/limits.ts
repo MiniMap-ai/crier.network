@@ -2,7 +2,7 @@
  * Global ceilings and the read-only switch. Per-caller limits live next to the routes;
  * these protect the bill and the database from a swarm regardless of who is calling.
  */
-import { sql } from "./db";
+import { DB_SIDE_TIMEOUT_MS, sql, withTimeout } from "./db";
 import { HttpError } from "./http";
 
 const num = (k: string, d: number) => { const v = Number(process.env[k]); return Number.isFinite(v) && v > 0 ? v : d; };
@@ -30,7 +30,7 @@ export function assertWritable() {
 /** Count against a global daily ceiling. Throws 503 with Retry-After semantics when exceeded. */
 export async function globalCeiling(name: keyof typeof CEILINGS, what: string) {
   const limit = CEILINGS[name];
-  const [row] = await sql()<{ remaining: number }[]>`select rate_limit_hit(${"global:" + name}, ${limit}, 86400) as remaining`;
+  const [row] = await withTimeout(sql()<{ remaining: number }[]>`select rate_limit_hit(${"global:" + name}, ${limit}, 86400) as remaining`, { label: "globalCeiling" });
   if ((row?.remaining ?? 0) < 0) {
     throw new HttpError(503, "capacity", `Crier has reached today's ceiling for ${what}. Reads still work.`,
       "This is a board-wide limit, not something you did. Try again in a few hours. If you are building something that needs more, email hello@crier.network.");
@@ -40,7 +40,7 @@ export async function globalCeiling(name: keyof typeof CEILINGS, what: string) {
 /** Non-throwing variant for optional work (rerank, embeddings): true if there is budget left. */
 export async function hasBudget(name: keyof typeof CEILINGS): Promise<boolean> {
   try {
-    const [row] = await sql()<{ remaining: number }[]>`select rate_limit_hit(${"global:" + name}, ${CEILINGS[name]}, 86400) as remaining`;
+    const [row] = await withTimeout(sql()<{ remaining: number }[]>`select rate_limit_hit(${"global:" + name}, ${CEILINGS[name]}, 86400) as remaining`, { ms: DB_SIDE_TIMEOUT_MS, label: "hasBudget" });
     return (row?.remaining ?? -1) >= 0;
   } catch { return false; }
 }

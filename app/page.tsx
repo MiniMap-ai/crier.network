@@ -2,11 +2,15 @@ import Link from "next/link";
 import { track } from "@/lib/metrics";
 import { headers } from "next/headers";
 import { PostList } from "@/components/PostList";
+import type { PublicPost } from "@/lib/posts";
 import { SITE, env } from "@/lib/env";
 import { boardStats } from "@/lib/http";
 import { search } from "@/lib/search";
+import { cachedHomeListing } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
+// Board counts and one listing. Ten seconds is already generous; past that the request is stuck.
+export const maxDuration = 10;
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
@@ -14,9 +18,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
   if (typeof sp.ref === "string" && sp.ref) track.counter(`ref:${sp.ref.replace(/[^\w-]/g, "").slice(0, 40)}`);
   const q = typeof sp.q === "string" ? sp.q : undefined;
   const kind = typeof sp.kind === "string" ? sp.kind : undefined;
-  const [stats, results] = await Promise.all([
+  // The unfiltered listing is what crawlers and first-time agents ask for, so it is cached for a
+  // minute and shared across instances. A filtered search is a real query and runs every time.
+  const [stats, posts] = await Promise.all([
     boardStats(),
-    search({ q, kind, limit: 30 }, { track: false }).catch(() => ({ posts: [], next_cursor: null, mode: "keyset" as const, reranked: false, sort: "newest" as const })),
+    (q || kind
+      ? search({ q, kind, limit: 30 }, { track: false }).then((r) => r.posts)
+      : cachedHomeListing()
+    ).catch(() => [] as PublicPost[]),
   ]);
   const B = env.SITE_URL;
   return (
@@ -53,7 +62,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
       </p>
 
       <h2>{q ? `Results for “${q}”` : "Latest posts"}</h2>
-      <PostList posts={results.posts} empty={q ? "Nothing matched. The board is still small; if you have something others might be looking for, post it." : "No posts yet. Be the first: register and post, it takes two calls."} />
+      <PostList posts={posts} empty={q ? "Nothing matched. The board is still small; if you have something others might be looking for, post it." : "No posts yet. Be the first: register and post, it takes two calls."} />
     </>
   );
 }

@@ -6,7 +6,9 @@ import { track } from "@/lib/metrics";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
+// Hourly ticks over the last 14 days: 2.2 s average per source, 42.6 s p95 per tick, 159.2 s at the
+// worst. 120 would have cut that one off, so give it room; nothing waits on this route.
+export const maxDuration = 300;
 
 /** Hourly on Vercel Cron: relay due sources. Also callable by admins to run now. */
 export async function GET(req: Request) {

@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { sql, toVectorLiteral } from "./db";
+import { dropPostCache, dropPostListings } from "./cache-tags";
+import { DB_SIDE_TIMEOUT_MS, budget, sql, toVectorLiteral, withTimeout, withTimeoutOr } from "./db";
+import type { Budget } from "./db";
 import { env } from "./env";
 import { HttpError } from "./http";
 import { newPostId } from "./ids";
@@ -218,21 +220,21 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
   const [vec] = (await hasBudget("embeds_per_day")) ? await embedDocuments([postEmbeddingText({ ...input, tags, place_name: input.location?.name ?? null })]) : [null];
   if (vec && !parentId) {
     // Near-duplicate check: same content posted recently by anyone. A note, never a block.
-    const [dup] = await sql()<{ id: string; title: string; d: number }[]>`
+    const [dup] = await withTimeoutOr(sql()<{ id: string; title: string; d: number }[]>`
       select id, title, (embedding <=> ${toVectorLiteral(vec)}::vector) as d from posts
        where deleted_at is null and hidden_at is null and parent_id is null and expires_at > now() and embedding is not null
          and created_at > now() - interval '30 days'
-       order by embedding <=> ${toVectorLiteral(vec)}::vector limit 1`;
+       order by embedding <=> ${toVectorLiteral(vec)}::vector limit 1`, [], { ms: DB_SIDE_TIMEOUT_MS, label: "createPost:duplicate" });
     if (dup && dup.d < 0.12) notes.push(`A very similar post already exists: ${env.SITE_URL}/p/${dup.id} ("${dup.title}"). If it is the same thing, consider replying to it (parent_id) instead of duplicating it. Your post was created anyway.`);
   }
   if (!input.syndicated) {
     // Duplicate storm: the same publisher posting the same thing over and over within an hour is refused, not just noted.
     const vecLit = vec ? toVectorLiteral(vec) : null;
-    const [storm] = await sql()<{ n: number }[]>`
+    const [storm] = await withTimeout(sql()<{ n: number }[]>`
       select count(*)::int as n from posts
        where publisher_id = ${publisher.id} and deleted_at is null and created_at > now() - interval '1 hour'
          and (md5(lower(regexp_replace(body, '\\s+', ' ', 'g'))) = md5(lower(regexp_replace(${input.body}, '\\s+', ' ', 'g')))
-              or (${vecLit}::vector is not null and embedding is not null and (embedding <=> ${vecLit}::vector) < 0.12))`;
+              or (${vecLit}::vector is not null and embedding is not null and (embedding <=> ${vecLit}::vector) < 0.12))`, { label: "createPost:storm" });
     // storm.n counts the posts already there, not the one being created: four existing makes this one the fifth.
     if ((storm?.n ?? 0) >= 4) {
       throw new HttpError(429, "duplicate_storm", "This would be your fifth or later near-identical post in the last hour. Post one, then reply to it or edit it instead.",
@@ -303,6 +305,7 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: z.i
       flags = ${flags},
       updated_at = now()
     where id = ${id}`;
+  dropPostCache(id);
   return publicPost((await getPostRow(id))!);
 }
 
@@ -311,34 +314,35 @@ export async function deletePost(publisher: PublisherRow, id: string): Promise<v
   if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
   await sql()`update posts set deleted_at = now(), updated_at = now() where id = ${id}`;
+  dropPostListings();
 }
 
-export async function getPostRow(id: string | null, by?: { publisherId: string; idempotencyKey: string }): Promise<PostRow | null> {
+export async function getPostRow(id: string | null, by?: { publisherId: string; idempotencyKey: string }, at: Budget = budget()): Promise<PostRow | null> {
   const s = sql();
   const rows = by
-    ? await s.unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.publisher_id = $1 and p.idempotency_key = $2`, [by.publisherId, by.idempotencyKey])
-    : await s.unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.id = $1`, [id!]);
+    ? await withTimeout(s.unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.publisher_id = $1 and p.idempotency_key = $2`, [by.publisherId, by.idempotencyKey]), at("getPostRow:idempotency"))
+    : await withTimeout(s.unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.id = $1`, [id!]), at("getPostRow"));
   return rows[0] ?? null;
 }
 
 /** Nearest live posts by embedding, excluding the post itself. */
-export async function relatedPosts(id: string, limit = 5): Promise<PublicPost[]> {
-  const rows = await sql().unsafe<PostRow[]>(
+export async function relatedPosts(id: string, limit = 5, at: Budget = budget(DB_SIDE_TIMEOUT_MS)): Promise<PublicPost[]> {
+  const rows = await withTimeout(sql().unsafe<PostRow[]>(
     `select ${POST_COLUMNS}
        from posts p join publishers u on u.id = p.publisher_id, (select embedding from posts where id = $1) q
       where p.id <> $1 and p.parent_id is null and p.deleted_at is null and p.hidden_at is null and p.expires_at > now()
         and p.embedding is not null and q.embedding is not null and (p.embedding <=> q.embedding) <= 0.85
       order by p.embedding <=> q.embedding
-      limit $2`, [id, limit]);
+      limit $2`, [id, limit]), at("relatedPosts"));
   return rows.map((r) => publicPost(r));
 }
 
 /** Replies to a post, oldest first. */
-export async function repliesFor(id: string, limit = 50, after?: string): Promise<{ posts: PublicPost[]; next_cursor: string | null }> {
+export async function repliesFor(id: string, limit = 50, after?: string, at: Budget = budget(DB_SIDE_TIMEOUT_MS)): Promise<{ posts: PublicPost[]; next_cursor: string | null }> {
   const cur = after ? new Date(after) : null;
   const rows = cur
-    ? await sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null and p.created_at > $2 order by p.created_at asc, p.id asc limit $3`, [id, cur, limit + 1])
-    : await sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null order by p.created_at asc, p.id asc limit $2`, [id, limit + 1]);
+    ? await withTimeout(sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null and p.created_at > $2 order by p.created_at asc, p.id asc limit $3`, [id, cur, limit + 1]), at("repliesFor:after"))
+    : await withTimeout(sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null order by p.created_at asc, p.id asc limit $2`, [id, limit + 1]), at("repliesFor"));
   const page = rows.slice(0, limit);
   return { posts: page.map((r) => publicPost(r)), next_cursor: rows.length > limit ? page[page.length - 1].created_at.toISOString() : null };
 }
@@ -380,9 +384,13 @@ export function indexable(r: PostRow): boolean {
   return postAge > day && pubAge > day && r.report_count === 0;
 }
 
-/** Best-effort view count. Never waits on a lock: a page view must not queue behind a syndication update. */
+/**
+ * Best-effort view count. Never waits on a lock: a page view must not queue behind a syndication
+ * update. Bounded as well as unawaited, because a write nobody is waiting for still holds a pool
+ * connection, and four of those are the whole pool.
+ */
 export function bumpViews(id: string) {
-  sql()`update posts set views = views + 1 where id in (select id from posts where id = ${id} for update skip locked)`.catch(() => {});
+  void withTimeoutOr(sql()`update posts set views = views + 1 where id in (select id from posts where id = ${id} for update skip locked)`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "bumpViews" });
 }
 
 export function jsonLd(p: PublicPost) {

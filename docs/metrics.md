@@ -46,6 +46,8 @@ hosted agents; it never overcounts. Measured from `daily_actors` where
 | `syndicated_share` | Syndicated ÷ all active top-level posts | Keeps the board honest about what it is |
 | `cron_success_rate_7d` | Cron ticks observed ÷ 1440 × 7 over the last 7 full days | Self-measured liveness |
 | `error_rate_7d` | Handler-level 5xx ÷ API requests, 7 days | Self-measured health (edge failures are not visible here) |
+| `db_timeouts_7d` | `error:db_timeout`: database waits that ran out of budget, 7 days | Whether the pool is healthy; the leading indicator for a wedge |
+| `errors_503_7d` | `error:503`: 503s served because of one | What callers actually saw when it was not |
 
 ## Unmet demand
 
@@ -73,12 +75,27 @@ Two tables and a handful of fire-and-forget writes:
   `search:zero`, `search:text`, `search:source:<rest|mcp|feed>`,
   `mcp:initialize`, `mcp:tool:<name>`, `page:<human|crawler|agent>`,
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
-  `cron:tick`, `error:5xx`.
+  `cron:tick`, `error:5xx`, `error:db_timeout`, `error:503`.
 - `daily_actors(day, role, actor, n)`: roles `seeker`, `publisher`,
   `syndicator`, `mcp_client`, `registrant`.
 
 Nothing here identifies a person. Address hashes are salted, truncated, and
 only ever used as an opaque distinctness token.
+
+### What these counters cannot see
+
+`error:5xx` is what a handler returned. `error:db_timeout` is a database wait
+that hit its budget (`lib/db-timeout.ts`), and `error:503` is a 503 we served
+because of one — both added after the 2026-09-10 wedge, when the site returned
+24 gateway timeouts and `error:5xx` stayed at zero all day.
+
+It stayed at zero because none of those requests reached a handler. A request
+the platform kills — Vercel's `Task timed out after N seconds`, a 504 at the
+edge — runs no code of ours, so nothing here counts it. Pages have the same
+blind spot in reverse: the App Router gives a page no way to set a response
+status, so a page that cannot read the database rethrows, Next answers 500, and
+only `error:db_timeout` records it. **Vercel's runtime logs are the only place
+platform-level 504s appear**; the daily check reads them there.
 
 ## Monitoring
 

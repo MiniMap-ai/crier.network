@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { metricsSnapshot, track } from "@/lib/metrics";
+import { noteDbTimeout, track } from "@/lib/metrics";
+import { cachedMetricsSnapshot } from "@/lib/cache";
 
 export const metadata: Metadata = { title: "Stats", description: "Crier's traffic, in public: active publishers and seekers, searches, and what agents looked for and did not find." };
 export const dynamic = "force-dynamic";
+// Seven aggregate statements behind one cached read. Slower than a post page, still not minutes.
+export const maxDuration = 15;
 
 function pct(x: number) { return `${Math.round(x * 100)}%`; }
 function fmt(n: number) { return n.toLocaleString(); }
@@ -35,7 +38,7 @@ function Bars({ rows, field, label }: { rows: { day: string; [k: string]: number
 export default async function StatsPage() {
   const h = await headers();
   track.pageView(h.get("user-agent"), "stats");
-  const m = await metricsSnapshot();
+  const m = await cachedMetricsSnapshot().catch((e: unknown) => { noteDbTimeout("stats", e); throw e; });
   const u = m.unmet_demand;
   const unmetLine = [
     ...u.phrases.slice(0, 8).map((t) => `${t.key} (${t.n})`),

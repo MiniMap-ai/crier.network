@@ -6,7 +6,8 @@ import { describeQuery, parseSearchQuery, search } from "@/lib/search";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+// A feed is a search plus serialization of up to 50 posts.
+export const maxDuration = 15;
 
 function esc(s: string) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 

@@ -3,7 +3,7 @@
  * No raw addresses, no per-person history. See docs/metrics.md for definitions.
  */
 import { after } from "next/server";
-import { sql } from "./db";
+import { DB_SIDE_TIMEOUT_MS, DbTimeoutError, budget, sql, withTimeout, withTimeoutOr } from "./db";
 import type { SearchQuery } from "./search";
 
 /* ---------------- recording (batched, fire-and-forget) ----------------
@@ -14,12 +14,29 @@ import type { SearchQuery } from "./search";
  * The flush runs inside a transaction with a short lock/statement timeout: a metrics write must
  * never hold a pool connection for 20 s while it waits on a lock, because that starves the
  * request that comes next. Losing a few counters under duress is fine; losing requests is not.
+ *
+ * What these counters can and cannot see: `error:5xx` is what a handler returned, `error:db_timeout`
+ * is a database wait that ran out of budget (lib/db-timeout.ts), and `error:503` is a 503 we served
+ * because of one. A request killed by the platform before it reached a handler — Vercel's
+ * "Task timed out after N seconds", which is what the 2026-09-10 wedge produced — is counted by
+ * nothing here, because no code of ours ran. Those are only visible in Vercel's runtime logs; the
+ * daily check reads them there.
  */
 
 const pendingCounters = new Map<string, number>();
 const pendingActors = new Map<string, { role: string; actor: string; n: number }>();
 const pendingStats = new Map<string, number>();     // stats_daily column -> n
 let flushScheduled = false;
+
+/**
+ * The flush's ceiling, and the statement_timeout it sets on itself — one number so they cannot drift.
+ * It is deliberately tighter than the default read budget: `after()` work runs on the platform's
+ * clock, counting against the route's maxDuration, so a slow flush would eat into the ten seconds a
+ * page has. The whole transaction gets what each statement gets. Dropping the counters when it does
+ * not fit is the accepted cost, stated above; dropping the request is not.
+ */
+const FLUSH_TIMEOUT_MS = 3000;
+const FLUSH_LOCK_TIMEOUT_MS = 1500;
 
 async function flush() {
   flushScheduled = false;
@@ -31,8 +48,11 @@ async function flush() {
   pendingActors.clear();
   pendingStats.clear();
   try {
-    await sql().begin(async (tx) => {
-      await tx`select set_config('statement_timeout', '3000', true), set_config('lock_timeout', '1500', true)`;
+    // Bounded like every other wait, on the flush's own budget rather than the read budget. begin()
+    // cannot be cancelled once it is in flight — the server-side statement_timeout is what ends it
+    // there — but this is what stops us waiting on it inside the caller's remaining time.
+    await withTimeout(sql().begin(async (tx) => {
+      await tx`select set_config('statement_timeout', ${String(FLUSH_TIMEOUT_MS)}, true), set_config('lock_timeout', ${String(FLUSH_LOCK_TIMEOUT_MS)}, true)`;
       if (counters.length) {
         await tx`insert into daily_counters (day, key, n)
                  select current_date, k, n from unnest(${counters.map((c) => c[0])}::text[], ${counters.map((c) => c[1])}::bigint[]) as t(k, n)
@@ -44,7 +64,7 @@ async function flush() {
                  on conflict (day, role, actor) do update set n = daily_actors.n + excluded.n`;
       }
       for (const [col, n] of stats) await tx`select bump_stat(${col}, ${n})`;
-    });
+    }), { ms: FLUSH_TIMEOUT_MS, label: "metrics:flush" });
   } catch (e) {
     console.error("metrics flush", (e as Error).message);
   }
@@ -90,8 +110,8 @@ export const track = {
     this.actor("seeker", seeker);
     if (results === 0) {
       this.counter("search:zero");
-      fire(sql()`insert into unmet_queries (q, kind, tags, near, radius_km, seeker, source)
-                 values (${normalizeQuery(q.q)}, ${q.kind ?? null}, ${q.tags ? q.tags.toLowerCase().slice(0, 200) : null}, ${roundNear(q.near)}, ${q.radius_km ?? null}, ${seeker}, ${source})`);
+      fire(withTimeoutOr(sql()`insert into unmet_queries (q, kind, tags, near, radius_km, seeker, source)
+                 values (${normalizeQuery(q.q)}, ${q.kind ?? null}, ${q.tags ? q.tags.toLowerCase().slice(0, 200) : null}, ${roundNear(q.near)}, ${q.radius_km ?? null}, ${seeker}, ${source})`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "unmet_queries" }));
     }
   },
 
@@ -101,6 +121,18 @@ export const track = {
     this.actor(syndicated ? "syndicator" : "publisher", publisherId);
   },
 };
+
+/**
+ * A database wait a page could not render around. App Router pages cannot set a response status, so
+ * Next turns the rethrow into a 500 rendered by app/error.tsx, which reads nothing; this counter is
+ * the only place a page-level timeout shows up in our own numbers. `error:503` is left to the API
+ * handlers, which really do return one.
+ */
+export function noteDbTimeout(where: string, e: unknown): void {
+  if (!(e instanceof DbTimeoutError)) return;
+  console.error("page db timeout", where, e.label ?? "", e.message);
+  track.counter("error:db_timeout");
+}
 
 const CRAWLER_RE = /bot|crawl|spider|slurp|fetch|scan|archiver|preview|facebookexternalhit|embedly|quora link|pinterest|whatsapp|telegram|discord|skype|slack|twitter|linkedin|google|bing|yandex|baidu|duckduck|applebot|petalbot|semrush|ahrefs|mj12|dotbot|gptbot|claudebot|perplexity|anthropic|openai|ccbot|bytespider|amazonbot|cohere-ai|meta-external/i;
 const BROWSER_RE = /Mozilla\/5\.0 .*(Chrome|Safari|Firefox|Edg|OPR)\//;
@@ -164,7 +196,8 @@ const STOP = new Set("a an the and or of in on at to for with near me my near by
 
 export async function metricsSnapshot() {
   const s = sql();
-  const [core] = await s<Record<string, number>[]>`
+  const at = budget();   // the snapshot is seven statements; they share one budget, like a search does
+  const [core] = await withTimeout(s<Record<string, number>[]>`
     select
       (select count(distinct actor)::int from daily_actors where role = 'publisher' and day >= current_date - 6) as weekly_active_publishers,
       (select count(distinct actor)::int from daily_actors where role = 'seeker' and day >= current_date - 6) as weekly_active_seekers,
@@ -190,9 +223,11 @@ export async function metricsSnapshot() {
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:5xx' and day >= current_date - 6) as errors_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key like 'route:%' and day >= current_date - 6) as requests_7d,
       (select count(*)::int from reports where resolved_at is null) as open_reports,
-      (select count(*)::int from posts where hidden_at is not null and deleted_at is null) as hidden_posts`;
+      (select count(*)::int from posts where hidden_at is not null and deleted_at is null) as hidden_posts,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:db_timeout' and day >= current_date - 6) as db_timeouts_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:503' and day >= current_date - 6) as errors_503_7d`, at("metrics:core"));
 
-  const series = await s<{ day: string; searches: number; zero: number; posts: number; registrations: number; deliveries: number; mcp_init: number; mcp_calls: number; page_human: number; page_crawler: number; page_agent: number; publishers: number; seekers: number }[]>`
+  const series = await withTimeout(s<{ day: string; searches: number; zero: number; posts: number; registrations: number; deliveries: number; mcp_init: number; mcp_calls: number; page_human: number; page_crawler: number; page_agent: number; publishers: number; seekers: number }[]>`
     with days as (select generate_series(current_date - 29, current_date, '1 day')::date as day)
     select d.day::text as day,
       coalesce((select sum(n) from daily_counters c where c.day = d.day and c.key = 'search:total'), 0)::int as searches,
@@ -207,21 +242,21 @@ export async function metricsSnapshot() {
       coalesce((select sum(n) from daily_counters c where c.day = d.day and c.key = 'page:agent'), 0)::int as page_agent,
       (select count(distinct actor) from daily_actors a where a.day = d.day and a.role = 'publisher')::int as publishers,
       (select count(distinct actor) from daily_actors a where a.day = d.day and a.role = 'seeker')::int as seekers
-    from days d order by d.day`;
+    from days d order by d.day`, at("metrics:series"));
 
-  const mcpClients = await s<{ client: string; sessions: number; days: number }[]>`
+  const mcpClients = await withTimeout(s<{ client: string; sessions: number; days: number }[]>`
     select actor as client, sum(n)::int as sessions, count(distinct day)::int as days from daily_actors
-     where role = 'mcp_client' and day >= current_date - 29 group by actor order by sessions desc limit 20`;
-  const tools = await s<{ tool: string; calls: number }[]>`
-    select replace(key, 'mcp:tool:', '') as tool, sum(n)::int as calls from daily_counters where key like 'mcp:tool:%' and day >= current_date - 6 group by key order by calls desc`;
-  const routes = await s<{ route: string; requests: number }[]>`
-    select replace(key, 'route:', '') as route, sum(n)::int as requests from daily_counters where key like 'route:%' and day >= current_date - 6 group by key order by requests desc limit 30`;
-  const registrationClients = await s<{ client: string; n: number }[]>`
-    select coalesce(client, '(not declared)') as client, count(*)::int as n from publishers where not internal and status <> 'deleted' group by client order by n desc limit 15`;
+     where role = 'mcp_client' and day >= current_date - 29 group by actor order by sessions desc limit 20`, at("metrics:mcp"));
+  const tools = await withTimeout(s<{ tool: string; calls: number }[]>`
+    select replace(key, 'mcp:tool:', '') as tool, sum(n)::int as calls from daily_counters where key like 'mcp:tool:%' and day >= current_date - 6 group by key order by calls desc`, at("metrics:tools"));
+  const routes = await withTimeout(s<{ route: string; requests: number }[]>`
+    select replace(key, 'route:', '') as route, sum(n)::int as requests from daily_counters where key like 'route:%' and day >= current_date - 6 group by key order by requests desc limit 30`, at("metrics:routes"));
+  const registrationClients = await withTimeout(s<{ client: string; n: number }[]>`
+    select coalesce(client, '(not declared)') as client, count(*)::int as n from publishers where not internal and status <> 'deleted' group by client order by n desc limit 15`, at("metrics:registrations"));
 
   // Unmet demand, aggregated: terms, kinds, places, tags from zero-result searches in the last 30 days.
-  const unmetRows = await s<{ q: string | null; kind: string | null; tags: string | null; near: string | null; seeker: string }[]>`
-    select q, kind, tags, near, seeker from unmet_queries where day >= current_date - 29`;
+  const unmetRows = await withTimeout(s<{ q: string | null; kind: string | null; tags: string | null; near: string | null; seeker: string }[]>`
+    select q, kind, tags, near, seeker from unmet_queries where day >= current_date - 29`, at("metrics:unmet"));
   const termSeekers = new Map<string, Set<string>>();
   const kindCount = new Map<string, number>();
   const nearCount = new Map<string, number>();
@@ -264,7 +299,12 @@ export async function metricsSnapshot() {
 
   return {
     generated_at: new Date().toISOString(),
-    health: { cron_ticks_7d: core.cron_ticks_7d, expected_cron_ticks_7d: 7 * 1440, errors_7d: core.errors_7d, requests_7d: core.requests_7d },
+    health: {
+      cron_ticks_7d: core.cron_ticks_7d, expected_cron_ticks_7d: 7 * 1440, errors_7d: core.errors_7d, requests_7d: core.requests_7d,
+      // Database waits that ran out of budget, and the 503s we served because of them. Requests the
+      // platform killed before any handler ran (Vercel 504s) are not here; see the note at the top.
+      db_timeouts_7d: core.db_timeouts_7d, errors_503_7d: core.errors_503_7d,
+    },
     north_stars: {
       weekly_active_publishers: metrics.weekly_active_publishers,
       weekly_active_seekers: metrics.weekly_active_seekers,

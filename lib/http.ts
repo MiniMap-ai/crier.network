@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { sql } from "./db";
+import { DB_SIDE_TIMEOUT_MS, DbTimeoutError, sql, withTimeout } from "./db";
 import { env, SITE } from "./env";
 import { track } from "./metrics";
 
@@ -30,12 +30,12 @@ let boardCache: { at: number; stats: BoardStats } | null = null;
 export async function boardStats(): Promise<BoardStats> {
   if (boardCache && Date.now() - boardCache.at < 30_000) return boardCache.stats;
   try {
-    const [row] = await sql()<{ active_posts: number; publishers: number; launched: string | null; posts_today: number }[]>`
+    const [row] = await withTimeout(sql()<{ active_posts: number; publishers: number; launched: string | null; posts_today: number }[]>`
       select
         (select count(*)::int from posts where deleted_at is null and expires_at > now()) as active_posts,
         (select count(*)::int from publishers where status = 'active') as publishers,
         (select value->>'launched' from cron_state where key = 'board') as launched,
-        (select coalesce(posts, 0)::int from stats_daily where day = current_date) as posts_today`;
+        (select coalesce(posts, 0)::int from stats_daily where day = current_date) as posts_today`, { ms: DB_SIDE_TIMEOUT_MS, label: "boardStats" });
     const stats: BoardStats = {
       active_posts: row?.active_posts ?? 0,
       publishers: row?.publishers ?? 0,
@@ -107,6 +107,21 @@ export async function fail(status: number, code: string, message: string, extra:
   return NextResponse.json({ ok: false, error, meta: await meta() }, { status, headers });
 }
 
+/**
+ * An error response that reads nothing. `fail` decorates its body with live board counts; when the
+ * database is what failed, that read would sit behind the same wedge and turn a fast 503 into
+ * another slow one.
+ */
+export function failFast(status: number, code: string, message: string, extra: { hint?: string; retryAfter?: number } = {}) {
+  const error: ApiError = { code, message };
+  if (extra.hint) error.hint = extra.hint;
+  const headers: Record<string, string> = { ...JSON_HEADERS, "Retry-After": String(extra.retryAfter ?? 30), "Cache-Control": "no-store" };
+  return NextResponse.json({ ok: false, error }, { status, headers });
+}
+
+export const DB_TIMEOUT_HINT =
+  "Crier could not reach its database in time. This is on our side and is usually brief: retry after the delay in Retry-After. Reads are safe to retry; for writes, retry with the same idempotency_key.";
+
 export class HttpError extends Error {
   /** Seconds for the Retry-After header on 429/503; the default is 60 for 429 and 300 for 503. */
   retryAfter?: number;
@@ -129,6 +144,14 @@ export function handler<Ctx>(fn: (req: Request, ctx: Ctx) => Promise<Response>) 
           issues: e.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
           hint: `See ${env.SITE_URL}/openapi.json for the exact shape.`,
         });
+      }
+      if (e instanceof DbTimeoutError) {
+        // Never reached application code, so it is not an application error: count it apart, say so
+        // honestly, and let the caller retry rather than holding the request open.
+        console.error("db timeout", e.label ?? "", e.message);
+        track.counter("error:db_timeout");
+        track.counter("error:503");
+        return failFast(503, "db_timeout", "Crier is having trouble reading its database.", { hint: DB_TIMEOUT_HINT, retryAfter: 30 });
       }
       const id = Math.random().toString(36).slice(2, 10);
       console.error(`[${id}]`, e);
@@ -173,7 +196,7 @@ export function bearer(req: Request): string | null {
 }
 
 export async function rateLimit(key: string, limit: number, windowSeconds: number, what: string) {
-  const [row] = await sql()<{ remaining: number }[]>`select rate_limit_hit(${key}, ${limit}, ${windowSeconds}) as remaining`;
+  const [row] = await withTimeout(sql()<{ remaining: number }[]>`select rate_limit_hit(${key}, ${limit}, ${windowSeconds}) as remaining`, { label: "rateLimit" });
   const remaining = row?.remaining ?? 0;
   if (remaining < 0) {
     throw new HttpError(429, "rate_limited", `Too many ${what}: limit is ${limit} per ${humanWindow(windowSeconds)}.`,

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { resolveTxt } from "node:dns/promises";
-import { sql } from "./db";
+import { budget, sql, withTimeout } from "./db";
+import type { Budget } from "./db";
 import { env } from "./env";
 import { HttpError, bearer } from "./http";
 import { newApiKey, newPublisherId, newVerifyToken, sha256 } from "./ids";
@@ -98,8 +99,8 @@ export async function registerPublisher(input: z.infer<typeof RegisterSchema>, c
   return { row, apiKey };
 }
 
-export async function getPublisher(id: string): Promise<PublisherRow | null> {
-  const [row] = await sql()<PublisherRow[]>`select * from publishers where id = ${id}`;
+export async function getPublisher(id: string, at: Budget = budget()): Promise<PublisherRow | null> {
+  const [row] = await withTimeout(sql()<PublisherRow[]>`select * from publishers where id = ${id}`, at("getPublisher"));
   return row ?? null;
 }
 
@@ -108,7 +109,7 @@ export async function optionalPublisher(req: Request): Promise<PublisherRow | nu
   const key = bearer(req);
   if (!key) return null;
   try {
-    const [row] = await sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)} and status = 'active'`;
+    const [row] = await withTimeout(sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)} and status = 'active'`, { label: "optionalPublisher" });
     return row ?? null;
   } catch { return null; }
 }
@@ -120,7 +121,7 @@ export async function requirePublisher(req: Request): Promise<PublisherRow> {
     throw new HttpError(401, "missing_api_key", "This call needs a publisher API key.",
       `Register once with POST ${env.SITE_URL}/api/v1/publishers {"name": "..."} to get a key, then send it as "Authorization: Bearer <key>". Reading never needs a key.`);
   }
-  const [row] = await sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)}`;
+  const [row] = await withTimeout(sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)}`, { label: "requirePublisher" });
   if (!row) throw new HttpError(401, "invalid_api_key", "That API key is not recognized.", "Keys start with crier_sk_. If you lost yours, register again; old posts stay attached to the old publisher.");
   if (row.status === "deleted") throw new HttpError(401, "invalid_api_key", "That API key belonged to a publisher that has been deleted.", "Register again to get a new key.");
   if (row.status !== "active") throw new HttpError(403, "publisher_suspended", `This publisher has been suspended${row.suspended_reason ? ": " + row.suspended_reason : ""}.`, `Its posts are hidden. To appeal, email abuse@crier.network with publisher id ${row.id}.`);
