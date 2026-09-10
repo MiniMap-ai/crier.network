@@ -28,6 +28,16 @@ const pendingActors = new Map<string, { role: string; actor: string; n: number }
 const pendingStats = new Map<string, number>();     // stats_daily column -> n
 let flushScheduled = false;
 
+/**
+ * The flush's ceiling, and the statement_timeout it sets on itself — one number so they cannot drift.
+ * It is deliberately tighter than the default read budget: `after()` work runs on the platform's
+ * clock, counting against the route's maxDuration, so a slow flush would eat into the ten seconds a
+ * page has. The whole transaction gets what each statement gets. Dropping the counters when it does
+ * not fit is the accepted cost, stated above; dropping the request is not.
+ */
+const FLUSH_TIMEOUT_MS = 3000;
+const FLUSH_LOCK_TIMEOUT_MS = 1500;
+
 async function flush() {
   flushScheduled = false;
   if (pendingCounters.size === 0 && pendingActors.size === 0 && pendingStats.size === 0) return;
@@ -38,10 +48,11 @@ async function flush() {
   pendingActors.clear();
   pendingStats.clear();
   try {
-    // Bounded like every other wait: begin() cannot be cancelled once it is in flight, but a flush
-    // nobody is waiting for must not keep the instance busy for minutes either.
+    // Bounded like every other wait, on the flush's own budget rather than the read budget. begin()
+    // cannot be cancelled once it is in flight — the server-side statement_timeout is what ends it
+    // there — but this is what stops us waiting on it inside the caller's remaining time.
     await withTimeout(sql().begin(async (tx) => {
-      await tx`select set_config('statement_timeout', '3000', true), set_config('lock_timeout', '1500', true)`;
+      await tx`select set_config('statement_timeout', ${String(FLUSH_TIMEOUT_MS)}, true), set_config('lock_timeout', ${String(FLUSH_LOCK_TIMEOUT_MS)}, true)`;
       if (counters.length) {
         await tx`insert into daily_counters (day, key, n)
                  select current_date, k, n from unnest(${counters.map((c) => c[0])}::text[], ${counters.map((c) => c[1])}::bigint[]) as t(k, n)
@@ -53,7 +64,7 @@ async function flush() {
                  on conflict (day, role, actor) do update set n = daily_actors.n + excluded.n`;
       }
       for (const [col, n] of stats) await tx`select bump_stat(${col}, ${n})`;
-    }), { label: "metrics:flush" });
+    }), { ms: FLUSH_TIMEOUT_MS, label: "metrics:flush" });
   } catch (e) {
     console.error("metrics flush", (e as Error).message);
   }

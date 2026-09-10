@@ -45,7 +45,14 @@ async function loadPostPage(id: string): Promise<PostPageView | null> {
   return { post, deleted: !!row.deleted_at, hidden: !!row.hidden_at, syndicated: row.syndicated, indexable: indexable(row), replies };
 }
 
-/** Everything /p/<id> needs except related posts, which crawlers on relay pages do not get. */
+/**
+ * Everything /p/<id> needs except related posts, which crawlers on relay pages do not get.
+ *
+ * A miss is cached too, so a crawler walking made-up ids leaves a minute of nulls in the data cache.
+ * That is deliberate — a probe costing one query per id per minute is the point — and the ids reach
+ * here only after POST_ID_RE, so the space is well-formed 8-character ids rather than anything at
+ * all. Worth revisiting only if the data cache ever gets billed by entry count.
+ */
 export function cachedPostPage(id: string): Promise<PostPageView | null> {
   return unstable_cache(loadPostPage, ["post-page", id], { revalidate: PAGE_REVALIDATE, tags: [postTag(id), POSTS_TAG] })(id);
 }
