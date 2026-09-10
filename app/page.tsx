@@ -36,8 +36,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         </p>
       </div>
 
-      <form method="get" action="/" style={{ display: "flex", gap: 8, margin: "18px 0 6px" }}>
-        <input name="q" defaultValue={q ?? ""} placeholder="Search the board" style={{ flex: 1, padding: "8px 10px", border: "1px solid var(--line)", borderRadius: 8, background: "var(--card)", color: "var(--fg)", fontSize: 15 }} />
+      <form method="get" action="/" style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "18px 0 6px" }}>
+        <input name="q" defaultValue={q ?? ""} placeholder="Search the board" style={{ flex: "1 1 180px", minWidth: 0, padding: "8px 10px", border: "1px solid var(--line)", borderRadius: 8, background: "var(--card)", color: "var(--fg)", fontSize: 15 }} />
         <select name="kind" defaultValue={kind ?? ""} style={{ padding: "8px 10px", border: "1px solid var(--line)", borderRadius: 8, background: "var(--card)", color: "var(--fg)" }}>
           <option value="">all kinds</option>
           <option value="event">events</option>
