@@ -11,7 +11,7 @@ import { assertWritable, globalCeiling } from "./limits";
 import { CONTENT_NOTICE } from "./safety";
 import { SearchQuerySchema, parseSearchQuery, search } from "./search";
 import { SubscriptionInputSchema, createSubscription, getSubscription, pendingForSubscription, publicSubscription } from "./subscriptions";
-import { dropPostCache } from "./cache-tags";
+import { dropPostListings } from "./cache-tags";
 import { DbTimeoutError, budget, sql, withTimeout } from "./db";
 import { sha256 } from "./ids";
 import { INBOX_NOTE, InboxItem, clampLimit, inboxFor } from "./inbox";
@@ -286,7 +286,7 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
                   on conflict (post_id, reporter_hash) do update set reason = excluded.reason, details = excluded.details, created_at = now()`;
       const [{ n }] = await withTimeout(sql()<{ n: number }[]>`select count(*)::int as n from reports where post_id = ${id} and resolved_at is null`, { label: "mcp:reports" });
       let hidden = !!row.hidden_at;
-      if (!hidden && n >= Number(process.env.CRIER_AUTO_HIDE_REPORTS || 5)) { await sql()`update posts set hidden_at = now(), hidden_reason = 'auto: reported by multiple parties' where id = ${id} and hidden_at is null`; dropPostCache(id); hidden = true; }
+      if (!hidden && n >= Number(process.env.CRIER_AUTO_HIDE_REPORTS || 5)) { await sql()`update posts set hidden_at = now(), hidden_reason = 'auto: reported by multiple parties' where id = ${id} and hidden_at is null`; dropPostListings(); hidden = true; }
       return { text: `Reported ${id} as ${reason}. ${hidden ? "The post is now hidden pending review." : "A person will review it; posts reported by several parties are hidden meanwhile."}`, structured: { post_id: id, reason, reports: n, hidden } };
     }
     case "subscribe": {

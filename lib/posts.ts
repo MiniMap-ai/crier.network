@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { dropPostCache } from "./cache-tags";
+import { dropPostCache, dropPostListings } from "./cache-tags";
 import { DB_SIDE_TIMEOUT_MS, budget, sql, toVectorLiteral, withTimeout, withTimeoutOr } from "./db";
 import type { Budget } from "./db";
 import { env } from "./env";
@@ -314,7 +314,7 @@ export async function deletePost(publisher: PublisherRow, id: string): Promise<v
   if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
   await sql()`update posts set deleted_at = now(), updated_at = now() where id = ${id}`;
-  dropPostCache(id);
+  dropPostListings();
 }
 
 export async function getPostRow(id: string | null, by?: { publisherId: string; idempotencyKey: string }, at: Budget = budget()): Promise<PostRow | null> {
