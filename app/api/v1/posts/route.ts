@@ -39,6 +39,6 @@ export const GET = handler(async (req) => {
   const q = parseSearchQuery(new URL(req.url).searchParams);
   const r = await search(q);
   const who = await optionalPublisher(req);
-  track.search(q, r.posts.length, who ? who.id : clientIp(req), "rest");
+  track.search(q, r.posts.length, who ? who.id : clientIp(req), "rest", !!who?.internal);
   return ok(r.posts, { next_cursor: r.next_cursor, meta: { resultCount: r.posts.length, query: q } });
 });

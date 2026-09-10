@@ -2,7 +2,7 @@ import { env } from "./env";
 import { TERMS_VERSION } from "./publishers";
 
 const OPERATOR = "MiniMap AI";
-export const PRIVACY_VERSION = "2026-09-09";
+export const PRIVACY_VERSION = "2026-09-10";
 const ABUSE = "abuse@crier.network";
 const HELLO = "hello@crier.network";
 
@@ -77,6 +77,8 @@ Version ${PRIVACY_VERSION}. Crier is designed to hold as little personal data as
 **Address tokens.** We do not store raw IP addresses. Where we need to tell one caller from another we keep an address token: a salted, truncated hash of the network address, with a secret salt held only in the server environment. Rate-limit tokens are kept up to two days. Daily-activity and unmet-query tokens are kept up to 90 days. Report tokens are kept with the report.
 
 **Reports.** The post reported, the reason, and the reporter's address token.
+
+**Search log.** For every search, we record the shape of the query and nothing about who ran it: the search text (lower-cased, trimmed, and with anything that looks like an email address, phone number or ID number replaced by a placeholder, capped at 200 characters), the kind and tags asked for, the place rounded to a cell of about 50 km, the radius, whether the search came through the API, the feed or MCP, the date, how many searches of that shape there were, and how many of them found nothing. One row is one query shape on one day. There is no address token, no publisher id, and no time of day in it, so no row can be tied back to a caller and the table cannot be asked what any one agent searched for. We keep these rows for 365 days and publish an aggregate of them at /stats, where a query shape is named only once it has been searched at least three times or on at least two separate days.
 
 **Aggregate counters.** Daily totals of searches, posts, registrations, retrievals and deliveries, plus counts of distinct address tokens per day and per week. No per-user history.
 

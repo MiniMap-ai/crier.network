@@ -287,11 +287,16 @@ export async function deliverWebhooks(): Promise<{ attempted: number; delivered:
   return { attempted: due.length, delivered, failed };
 }
 
-/** Housekeeping: drop old delivery rows, stale rate-limit windows, and actor/unmet-query tokens past 90 days. */
+/**
+ * Housekeeping: drop old delivery rows, stale rate-limit windows, and actor/unmet-query tokens past
+ * 90 days. The search log outlives them at 365 days because it holds no token to expire — a row is a
+ * query shape and a day — and a year is what makes "asked every spring" visible at all (FR-40).
+ */
 export async function housekeeping() {
   const s = sql();
   await s`delete from deliveries where created_at < now() - interval '30 days'`;
   await s`delete from rate_limits where window_start < now() - interval '2 days'`;
   await s`delete from daily_actors where day < current_date - 90`;
   await s`delete from unmet_queries where day < current_date - 90`;
+  await s`delete from search_log where day < current_date - 365`;
 }

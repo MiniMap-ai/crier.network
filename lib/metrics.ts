@@ -5,6 +5,8 @@
 import { after } from "next/server";
 import { DB_SIDE_TIMEOUT_MS, DbTimeoutError, budget, sql, withTimeout, withTimeoutOr } from "./db";
 import type { SearchQuery } from "./search";
+import { drainSearches, foldDemand, normalizeQuery, recordSearch, roundNear } from "./search-log";
+import type { DemandRow, SearchSource } from "./search-log";
 
 /* ---------------- recording (batched, fire-and-forget) ----------------
  *
@@ -26,6 +28,8 @@ import type { SearchQuery } from "./search";
 const pendingCounters = new Map<string, number>();
 const pendingActors = new Map<string, { role: string; actor: string; n: number }>();
 const pendingStats = new Map<string, number>();     // stats_daily column -> n
+// Search log shapes buffer in lib/search-log.ts, which owns the rule about what is recorded;
+// the flush below drains them into the same transaction.
 let flushScheduled = false;
 
 /**
@@ -40,7 +44,8 @@ const FLUSH_LOCK_TIMEOUT_MS = 1500;
 
 async function flush() {
   flushScheduled = false;
-  if (pendingCounters.size === 0 && pendingActors.size === 0 && pendingStats.size === 0) return;
+  const searches = drainSearches();
+  if (pendingCounters.size === 0 && pendingActors.size === 0 && pendingStats.size === 0 && searches.length === 0) return;
   const counters = [...pendingCounters.entries()];
   const actors = [...pendingActors.values()];
   const stats = [...pendingStats.entries()];
@@ -64,6 +69,9 @@ async function flush() {
                  on conflict (day, role, actor) do update set n = daily_actors.n + excluded.n`;
       }
       for (const [col, n] of stats) await tx`select bump_stat(${col}, ${n})`;
+      // One upsert per distinct shape: the shapes were collapsed in process, so a thousand searches
+      // for the same thing on the same day cost one statement here and occupy one row there.
+      for (const g of searches) await tx`select bump_search(${g.q}, ${g.kind}, ${g.tags}, ${g.near}, ${g.radius_km}, ${g.source}, ${g.n}, ${g.zero})`;
     }), { ms: FLUSH_TIMEOUT_MS, label: "metrics:flush" });
   } catch (e) {
     console.error("metrics flush", (e as Error).message);
@@ -102,12 +110,21 @@ export const track = {
     this.counter(`pageview:${kind}`);
   },
 
-  /** A search happened. seeker is a salted address token or a publisher id. */
-  search(q: SearchQuery, results: number, seeker: string, source: "rest" | "mcp" | "feed") {
+  /**
+   * A search happened. seeker is a salted address token or a publisher id, and is used for the
+   * distinctness counters and `unmet_queries` only — the search log never sees it (BR-17).
+   * `internal` is our own accounts: they are excluded from the demand record for the same reason
+   * they are excluded from traction, because seeding the board is not demand for it.
+   */
+  search(q: SearchQuery, results: number, seeker: string, source: SearchSource, internal = false) {
     this.counter("search:total");
     this.counter(`search:source:${source}`);
     if (q.q) this.counter("search:text");
     this.actor("seeker", seeker);
+    // FR-40: every search, including a bare listing — "show me the newest" is a query too.
+    const logged = recordSearch(q, source, { zero: results === 0, internal });
+    if (logged === "recorded") scheduleFlush();
+    else if (logged === "dropped") this.counter("search:log_dropped");
     if (results === 0) {
       this.counter("search:zero");
       fire(withTimeoutOr(sql()`insert into unmet_queries (q, kind, tags, near, radius_km, seeker, source)
@@ -142,22 +159,6 @@ export function classifyUserAgent(ua: string | null): "human" | "crawler" | "age
   if (CRAWLER_RE.test(ua)) return "crawler";
   if (BROWSER_RE.test(ua)) return "human";
   return "agent";
-}
-
-function normalizeQuery(q: string | undefined): string | null {
-  if (!q) return null;
-  return q.toLowerCase().replace(/\s+/g, " ").trim()
-    .replace(/\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}\b/g, "[email]")
-    .replace(/(?:\+?\d{1,2}[\s.-])?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}\b/g, "[phone]")
-    .replace(/\b\d{3}-\d{2}-\d{4}\b/g, "[id]")
-    .slice(0, 200);
-}
-
-function roundNear(near: string | undefined): string | null {
-  if (!near) return null;
-  const [a, b] = near.split(",").map(parseFloat);
-  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
-  return `${(Math.round(a * 2) / 2).toFixed(1)},${(Math.round(b * 2) / 2).toFixed(1)}`;
 }
 
 /* ---------------- milestones ---------------- */
@@ -196,7 +197,7 @@ const STOP = new Set("a an the and or of in on at to for with near me my near by
 
 export async function metricsSnapshot() {
   const s = sql();
-  const at = budget();   // the snapshot is seven statements; they share one budget, like a search does
+  const at = budget();   // the snapshot is eight statements; they share one budget, like a search does
   const [core] = await withTimeout(s<Record<string, number>[]>`
     select
       (select count(distinct actor)::int from daily_actors where role = 'publisher' and day >= current_date - 6) as weekly_active_publishers,
@@ -257,6 +258,15 @@ export async function metricsSnapshot() {
   // Unmet demand, aggregated: terms, kinds, places, tags from zero-result searches in the last 30 days.
   const unmetRows = await withTimeout(s<{ q: string | null; kind: string | null; tags: string | null; near: string | null; seeker: string }[]>`
     select q, kind, tags, near, seeker from unmet_queries where day >= current_date - 29`, at("metrics:unmet"));
+  // Demand (FR-40): every search, not only the ones that found nothing. Grouped in the database down
+  // to one row per shape per day so the fold below is over query diversity rather than traffic, and
+  // tagged with the window it belongs to so the date arithmetic stays where current_date lives.
+  const demandRows = await withTimeout(s<(DemandRow & { recent: boolean })[]>`
+    select day::text as day, (day >= current_date - 6) as recent, q, kind, near, tags,
+           sum(n)::int as n, sum(zero)::int as zero
+      from search_log where day >= current_date - 29
+     group by day, q, kind, near, tags`, at("metrics:demand"));
+
   const termSeekers = new Map<string, Set<string>>();
   const kindCount = new Map<string, number>();
   const nearCount = new Map<string, number>();
@@ -320,6 +330,11 @@ export async function metricsSnapshot() {
       places: top(nearCount, (v) => v),
       tags: top(tagCount, (v) => v),
       note: "Aggregated from searches that returned nothing in the last 30 days. Terms are counted by distinct seekers; places are ~50 km cells. Personal data patterns are stripped before storage. This is the signal for what to seed or syndicate next.",
+    },
+    demand: {
+      last_7d: foldDemand(demandRows.filter((r) => r.recent)),
+      last_30d: foldDemand(demandRows),
+      note: "Every search, de-identified: one row per day per query shape, with no seeker, address or time of day, so it cannot be read back as one agent's history. A shape is named only once it has been searched three or more times or on two or more days; the rest are counted in `other`. `zero` is how many of those searches found nothing, `days` how many separate days the shape was asked on, and `poller` marks a shape that ran more than 50 times in a single day — a schedule, not a question. Our own accounts are not recorded. Places are ~50 km cells; personal data patterns are stripped before storage; rows are kept 365 days.",
     },
     mcp: { clients_30d: mcpClients, tools_7d: tools },
     routes_7d: routes,
