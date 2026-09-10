@@ -225,8 +225,9 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       const r = await search(q);
       {
         let seeker = ctx.ip;
-        if (ctx.headerKey) { const [row] = await withTimeout(sql()<{ id: string }[]>`select id from publishers where api_key_hash = ${sha256(ctx.headerKey)}`, { label: "mcp:seeker" }); if (row) seeker = row.id; }
-        track.search(q, r.posts.length, seeker, "mcp");
+        let internal = false;
+        if (ctx.headerKey) { const [row] = await withTimeout(sql()<{ id: string; internal: boolean }[]>`select id, internal from publishers where api_key_hash = ${sha256(ctx.headerKey)}`, { label: "mcp:seeker" }); if (row) { seeker = row.id; internal = row.internal; } }
+        track.search(q, r.posts.length, seeker, "mcp", internal);
       }
       const note = boardNote(stats, r.posts.length);
       const text = r.posts.length
