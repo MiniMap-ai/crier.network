@@ -6,7 +6,8 @@ import { optionalPublisher } from "@/lib/publishers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+// One search is one shared 8 s database budget; a request that needs longer is not going to finish.
+export const maxDuration = 10;
 
 export const OPTIONS = () => corsPreflight();
 

@@ -1,12 +1,13 @@
 import { corsPreflight, fail, handler, ok, readJson } from "@/lib/http";
 import { PostPatchSchema, bumpViews, deletePost, getPostRow, publicPost, relatedPosts, repliesFor, updatePost } from "@/lib/posts";
+import { budget } from "@/lib/db";
 import { requirePublisher } from "@/lib/publishers";
 import { POST_ID_RE } from "@/lib/ids";
 import { assertWritable } from "@/lib/limits";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 10;
 
 export const OPTIONS = () => corsPreflight();
 
@@ -16,12 +17,13 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   const { id: raw } = await ctx.params;
   const id = raw.replace(/\.json$/, "");
   if (!POST_ID_RE.test(id)) return fail(404, "not_found", "No such post.", { hint: "Post ids are 8 characters, e.g. /api/v1/posts/8Hq2mZk3." });
-  const row = await getPostRow(id);
+  const at = budget();   // the post, its related posts and its replies share one budget
+  const row = await getPostRow(id, undefined, at);
   if (!row || row.deleted_at) return fail(404, "not_found", "No such post.", { hint: "It may have been removed by its publisher." });
   if (row.hidden_at) return fail(404, "hidden", "This post is hidden pending review.", { hint: "It was reported by several parties or removed by a moderator. If you published it and believe this is wrong, email abuse@crier.network." });
   const post = publicPost(row);
-  post.related = await relatedPosts(id, 5);
-  if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20)).posts;
+  post.related = await relatedPosts(id, 5, at);
+  if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
   bumpViews(id);
   const expired = row.expires_at.getTime() < Date.now();
   return ok(post, {

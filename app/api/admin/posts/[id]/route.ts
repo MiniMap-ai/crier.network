@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handler, ok, readJson } from "@/lib/http";
 import { requireAdmin } from "@/lib/admin";
+import { dropPostCache } from "@/lib/cache-tags";
 import { sql } from "@/lib/db";
 import { getPostRow, publicPost } from "@/lib/posts";
 
@@ -33,5 +34,6 @@ export const POST = handler(async (req, ctx: Ctx) => {
   if (action === "unhide") await s`update posts set hidden_at = null, hidden_reason = null where id = ${id}`;
   if (action === "delete") await s`update posts set deleted_at = now(), hidden_at = coalesce(hidden_at, now()), hidden_reason = ${reason ?? "moderator"} where id = ${id}`;
   await s`update reports set resolved_at = now(), resolution = ${action + (reason ? ": " + reason : "")} where post_id = ${id} and resolved_at is null`;
+  dropPostCache(id);
   return ok({ id, action, reason: reason ?? null });
 });

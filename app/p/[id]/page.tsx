@@ -2,27 +2,34 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { classifyUserAgent, track } from "@/lib/metrics";
+import { classifyUserAgent, noteDbTimeout, track } from "@/lib/metrics";
 import { headers } from "next/headers";
 import { PostList, fmtWhen } from "@/components/PostList";
 import { env } from "@/lib/env";
 import { POST_ID_RE } from "@/lib/ids";
-import { bumpViews, getPostRow, indexable, jsonLd, publicPost, relatedPosts, repliesFor } from "@/lib/posts";
+import { cachedPostPage, cachedRelated } from "@/lib/cache";
+import { bumpViews, jsonLd } from "@/lib/posts";
 
 export const dynamic = "force-dynamic";
+// A post page is one cached read and a view bump. If it cannot do that in ten seconds it is wedged,
+// and the answer is to fail and let the caller retry, not to sit there until the platform kills it.
+export const maxDuration = 10;
 
-// generateMetadata and the page both need the row; React's cache dedupes it to one query per request.
-const loadPost = cache((id: string) => getPostRow(id));
+// generateMetadata and the page both need the post; React's cache dedupes it to one load per
+// request, and lib/cache keeps that load off the database for a minute at a time.
+const loadPost = cache((id: string) => cachedPostPage(id));
 
 type Props = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   if (!POST_ID_RE.test(id)) return { title: "Not found" };
-  const row = await loadPost(id);
-  if (!row || row.deleted_at) return { title: "Not found", robots: { index: false } };
-  const p = publicPost(row);
-  const noindex = row.expires_at.getTime() < Date.now() || !!row.hidden_at || !indexable(row);
+  // Not caught: a timeout here is the same failure the body reports, and a 500 titled "Not found"
+  // would be a worse answer than an error page.
+  const view = await loadPost(id);
+  if (!view || view.deleted) return { title: "Not found", robots: { index: false } };
+  const p = view.post;
+  const noindex = Date.parse(p.expires_at) < Date.now() || view.hidden || !view.indexable;
   return {
     title: p.title,
     description: p.body.slice(0, 160),
@@ -35,21 +42,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostPage({ params }: Props) {
   const { id } = await params;
   if (!POST_ID_RE.test(id)) notFound();
-  const row = await loadPost(id);
-  if (!row || row.deleted_at || row.hidden_at) notFound();
-  const p = publicPost(row);
+  // The one read this page cannot render around. If it times out, say so with an error rather than
+  // an empty article: app/error.tsx needs no database of its own.
+  const view = await loadPost(id).catch((e: unknown) => { noteDbTimeout("p/[id]", e); throw e; });
+  if (!view || view.deleted || view.hidden) notFound();
+  const p = view.post;
   const ua = (await headers()).get("user-agent");
   const crawler = classifyUserAgent(ua) === "crawler";
   track.pageView(ua, "post");
   // Crawlers are most of the page traffic and none of the readers: no view bump, and no related-posts
-  // query for relay pages they are told not to index anyway.
-  const [related, replies] = await Promise.all([
-    crawler && row.syndicated ? Promise.resolve([]) : relatedPosts(id, 5),
-    p.reply_count > 0 || p.kind === "thread" ? repliesFor(id, 50) : Promise.resolve({ posts: [], next_cursor: null }),
-  ]);
+  // read for relay pages they are told not to index anyway. Related posts are a nicety, so a slow one
+  // is dropped rather than allowed to take the page down with it.
+  const related = crawler && view.syndicated ? [] : await cachedRelated(id).catch((e: unknown) => { noteDbTimeout("p/[id]:related", e); return []; });
+  const replies = { posts: view.replies };
   if (!crawler) bumpViews(id);
   const when = fmtWhen(p);
-  const expired = row.expires_at.getTime() < Date.now();
+  const expired = Date.parse(p.expires_at) < Date.now();
   const B = env.SITE_URL;
   return (
     <article className="article">

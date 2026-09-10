@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { clientIp, corsPreflight, fail, handler, ok, rateLimit, readJson } from "@/lib/http";
+import { dropPostCache } from "@/lib/cache-tags";
 import { sql } from "@/lib/db";
 import { getPostRow } from "@/lib/posts";
 import { POST_ID_RE } from "@/lib/ids";
@@ -36,6 +37,7 @@ export const POST = handler(async (req) => {
   let hidden = !!row.hidden_at;
   if (!hidden && n >= AUTO_HIDE_AT) {
     await s`update posts set hidden_at = now(), hidden_reason = 'auto: reported by multiple parties' where id = ${input.post_id} and hidden_at is null`;
+    dropPostCache(input.post_id);
     hidden = true;
   }
   return ok({ post_id: input.post_id, reason: input.reason, reports: n, hidden }, {

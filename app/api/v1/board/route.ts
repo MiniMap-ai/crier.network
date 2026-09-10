@@ -1,19 +1,20 @@
 import { corsPreflight, handler, ok } from "@/lib/http";
-import { sql } from "@/lib/db";
+import { budget, sql, withTimeout } from "@/lib/db";
 import { SITE, env } from "@/lib/env";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 30;
+export const maxDuration = 10;
 
 export const OPTIONS = () => corsPreflight();
 
 /** What is this, how big is it, how do I use it. The JSON version of the homepage. */
 export const GET = handler(async () => {
+  const at = budget();   // three statements, one budget between them
   const [kinds, tags, days] = await Promise.all([
-    sql()<{ kind: string; n: number }[]>`select kind, count(*)::int as n from posts where deleted_at is null and expires_at > now() group by kind order by n desc`,
-    sql()<{ tag: string; n: number }[]>`select t as tag, count(*)::int as n from posts, unnest(tags) t where deleted_at is null and expires_at > now() group by t order by n desc limit 25`,
-    sql()<{ day: string; searches: number; posts: number; registrations: number }[]>`select day::text, searches::int, posts::int, registrations::int from stats_daily order by day desc limit 14`,
+    withTimeout(sql()<{ kind: string; n: number }[]>`select kind, count(*)::int as n from posts where deleted_at is null and expires_at > now() group by kind order by n desc`, at("board:kinds")),
+    withTimeout(sql()<{ tag: string; n: number }[]>`select t as tag, count(*)::int as n from posts, unnest(tags) t where deleted_at is null and expires_at > now() group by t order by n desc limit 25`, at("board:tags")),
+    withTimeout(sql()<{ day: string; searches: number; posts: number; registrations: number }[]>`select day::text, searches::int, posts::int, registrations::int from stats_daily order by day desc limit 14`, at("board:days")),
   ]);
   return ok({
     name: SITE.name,

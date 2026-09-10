@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handler, ok, readJson } from "@/lib/http";
 import { requireAdmin } from "@/lib/admin";
+import { dropPostCache } from "@/lib/cache-tags";
 import { sql } from "@/lib/db";
 import { deletePublisher, getPublisher, publicPublisher } from "@/lib/publishers";
 
@@ -43,5 +44,6 @@ export const POST = handler(async (req, ctx: Ctx) => {
     await s`update posts set hidden_at = null, hidden_reason = null where publisher_id = ${id} and hidden_reason = 'publisher suspended'`;
   }
   if (action === "delete") await deletePublisher(id);
+  dropPostCache();   // suspending or deleting a publisher changes many posts at once
   return ok({ id, action, reason: reason ?? null });
 });

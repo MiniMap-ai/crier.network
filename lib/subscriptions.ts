@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createHmac } from "node:crypto";
-import { sql, toVectorLiteral } from "./db";
+import { sql, toVectorLiteral, DB_SIDE_TIMEOUT_MS, withTimeout, withTimeoutOr } from "./db";
 import { env } from "./env";
 import { HttpError, decodeCursor, encodeCursor } from "./http";
 import { newSecret, newSubscriptionId } from "./ids";
@@ -80,7 +80,7 @@ export async function createSubscription(publisher: PublisherRow, input: z.infer
     if (v !== undefined) query[k] = String(v);
   }
   if (input.label) query.label = input.label;
-  const [{ n }] = await sql()<{ n: number }[]>`select count(*)::int as n from subscriptions where publisher_id = ${publisher.id} and active`;
+  const [{ n }] = await withTimeout(sql()<{ n: number }[]>`select count(*)::int as n from subscriptions where publisher_id = ${publisher.id} and active`, { label: "subscriptions:count" });
   if (n >= 50) throw new HttpError(409, "too_many_subscriptions", "A publisher can hold at most 50 active subscriptions.", "Delete one you no longer need, or combine filters.");
   if (input.webhook_url) await assertSafeOutboundUrl(input.webhook_url, "webhook_url");
   const vec = query.q ? await embedQuery(query.q) : null;
@@ -122,12 +122,12 @@ export async function verifyWebhook(sub: SubscriptionRow): Promise<{ sub: Subscr
 }
 
 export async function getSubscription(id: string): Promise<SubscriptionRow | null> {
-  const [row] = await sql()<SubscriptionRow[]>`select * from subscriptions where id = ${id}`;
+  const [row] = await withTimeout(sql()<SubscriptionRow[]>`select * from subscriptions where id = ${id}`, { label: "getSubscription" });
   return row ?? null;
 }
 
 export async function listSubscriptions(publisherId: string): Promise<SubscriptionRow[]> {
-  return sql()<SubscriptionRow[]>`select * from subscriptions where publisher_id = ${publisherId} order by created_at desc`;
+  return withTimeout(sql()<SubscriptionRow[]>`select * from subscriptions where publisher_id = ${publisherId} order by created_at desc`, { label: "listSubscriptions" });
 }
 
 export async function deleteSubscription(publisher: PublisherRow, id: string) {
@@ -141,18 +141,18 @@ export async function deleteSubscription(publisher: PublisherRow, id: string) {
 export async function pendingForSubscription(sub: SubscriptionRow, cursor: string | undefined, limit: number): Promise<{ posts: (PublicPost & { delivery_id: number; matched_at: string })[]; next_cursor: string | null }> {
   const cur = decodeCursor<{ d: number }>(cursor);
   const after = cur?.d ?? 0;
-  const rows = await sql().unsafe<(PostRow & { delivery_id: number; matched_at: Date })[]>(
+  const rows = await withTimeout(sql().unsafe<(PostRow & { delivery_id: number; matched_at: Date })[]>(
     `select ${POST_COLUMNS}, d.id as delivery_id, d.created_at as matched_at
        from deliveries d join posts p on p.id = d.post_id join publishers u on u.id = p.publisher_id
       where d.subscription_id = $1 and d.id > $2 and p.deleted_at is null
       order by d.id asc
-      limit $3`, [sub.id, after, limit + 1]);
+      limit $3`, [sub.id, after, limit + 1]), { label: "pendingForSubscription" });
   const page = rows.slice(0, limit);
   const next = rows.length > limit ? encodeCursor({ d: page[page.length - 1].delivery_id }) : null;
-  sql()`update subscriptions set last_polled_at = now() where id = ${sub.id}`.catch(() => {});
+  void withTimeoutOr(sql()`update subscriptions set last_polled_at = now() where id = ${sub.id}`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "subscription:polled" });
   if (page.length) {
     const ids = page.map((r) => r.delivery_id);
-    sql()`update deliveries set status = 'polled' where id = any(${ids}::bigint[]) and status = 'pending' and subscription_id in (select id from subscriptions where webhook_url is null or webhook_verified_at is null)`.catch(() => {});
+    void withTimeoutOr(sql()`update deliveries set status = 'polled' where id = any(${ids}::bigint[]) and status = 'pending' and subscription_id in (select id from subscriptions where webhook_url is null or webhook_verified_at is null)`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "deliveries:polled" });
   }
   return {
     posts: page.map((r) => ({ ...publicPost(r), delivery_id: r.delivery_id, matched_at: r.matched_at.toISOString() })),

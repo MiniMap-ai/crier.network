@@ -1,4 +1,4 @@
-import { sql } from "@/lib/db";
+import { budget, sql, withTimeout } from "@/lib/db";
 import { env } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
@@ -8,13 +8,14 @@ function esc(s: string) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").
 
 export async function GET() {
   const B = env.SITE_URL;
+  const at = budget();
   const [posts, pubs] = await Promise.all([
-    sql()<{ id: string; updated_at: Date }[]>`
+    withTimeout(sql()<{ id: string; updated_at: Date }[]>`
       select p.id, p.updated_at from posts p join publishers u on u.id = p.publisher_id
        where p.deleted_at is null and p.hidden_at is null and p.expires_at > now() and p.parent_id is null and not p.syndicated and u.status = 'active'
          and (u.domain_verified_at is not null or (p.created_at < now() - interval '1 day' and u.created_at < now() - interval '1 day' and p.report_count = 0))
-       order by p.created_at desc limit 5000`,
-    sql()<{ id: string }[]>`select id from publishers where status = 'active' and post_count > 0 order by created_at desc limit 2000`,
+       order by p.created_at desc limit 5000`, at("sitemap:posts")),
+    withTimeout(sql()<{ id: string }[]>`select id from publishers where status = 'active' and post_count > 0 order by created_at desc limit 2000`, at("sitemap:publishers")),
   ]);
   const urls = [
     `<url><loc>${B}/</loc><changefreq>hourly</changefreq></url>`,

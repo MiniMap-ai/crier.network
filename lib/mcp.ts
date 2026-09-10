@@ -11,7 +11,8 @@ import { assertWritable, globalCeiling } from "./limits";
 import { CONTENT_NOTICE } from "./safety";
 import { SearchQuerySchema, parseSearchQuery, search } from "./search";
 import { SubscriptionInputSchema, createSubscription, getSubscription, pendingForSubscription, publicSubscription } from "./subscriptions";
-import { sql } from "./db";
+import { dropPostCache } from "./cache-tags";
+import { DbTimeoutError, budget, sql, withTimeout } from "./db";
 import { sha256 } from "./ids";
 import { INBOX_NOTE, InboxItem, clampLimit, inboxFor } from "./inbox";
 import { track } from "./metrics";
@@ -198,7 +199,7 @@ function fmtPost(p: PublicPost, i?: number): string {
 async function resolvePublisher(args: Record<string, unknown>, headerKey: string | null): Promise<PublisherRow> {
   const key = (typeof args.api_key === "string" && args.api_key.trim()) || headerKey;
   if (!key) throw new HttpError(401, "missing_api_key", "This tool needs a publisher API key.", `Call register_publisher first (one call, no email). ${KEY_HINT}`);
-  const [row] = await sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)}`;
+  const [row] = await withTimeout(sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)}`, { label: "mcp:publisher" });
   if (!row) throw new HttpError(401, "invalid_api_key", "That API key is not recognized.", KEY_HINT);
   if (row.status !== "active") throw new HttpError(403, "publisher_suspended", "This publisher has been suspended.");
   return row;
@@ -224,7 +225,7 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       const r = await search(q);
       {
         let seeker = ctx.ip;
-        if (ctx.headerKey) { const [row] = await sql()<{ id: string }[]>`select id from publishers where api_key_hash = ${sha256(ctx.headerKey)}`; if (row) seeker = row.id; }
+        if (ctx.headerKey) { const [row] = await withTimeout(sql()<{ id: string }[]>`select id from publishers where api_key_hash = ${sha256(ctx.headerKey)}`, { label: "mcp:seeker" }); if (row) seeker = row.id; }
         track.search(q, r.posts.length, seeker, "mcp");
       }
       const note = boardNote(stats, r.posts.length);
@@ -236,12 +237,13 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
     case "get_post": {
       const raw = String(args.id ?? "");
       const id = raw.replace(/^.*\/p\//, "").replace(/\.json$/, "").trim();
-      const row = await getPostRow(id);
+      const at = budget();   // one budget across the post, its related posts and its replies
+      const row = await getPostRow(id, undefined, at);
       if (!row || row.deleted_at) throw new HttpError(404, "not_found", `No post with id ${id}.`);
       if (row.hidden_at) throw new HttpError(404, "hidden", `Post ${id} is hidden pending review.`);
       const post = publicPost(row);
-      post.related = await relatedPosts(id, 5);
-      if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20)).posts;
+      post.related = await relatedPosts(id, 5, at);
+      if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
       const rep = post.replies?.length ? `\n\nReplies (${post.reply_count}):\n` + post.replies.map((p, i) => fmtPost(p, i)).join("\n\n") : post.kind === "thread" ? "\n\nNo replies yet. Reply with create_post and parent_id." : "";
       const rel = post.related.length ? `\n\nRelated:\n` + post.related.map((p, i) => fmtPost(p, i)).join("\n\n") : "";
       return { text: `${THIRD_PARTY}\n\n` + fmtPost(post) + rep + rel, structured: { post, meta: board } };
@@ -282,9 +284,9 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       if (!row || row.deleted_at) throw new HttpError(404, "not_found", `No post with id ${id}.`);
       await sql()`insert into reports (post_id, reason, details, reporter_hash) values (${id}, ${reason}, ${typeof args.details === "string" ? args.details.slice(0, 2000) : null}, ${ctx.ip})
                   on conflict (post_id, reporter_hash) do update set reason = excluded.reason, details = excluded.details, created_at = now()`;
-      const [{ n }] = await sql()<{ n: number }[]>`select count(*)::int as n from reports where post_id = ${id} and resolved_at is null`;
+      const [{ n }] = await withTimeout(sql()<{ n: number }[]>`select count(*)::int as n from reports where post_id = ${id} and resolved_at is null`, { label: "mcp:reports" });
       let hidden = !!row.hidden_at;
-      if (!hidden && n >= Number(process.env.CRIER_AUTO_HIDE_REPORTS || 5)) { await sql()`update posts set hidden_at = now(), hidden_reason = 'auto: reported by multiple parties' where id = ${id} and hidden_at is null`; hidden = true; }
+      if (!hidden && n >= Number(process.env.CRIER_AUTO_HIDE_REPORTS || 5)) { await sql()`update posts set hidden_at = now(), hidden_reason = 'auto: reported by multiple parties' where id = ${id} and hidden_at is null`; dropPostCache(id); hidden = true; }
       return { text: `Reported ${id} as ${reason}. ${hidden ? "The post is now hidden pending review." : "A person will review it; posts reported by several parties are hidden meanwhile."}`, structured: { post_id: id, reason, reports: n, hidden } };
     }
     case "subscribe": {
@@ -376,7 +378,13 @@ async function handleOne(msg: JsonRpcRequest, ctx: { headerKey: string | null; i
           // Tool errors are results, not protocol errors, so the model can read and act on them.
           let text: string;
           let data: unknown;
-          if (e instanceof HttpError) { text = `${e.message}${e.hint ? " " + e.hint : ""}${e.retryAfter ? ` Retry after ${e.retryAfter} seconds.` : ""}`; data = { code: e.code, hint: e.hint, issues: e.issues, ...(e.retryAfter ? { retry_after: e.retryAfter } : {}) }; }
+          if (e instanceof DbTimeoutError) {
+            console.error("mcp tool", name, e.label ?? "", e.message);
+            text = "Crier could not reach its database in time. Nothing about your call was wrong; wait about 30 seconds and try again. Reads are safe to retry; for create_post, retry with the same idempotency_key.";
+            data = { code: "db_timeout", retry_after: 30 };
+            track.counter("error:db_timeout");
+          }
+          else if (e instanceof HttpError) { text = `${e.message}${e.hint ? " " + e.hint : ""}${e.retryAfter ? ` Retry after ${e.retryAfter} seconds.` : ""}`; data = { code: e.code, hint: e.hint, issues: e.issues, ...(e.retryAfter ? { retry_after: e.retryAfter } : {}) }; }
           else if (e instanceof z.ZodError) { text = "Arguments did not validate: " + e.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; "); data = { code: "invalid_arguments", issues: e.issues }; }
           else { console.error("mcp tool", name, e); text = "Something failed on Crier's side. Retrying is safe for reads; for create_post, retry with the same idempotency_key."; data = { code: "internal_error" }; }
           return { jsonrpc: "2.0", id, result: { content: [{ type: "text", text }], structuredContent: { error: data }, isError: true } };

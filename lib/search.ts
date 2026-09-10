@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { sql, toVectorLiteral } from "./db";
+import { DB_SIDE_TIMEOUT_MS, budget, sql, toVectorLiteral, withTimeout, withTimeoutOr } from "./db";
+import type { Budget } from "./db";
 import { embedQuery, rerank } from "./cohere";
 import { HttpError, decodeCursor, encodeCursor } from "./http";
 import { KINDS, POST_COLUMNS, PostRow, PublicPost, publicPost } from "./posts";
@@ -94,9 +95,12 @@ const RERANK_POOL = 40;
 const VECTOR_CANDIDATE_MAX_DISTANCE = Number(process.env.CRIER_VECTOR_MAX_DISTANCE || 0.78);
 const RERANK_MIN_SCORE = Number(process.env.CRIER_RERANK_MIN_SCORE || 0.05);
 
-export async function search(q: SearchQuery, opts: { track?: boolean } = {}): Promise<SearchResult> {
+export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budget } = {}): Promise<SearchResult> {
   const limit = q.limit ?? 20;
   const s = sql();
+  // Shared across every statement below, so a hybrid search is bounded once rather than per query.
+  // A caller with its own budget (a page that reads something else first) passes it in.
+  const at = opts.at ?? budget();
   const b = buildWhere(q);
   const distSel = b.distanceExpr ? `, ${b.distanceExpr} as distance_km` : ", null::float as distance_km";
 
@@ -122,12 +126,12 @@ export async function search(q: SearchQuery, opts: { track?: boolean } = {}): Pr
     }
     params.push(limit + 1);
     const order = sort === "soonest" ? `${orderKey} asc, p.id asc` : `${orderKey} desc, p.id desc`;
-    rows = await s.unsafe<PostRow[]>(
+    rows = await withTimeout(s.unsafe<PostRow[]>(
       `select ${POST_COLUMNS}${distSel}, ${orderKey} as order_key
          from posts p join publishers u on u.id = p.publisher_id
         where ${where}
         order by ${order}
-        limit $${params.length}`, params as never[]);
+        limit $${params.length}`, params as never[]), at("search:keyset"));
     if (rows.length > limit) {
       rows = rows.slice(0, limit);
       const last = rows[rows.length - 1] as PostRow & { order_key: Date };
@@ -142,30 +146,30 @@ export async function search(q: SearchQuery, opts: { track?: boolean } = {}): Pr
 
     // Full-text candidates.
     const ftsParams = [...b.params, text, POOL];
-    const fts = s.unsafe<{ id: string }[]>(
+    const fts = withTimeout(s.unsafe<{ id: string }[]>(
       `select p.id from posts p join publishers u on u.id = p.publisher_id
         where ${b.where} and p.tsv @@ websearch_to_tsquery('english', $${ftsParams.length - 1})
         order by ts_rank_cd(p.tsv, websearch_to_tsquery('english', $${ftsParams.length - 1})) desc, p.created_at desc
-        limit $${ftsParams.length}`, ftsParams as never[]);
+        limit $${ftsParams.length}`, ftsParams as never[]), at("search:fts"));
     // Semantic candidates.
     const vecParams = [...b.params, vec ? toVectorLiteral(vec) : null, VECTOR_CANDIDATE_MAX_DISTANCE, POOL];
     const sem = vec
-      ? s.unsafe<{ id: string }[]>(
+      ? withTimeout(s.unsafe<{ id: string }[]>(
         `select p.id from posts p join publishers u on u.id = p.publisher_id
           where ${b.where} and p.embedding is not null and (p.embedding <=> $${vecParams.length - 2}::vector) <= $${vecParams.length - 1}
           order by p.embedding <=> $${vecParams.length - 2}::vector
-          limit $${vecParams.length}`, vecParams as never[])
+          limit $${vecParams.length}`, vecParams as never[]), at("search:semantic"))
       : Promise.resolve([] as { id: string }[]);
     // Trigram fallback for typos and short names, only when FTS is thin.
     const [ftsRows, semRows] = await Promise.all([fts, sem]);
     let trgRows: { id: string }[] = [];
     if (ftsRows.length < 5) {
       const trgParams = [...b.params, text, 20];
-      trgRows = await s.unsafe<{ id: string }[]>(
+      trgRows = await withTimeout(s.unsafe<{ id: string }[]>(
         `select p.id from posts p join publishers u on u.id = p.publisher_id
           where ${b.where} and (p.title % $${trgParams.length - 1} or p.place_name % $${trgParams.length - 1})
           order by greatest(similarity(p.title, $${trgParams.length - 1}), similarity(coalesce(p.place_name,''), $${trgParams.length - 1})) desc
-          limit $${trgParams.length}`, trgParams as never[]);
+          limit $${trgParams.length}`, trgParams as never[]), at("search:trigram"));
     }
 
     // Reciprocal rank fusion.
@@ -182,9 +186,9 @@ export async function search(q: SearchQuery, opts: { track?: boolean } = {}): Pr
       rows = [];
     } else {
       const fetchParams = [...b.params, ids];
-      const fetched = await s.unsafe<PostRow[]>(
+      const fetched = await withTimeout(s.unsafe<PostRow[]>(
         `select ${POST_COLUMNS}${distSel} from posts p join publishers u on u.id = p.publisher_id
-          where ${b.where} and p.id = any($${fetchParams.length}::text[])`, fetchParams as never[]);
+          where ${b.where} and p.id = any($${fetchParams.length}::text[])`, fetchParams as never[]), at("search:hydrate"));
       const byId = new Map(fetched.map((r) => [r.id, r]));
       let ordered = ids.map((id) => byId.get(id)).filter((r): r is PostRow => !!r);
 
@@ -223,7 +227,7 @@ export async function search(q: SearchQuery, opts: { track?: boolean } = {}): Pr
   if (opts.track !== false && posts.length) {
     const ids = posts.map((p) => p.id);
     // Best-effort counts; skip rows something else is updating rather than queue behind them.
-    s`update posts set retrievals = retrievals + 1 where id in (select id from posts where id = any(${ids}::text[]) for update skip locked)`.catch(() => {});
+    void withTimeoutOr(s`update posts set retrievals = retrievals + 1 where id in (select id from posts where id = any(${ids}::text[]) for update skip locked)`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "search:retrievals" });
     track.stat("retrievals", ids.length);
   }
   if (opts.track !== false) track.stat("searches");
