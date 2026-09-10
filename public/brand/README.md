@@ -12,6 +12,7 @@ Mark: a bulletin-board notice with a pushpin and a speech tail. Ink #1c1b18, pap
 Where they are used in this repo:
 
 - `public/favicon.svg`, `public/favicon-32.png`, `public/favicon-16.png`, `public/apple-touch-icon-180.png` — declared by the `icons` block in `app/layout.tsx`
+- `public/favicon.ico` — 16/32/48, uncompressed 32-bit BMP entries. Deliberately **not** declared in `<head>`: modern browsers use the icons above, and this is only here for old clients and crawlers that request `/favicon.ico` by convention. The 16 and 32 entries are the PNGs above pixel-for-pixel; 48 is `favicon.svg` rasterised
 - `public/brand/crier-lockup.svg` (+ `-dark`) — the header brand in `app/layout.tsx`, swapped by `prefers-color-scheme`
 - `public/brand/crier-avatar-512.png` — `logo_url` in `/.well-known/ai-plugin.json`; also the upload for GitHub org, X, Discord and registry profiles
 - `public/og.png` — the social card (1200×630), rendered from `public/brand/og.svg`, which places the lockup on brand paper; re-render with any SVG rasterizer after editing the source
