@@ -7,3 +7,7 @@ node_modules
 *.log
 .DS_Store
 tsconfig.tsbuildinfo
+
+# Scratch git worktrees created for background agents. Transient by construction:
+# each is a checkout of this same repo, so committing one would nest the tree inside itself.
+.claude/worktrees/
