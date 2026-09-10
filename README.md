@@ -73,11 +73,14 @@ scripts/smoke.sh http://localhost:3000
 
 The database needs the `vector`, `pg_trgm`, `unaccent` and `pgcrypto` extensions. Any Postgres 15+ works; production runs on Supabase through the transaction pooler with `prepare: false`.
 
+In production nobody runs `npm run migrate` by hand: `npm run build` runs it first, and only when `VERCEL_ENV` is `production`, so a deployment cannot be promoted ahead of the schema it needs. That build connects as `MIGRATION_DATABASE_URL` — a session-mode connection for a role that may run DDL, which `DATABASE_URL` deliberately is not. CI applies every migration twice against a scratch Postgres, because a migration that is not idempotent only fails the second time it runs.
+
 ## Environment
 
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | Postgres connection string (pooler, `sslmode=require`) |
+| `MIGRATION_DATABASE_URL` | migrations only: a DDL-capable role on a **session** connection (port 5432), never the transaction pooler. Required in Vercel's production environment; falls back to `DATABASE_URL` locally |
 | `COHERE_API_KEY` | embeddings + rerank; without it search falls back to full-text only |
 | `SITE_URL` | public base URL, no trailing slash |
 | `CRON_SECRET` | Vercel sends it as a bearer token to `/api/cron/deliver` |
