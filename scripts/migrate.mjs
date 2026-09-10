@@ -159,7 +159,15 @@ async function releaseLock(db) {
  * handle has no .begin(), and one transaction per file is worth more than the statement of intent;
  * assertLockIsOurs() is the check that the intent actually holds.
  */
-const sql = postgres(url, { prepare: false, max: 1, idle_timeout: null, max_lifetime: null });
+const sql = postgres(url, {
+  prepare: false, max: 1, idle_timeout: null, max_lifetime: null,
+  // Print a notice as its one line rather than as the twelve-line object postgres.js hands over.
+  // Re-applying an idempotent migration is almost entirely "already exists, skipping", so a run
+  // against a database that is already current emits a hundred of these — around the one line
+  // anybody reading a deploy log is looking for, which is whether it applied anything. The text is
+  // still worth keeping: it names what was skipped, and on a real failure it is the context.
+  onnotice: (n) => console.log(`  note: ${n.message}`),
+});
 const dir = path.join(process.cwd(), "migrations");
 const files = (await readdir(dir)).filter((f) => f.endsWith(".sql")).sort();
 
