@@ -1,0 +1,81 @@
+# Everything that has to be true before main deploys itself.
+#
+# main auto-deploys to production on push, and the production build now applies migrations/*.sql
+# before `next build` (package.json, scripts/migrate.mjs), so the SQL in this repository is no
+# longer something a human applies by hand and can eyeball first. A migration that would fail, or
+# that would fail the *second* time it ran, has to be caught here — on the pull request — because
+# after the merge the next thing it meets is production.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # pgvector's image is the stock postgres:16 with the vector extension already built.
+        # 0001_init.sql needs it: embeddings are vector(1024) and the search index is HNSW, so a
+        # plain postgres:16 fails on the first file and this whole job would be theatre.
+        # pg_trgm, unaccent and pgcrypto ship with contrib in the same image;
+        # scripts/check-migrations.mjs creates all four in the scratch database itself.
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        # Steps begin as soon as the container starts, which is a second or two before Postgres is
+        # listening. Without the health check the first connection loses a race it did not know it
+        # was in, and the failure looks like a broken migration rather than a slow container.
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      # The check that would have caught 2026-09-10's whole class of problem. It executes the SQL
+      # rather than parsing it, twice, against a real Postgres: a migration that is not idempotent
+      # is valid SQL that applies cleanly the first time and errors the second, which in production
+      # is a redeploy of the same commit — the moment you least want to find out.
+      - name: Migrations are idempotent
+        run: npm run check:migrations
+        env:
+          SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+
+      # And the runner the production build now depends on. It has to apply the files, record them
+      # in schema_migrations, take and release its advisory lock on the way, and then do nothing at
+      # all when it runs again — that second run is what makes redeploying the same commit safe, and
+      # it is worth asserting rather than assuming.
+      - name: The migration runner applies, records, and repeats without repeating itself
+        env:
+          MIGRATION_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+        run: |
+          npm run migrate
+          npm run migrate | tee second-run.log
+          grep -q "nothing to apply" second-run.log || {
+            echo "The second run did not report an empty ledger, so schema_migrations is not being honoured."
+            exit 1
+          }

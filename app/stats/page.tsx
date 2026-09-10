@@ -2,14 +2,18 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { noteDbTimeout, track } from "@/lib/metrics";
 import { cachedMetricsSnapshot } from "@/lib/cache";
+import { fillMissingBlocks } from "@/lib/metrics-view";
 
 export const metadata: Metadata = { title: "Stats", description: "Crier's traffic, in public: active publishers and seekers, searches, what agents ask for, and what they looked for and did not find." };
 export const dynamic = "force-dynamic";
 // Eight aggregate statements behind one cached read. Slower than a post page, still not minutes.
 export const maxDuration = 15;
 
-function pct(x: number) { return `${Math.round(x * 100)}%`; }
-function fmt(n: number) { return n.toLocaleString(); }
+// Every number on this page is printed by one of these two, which is why they take a missing one:
+// a snapshot older than this code can be short a figure inside a block it does have, and a dash is
+// both the honest thing to print and cheaper than a condition at each of the thirty-odd call sites.
+function pct(x: number | undefined) { return x == null ? "—" : `${Math.round(x * 100)}%`; }
+function fmt(n: number | undefined) { return n == null ? "—" : n.toLocaleString(); }
 
 function Bars({ rows, field, label }: { rows: { day: string; [k: string]: number | string }[]; field: string; label: string }) {
   const values = rows.map((r) => Number(r[field]));
@@ -38,9 +42,15 @@ function Bars({ rows, field, label }: { rows: { day: string; [k: string]: number
 export default async function StatsPage() {
   const h = await headers();
   track.pageView(h.get("user-agent"), "stats");
-  const m = await cachedMetricsSnapshot().catch((e: unknown) => { noteDbTimeout("stats", e); throw e; });
+  // The cached snapshot can be older than this page — lib/metrics-view.ts has the why — so the
+  // blocks below are read out of a value where each of them may simply not be there. `demand` is
+  // deliberately not filled in with an empty block: an entry written before the block existed knows
+  // nothing about what agents asked for, and publishing that as "nobody asked" would be a lie, so
+  // the section says the snapshot has no answer instead.
+  const m = fillMissingBlocks(await cachedMetricsSnapshot().catch((e: unknown) => { noteDbTimeout("stats", e); throw e; }));
   const u = m.unmet_demand;
-  const d = m.demand.last_30d;
+  const d = m.demand?.last_30d;
+  const d7 = m.demand?.last_7d;
   const shapeText = (x: { q: string | null; kind: string | null; near: string | null }) =>
     [x.q ? `"${x.q}"` : null, x.kind ? `${x.kind}s` : null, x.near ? `near ${x.near}` : null].filter(Boolean).join(", ") || "everything (a bare listing)";
   const unmetLine = [
@@ -72,10 +82,12 @@ export default async function StatsPage() {
       </p>
       <p className="small" style={{ marginBottom: 6 }}>
         <strong>What agents ask for</strong> <span className="muted">(30 days, every search, not just the empty ones)</span>:{" "}
-        {d.shapes.length
+        {!d
+          ? "not in this snapshot"
+          : d.shapes.length
           ? d.shapes.slice(0, 8).map((x) => `${shapeText(x)} — ${fmt(x.n)}\u00d7 on ${x.days} day${x.days === 1 ? "" : "s"}${x.zero ? `, ${fmt(x.zero)} found nothing` : ""}${x.poller ? ", on a schedule" : ""}`).join(" · ")
           : "nothing asked often enough to name yet"}
-        {d.other.shapes > 0 && <span className="muted"> · plus {fmt(d.other.shapes)} one-off shape{d.other.shapes === 1 ? "" : "s"} ({fmt(d.other.n)} searches) held back, because a query asked once is a caller, not a demand.</span>}
+        {d && d.other.shapes > 0 && <span className="muted"> · plus {fmt(d.other.shapes)} one-off shape{d.other.shapes === 1 ? "" : "s"} ({fmt(d.other.n)} searches) held back, because a query asked once is a caller, not a demand.</span>}
       </p>
 
       <p className="small muted" style={{ marginBottom: 6 }}>
@@ -92,8 +104,8 @@ export default async function StatsPage() {
         </table>
         <p className="small"><strong>Unmet terms:</strong> {u.terms.length ? u.terms.map((t) => `${t.key} (${t.n})`).join(" · ") : "—"}</p>
         <p className="small"><strong>Unmet tags:</strong> {u.tags.length ? u.tags.map((t) => `${t.key} (${t.n})`).join(" · ") : "—"}</p>
-        <p className="small"><strong>Asked for, 7d:</strong> {m.demand.last_7d.shapes.length ? m.demand.last_7d.shapes.map((x) => `${shapeText(x)} (${fmt(x.n)}${x.poller ? ", on a schedule" : ""})`).join(" · ") : "—"}</p>
-        <p className="small"><strong>Asked-for kinds, 30d:</strong> {d.kinds.length ? d.kinds.map((t) => `${t.key} ${fmt(t.n)} (${pct(t.zero_share)} empty)`).join(" · ") : "—"} · <strong>places:</strong> {d.places.length ? d.places.map((t) => `${t.key} ${fmt(t.n)}`).join(" · ") : "—"} · <strong>tags:</strong> {d.tags.length ? d.tags.map((t) => `${t.key} ${fmt(t.n)}`).join(" · ") : "—"}</p>
+        <p className="small"><strong>Asked for, 7d:</strong> {d7?.shapes.length ? d7.shapes.map((x) => `${shapeText(x)} (${fmt(x.n)}${x.poller ? ", on a schedule" : ""})`).join(" · ") : "—"}</p>
+        <p className="small"><strong>Asked-for kinds, 30d:</strong> {d?.kinds.length ? d.kinds.map((t) => `${t.key} ${fmt(t.n)} (${pct(t.zero_share)} empty)`).join(" · ") : "—"} · <strong>places:</strong> {d?.places.length ? d.places.map((t) => `${t.key} ${fmt(t.n)}`).join(" · ") : "—"} · <strong>tags:</strong> {d?.tags.length ? d.tags.map((t) => `${t.key} ${fmt(t.n)}`).join(" · ") : "—"}</p>
         <p className="small"><strong>MCP tools, 7d:</strong> {m.mcp.tools_7d.length ? m.mcp.tools_7d.map((t) => `${t.tool} ${t.calls}`).join(" · ") : "—"}</p>
         <p className="small"><strong>Routes, 7d:</strong> {m.routes_7d.length ? m.routes_7d.map((r) => `${r.route} ${fmt(r.requests)}`).join(" · ") : "—"}</p>
         <p className="small"><strong>Funnel:</strong> {fmt(m.funnel.registered)} registered · {fmt(m.funnel.activated)} posted · {fmt(m.funnel.retained)} posted on 2+ days · <strong>Health:</strong> cron {pct(m.metrics.cron_success_rate_7d)} · 5xx {pct(m.metrics.error_rate_7d)} · hidden posts {m.board.hidden_posts}</p>
