@@ -111,8 +111,13 @@ export function withTimeoutOr<T, F>(query: Pending<T>, fallback: F, opts: { ms?:
  */
 export type Budget = (label: string) => { ms: number; label: string };
 
-/** A read is always given at least this long, even once the budget is spent. */
-const MIN_BUDGET_MS = 250;
+/**
+ * A read started after the budget is spent is meant to fail immediately — the request has already
+ * had its allowance, and this is what keeps a route's total database time under its maxDuration
+ * however many statements it runs. The floor only exists so the timer is not degenerate; on a
+ * healthy database nothing reaches it, because reaching it means seconds of reads have gone before.
+ */
+const MIN_BUDGET_MS = 100;
 
 export function budget(totalMs: number = DB_TIMEOUT_MS): Budget {
   const until = Date.now() + totalMs;
