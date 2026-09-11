@@ -79,6 +79,13 @@ if (port === "6543") {
 }
 
 /**
+ * Socket-level failures, as opposed to anything Postgres had an opinion about. These mean the
+ * connection string points somewhere this build cannot get to, which is a different problem from a
+ * migration that does not apply, and deserves to be told apart from one in the log.
+ */
+const CONNECTION_ERRORS = new Set(["ENETUNREACH", "ECONNREFUSED", "ENOTFOUND", "ETIMEDOUT", "EHOSTUNREACH"]);
+
+/**
  * The lock key. Any pair of integers does, so long as every runner uses the same pair; these spell
  * "crie" and "migr" in ASCII, so a lock still held after a crash is recognisable in pg_locks rather
  * than being an anonymous number somebody has to trace back to a script.
@@ -188,6 +195,28 @@ try {
     n++;
   }
   console.log(n === 0 ? `done — nothing to apply, all ${files.length} migrations already recorded` : `done — applied ${n} of ${files.length} migrations`);
+} catch (e) {
+  // A build that cannot reach the database has to say which database and why, because the person
+  // reading this log is looking at a failed production deploy and the raw Node stack for a socket
+  // error names neither. ENETUNREACH on an IPv6 literal is the one that has actually happened:
+  // Supabase's direct host, db.<ref>.supabase.co, has only an AAAA record, and Vercel's build
+  // containers have no IPv6 route — so the honest fix is the session pooler, which is IPv4.
+  if (CONNECTION_ERRORS.has(e.code)) {
+    const host = (() => { try { return new URL(url).hostname.replace(/^\[|\]$/g, ""); } catch { return ""; } })();
+    const port = (() => { try { return new URL(url).port || "5432"; } catch { return "5432"; } })();
+    console.error(`migrate: could not reach ${host || "the configured host"}:${port} (${e.code}).`);
+    // Keyed off the host rather than the error code on purpose: which code a failed socket reports
+    // varies by platform and by whether the name resolved at all — production saw ENETUNREACH where
+    // a sandbox saw ENOTFOUND for the same address. The host is the thing that is actually wrong.
+    if (/^db\..*\.supabase\.co$/.test(host) || host.includes(":")) {
+      console.error("migrate: that is Supabase's direct connection, which has only an AAAA record — and Vercel's build containers have no IPv6 route, so it is unreachable from here whatever the error code says.");
+      console.error("migrate: use the session pooler instead: host aws-0-<region>.pooler.supabase.com, same port 5432, user postgres.<project-ref>. Supabase → Settings → Database → Connection string → Session pooler.");
+    }
+    console.error("migrate: MIGRATION_DATABASE_URL must be a session-mode connection (port 5432) for a role that can run DDL, reachable over IPv4 from a Vercel build.");
+    process.exitCode = 1;
+  } else {
+    throw e;
+  }
 } finally {
   if (locked) await releaseLock(sql);
   await sql.end();
