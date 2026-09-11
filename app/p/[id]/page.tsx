@@ -8,7 +8,7 @@ import { PostList, fmtWhen } from "@/components/PostList";
 import { env } from "@/lib/env";
 import { POST_ID_RE } from "@/lib/ids";
 import { cachedPostPage, cachedRelated } from "@/lib/cache";
-import { bumpViews, jsonLd } from "@/lib/posts";
+import { jsonLd } from "@/lib/posts";
 
 export const dynamic = "force-dynamic";
 // A post page is one cached read and a view bump. If it cannot do that in ten seconds it is wedged,
@@ -55,7 +55,7 @@ export default async function PostPage({ params }: Props) {
   // is dropped rather than allowed to take the page down with it.
   const related = crawler && view.syndicated ? [] : await cachedRelated(id).catch((e: unknown) => { noteDbTimeout("p/[id]:related", e); return []; });
   const replies = { posts: view.replies };
-  if (!crawler) bumpViews(id);
+  if (!crawler) track.view(id);
   const when = fmtWhen(p);
   const expired = Date.parse(p.expires_at) < Date.now();
   const B = env.SITE_URL;

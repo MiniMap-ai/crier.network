@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createHmac } from "node:crypto";
-import { sql, toVectorLiteral, DB_SIDE_TIMEOUT_MS, withTimeout, withTimeoutOr } from "./db";
+import { sideWrite, sql, toVectorLiteral, withTimeout } from "./db";
 import { env } from "./env";
 import { HttpError, decodeCursor, encodeCursor } from "./http";
 import { newSecret, newSubscriptionId } from "./ids";
@@ -149,10 +149,18 @@ export async function pendingForSubscription(sub: SubscriptionRow, cursor: strin
       limit $3`, [sub.id, after, limit + 1]), { label: "pendingForSubscription" });
   const page = rows.slice(0, limit);
   const next = rows.length > limit ? encodeCursor({ d: page[page.length - 1].delivery_id }) : null;
-  void withTimeoutOr(sql()`update subscriptions set last_polled_at = now() where id = ${sub.id}`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "subscription:polled" });
+  sideWrite("subscription:polled", () => sql()`update subscriptions set last_polled_at = now() where id = ${sub.id}`);
   if (page.length) {
     const ids = page.map((r) => r.delivery_id);
-    void withTimeoutOr(sql()`update deliveries set status = 'polled' where id = any(${ids}::bigint[]) and status = 'pending' and subscription_id in (select id from subscriptions where webhook_url is null or webhook_verified_at is null)`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "deliveries:polled" });
+    // Registered, not merely bounded, and this is the one where that matters beyond a lost number.
+    // Marking a delivery `polled` is what keeps it out of deliverWebhooks(), which takes `pending`
+    // rows whose subscription has a verified webhook. The two sets are disjoint today — this
+    // statement only touches subscriptions with no verified webhook — so losing it cannot double up
+    // a delivery now. It can later: a subscriber who polls, then adds and verifies a webhook, hands
+    // the sender a backlog of rows still marked `pending` and gets every one of them a second time,
+    // by push, because `next_attempt_at` is long past. The cursor is unaffected either way; it is
+    // the client's watermark and consumes nothing server-side.
+    sideWrite("deliveries:polled", () => sql()`update deliveries set status = 'polled' where id = any(${ids}::bigint[]) and status = 'pending' and subscription_id in (select id from subscriptions where webhook_url is null or webhook_verified_at is null)`);
   }
   return {
     posts: page.map((r) => ({ ...publicPost(r), delivery_id: r.delivery_id, matched_at: r.matched_at.toISOString() })),

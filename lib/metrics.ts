@@ -3,16 +3,19 @@
  * No raw addresses, no per-person history. See docs/metrics.md for definitions.
  */
 import { after } from "next/server";
-import { DB_SIDE_TIMEOUT_MS, DbTimeoutError, budget, sql, withTimeout, withTimeoutOr } from "./db";
+import { DbTimeoutError, budget, sideWrite, sql, withTimeout } from "./db";
 import type { SearchQuery } from "./search";
 import { drainSearches, foldDemand, normalizeQuery, recordSearch, roundNear } from "./search-log";
 import type { DemandRow, SearchSource } from "./search-log";
+import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, hasPendingCounts, noteRetrievals, noteSideWriteLost, noteView } from "./side-writes";
 
 /* ---------------- recording (batched, fire-and-forget) ----------------
  *
  * Counters are not written one upsert per hit. They accumulate in this process and are flushed
  * as one statement after the response goes out (next/server `after`), so a page view costs the
- * database one write instead of three, and concurrent requests in the same instance share it.
+ * database one write instead of four, and concurrent requests in the same instance share it.
+ * Per-post views and retrievals are counters too and buffer the same way; lib/side-writes.ts owns
+ * those buffers and the statements that apply them, and says why they are not their own writes.
  * The flush runs inside a transaction with a short lock/statement timeout: a metrics write must
  * never hold a pool connection for 20 s while it waits on a lock, because that starves the
  * request that comes next. Losing a few counters under duress is fine; losing requests is not.
@@ -33,19 +36,41 @@ const pendingStats = new Map<string, number>();     // stats_daily column -> n
 let flushScheduled = false;
 
 /**
- * The flush's ceiling, and the statement_timeout it sets on itself — one number so they cannot drift.
- * It is deliberately tighter than the default read budget: `after()` work runs on the platform's
- * clock, counting against the route's maxDuration, so a slow flush would eat into the ten seconds a
- * page has. The whole transaction gets what each statement gets. Dropping the counters when it does
- * not fit is the accepted cost, stated above; dropping the request is not.
+ * What the server gives any one statement in the flush, and how long one of them may wait on a lock.
+ * Deliberately tighter than the default read budget: `after()` work runs on the platform's clock,
+ * counting against the route's maxDuration, so a slow flush would eat into the ten seconds a page
+ * has. Dropping the counters when they do not fit is the accepted cost, stated above; dropping the
+ * request is not.
  */
 const FLUSH_TIMEOUT_MS = 3000;
 const FLUSH_LOCK_TIMEOUT_MS = 1500;
 
+/**
+ * How long the client waits for the whole flush, as opposed to how long the server gives any one
+ * statement. These used to be the same number, which was honest while the flush ran after some
+ * other read had already opened a connection. It is not any more: with views and retrievals in it,
+ * the flush is the first database call many page views make, so it pays for the queue, the TLS
+ * handshake and SCRAM as well as the statements, and a 3000 ms client-side wait was charging it for
+ * time the server never got. The statements keep their 3000 ms; the wait around `begin()` gets the
+ * connection's share on top.
+ *
+ * The ceiling is the route's maxDuration: `after()` work runs on the platform's clock. The tightest
+ * route that flushes is 10 s (`/`, `/p/[id]`, `/api/v1/board`, `/api/v1/search`, `/api/v1/posts/[id]`),
+ * and with the page reads cached the render itself is tens of milliseconds, so 6 s of flush leaves
+ * the request most of its second half. Dropping the counters when they do not fit is still the
+ * accepted cost; dropping the request is still not.
+ */
+const FLUSH_WAIT_MS = 6000;
+
 async function flush() {
   flushScheduled = false;
   const searches = drainSearches();
-  if (pendingCounters.size === 0 && pendingActors.size === 0 && pendingStats.size === 0 && searches.length === 0) return;
+  const counts = drainCounts();
+  // Side writes that were lost since the last flush, recorded as a counter so the daily brief can
+  // read the loss rate out of `daily_counters` instead of scraping Vercel's runtime logs.
+  const lost = drainSideWritesLost();
+  if (lost) pendingCounters.set(SIDE_WRITE_TIMEOUT_KEY, (pendingCounters.get(SIDE_WRITE_TIMEOUT_KEY) ?? 0) + lost);
+  if (pendingCounters.size === 0 && pendingActors.size === 0 && pendingStats.size === 0 && searches.length === 0 && !hasPendingCounts(counts)) return;
   const counters = [...pendingCounters.entries()];
   const actors = [...pendingActors.values()];
   const stats = [...pendingStats.entries()];
@@ -72,8 +97,15 @@ async function flush() {
       // One upsert per distinct shape: the shapes were collapsed in process, so a thousand searches
       // for the same thing on the same day cost one statement here and occupy one row there.
       for (const g of searches) await tx`select bump_search(${g.q}, ${g.kind}, ${g.tags}, ${g.near}, ${g.radius_km}, ${g.source}, ${g.n}, ${g.zero})`;
-    }), { ms: FLUSH_TIMEOUT_MS, label: "metrics:flush" });
+      // Last, and inside a savepoint of its own: a view bump that meets a lock must not be able to
+      // take the tick above it down with it. See lib/side-writes.ts.
+      await applyCounts(tx, counts);
+    }), { ms: FLUSH_WAIT_MS, label: "metrics:flush" });
   } catch (e) {
+    // Everything drained above went with the transaction, the losses already counted included. Note
+    // them again, plus this flush, so the number survives to the next one rather than vanishing in
+    // the failure it is meant to measure.
+    noteSideWriteLost(lost + 1);
     console.error("metrics flush", (e as Error).message);
   }
 }
@@ -86,10 +118,15 @@ function scheduleFlush() {
   try { after(flush); } catch { setTimeout(flush, 0); }
 }
 
-function fire(p: Promise<unknown>) { p.catch((e) => console.error("metrics", (e as Error).message)); }
-
 export const track = {
   counter(key: string, n = 1) { pendingCounters.set(key, (pendingCounters.get(key) ?? 0) + n); scheduleFlush(); },
+  /**
+   * One view of a post. The caller decides what counts as a view — the page excludes crawlers and
+   * counts everything else, unsampled — and this only batches it.
+   */
+  view(id: string) { noteView(id); scheduleFlush(); },
+  /** A page of search results was handed out: one retrieval for each post in it. */
+  retrievals(ids: readonly string[]) { noteRetrievals(ids); scheduleFlush(); },
   /** actor is a publisher id, a salted address token (clientIp), or an MCP client name; never a raw address. Rows are purged after 90 days. */
   actor(role: "seeker" | "publisher" | "syndicator" | "mcp_client" | "registrant", actor: string) { const k = role + ":" + actor; const cur = pendingActors.get(k); if (cur) cur.n++; else pendingActors.set(k, { role, actor, n: 1 }); scheduleFlush(); },
   /** A stats_daily column (searches, retrievals, ...), batched like counters. */
@@ -127,8 +164,10 @@ export const track = {
     else if (logged === "dropped") this.counter("search:log_dropped");
     if (results === 0) {
       this.counter("search:zero");
-      fire(withTimeoutOr(sql()`insert into unmet_queries (q, kind, tags, near, radius_km, seeker, source)
-                 values (${normalizeQuery(q.q)}, ${q.kind ?? null}, ${q.tags ? q.tags.toLowerCase().slice(0, 200) : null}, ${roundNear(q.near)}, ${q.radius_km ?? null}, ${seeker}, ${source})`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "unmet_queries" }));
+      // A row, not a counter: it carries the shape of the query that found nothing, which is the
+      // daily agent's demand signal. So it is registered rather than batched.
+      sideWrite("unmet_queries", () => sql()`insert into unmet_queries (q, kind, tags, near, radius_km, seeker, source)
+                 values (${normalizeQuery(q.q)}, ${q.kind ?? null}, ${q.tags ? q.tags.toLowerCase().slice(0, 200) : null}, ${roundNear(q.near)}, ${q.radius_km ?? null}, ${seeker}, ${source})`);
     }
   },
 
@@ -226,7 +265,8 @@ export async function metricsSnapshot() {
       (select count(*)::int from reports where resolved_at is null) as open_reports,
       (select count(*)::int from posts where hidden_at is not null and deleted_at is null) as hidden_posts,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:db_timeout' and day >= current_date - 6) as db_timeouts_7d,
-      (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:503' and day >= current_date - 6) as errors_503_7d`, at("metrics:core"));
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:503' and day >= current_date - 6) as errors_503_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = ${SIDE_WRITE_TIMEOUT_KEY} and day >= current_date - 6) as side_write_timeouts_7d`, at("metrics:core"));
 
   const series = await withTimeout(s<{ day: string; searches: number; zero: number; posts: number; registrations: number; deliveries: number; mcp_init: number; mcp_calls: number; page_human: number; page_crawler: number; page_agent: number; publishers: number; seekers: number }[]>`
     with days as (select generate_series(current_date - 29, current_date, '1 day')::date as day)
@@ -314,6 +354,9 @@ export async function metricsSnapshot() {
       // Database waits that ran out of budget, and the 503s we served because of them. Requests the
       // platform killed before any handler ran (Vercel 504s) are not here; see the note at the top.
       db_timeouts_7d: core.db_timeouts_7d, errors_503_7d: core.errors_503_7d,
+      // Writes nobody waited for that were lost anyway: a count that never reached `posts.views`,
+      // a `last_polled_at` left stale. Counted on the next successful flush, so it is a floor.
+      side_write_timeouts_7d: core.side_write_timeouts_7d,
     },
     north_stars: {
       weekly_active_publishers: metrics.weekly_active_publishers,

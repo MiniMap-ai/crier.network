@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DB_SIDE_TIMEOUT_MS, budget, sql, toVectorLiteral, withTimeout, withTimeoutOr } from "./db";
+import { budget, sql, toVectorLiteral, withTimeout } from "./db";
 import type { Budget } from "./db";
 import { embedQuery, rerank } from "./cohere";
 import { HttpError, decodeCursor, encodeCursor } from "./http";
@@ -226,8 +226,10 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
   });
   if (opts.track !== false && posts.length) {
     const ids = posts.map((p) => p.id);
-    // Best-effort counts; skip rows something else is updating rather than queue behind them.
-    void withTimeoutOr(s`update posts set retrievals = retrievals + 1 where id in (select id from posts where id = any(${ids}::text[]) for update skip locked)`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "search:retrievals" });
+    // Counters, batched into the metrics flush: one statement for every search an instance served
+    // between flushes, rather than one per search. Rows something else is updating are still
+    // skipped rather than queued behind — see lib/side-writes.ts.
+    track.retrievals(ids);
     track.stat("retrievals", ids.length);
   }
   if (opts.track !== false) track.stat("searches");

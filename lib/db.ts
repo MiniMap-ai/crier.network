@@ -1,5 +1,8 @@
 import postgres from "postgres";
+import { after } from "next/server";
 import { env } from "./env";
+import { DB_SIDE_TIMEOUT_MS, withTimeout } from "./db-timeout";
+import { makeSideWrite } from "./side-writes";
 
 // One client per process. On Vercel each function instance is its own process; the
 // Supabase transaction pooler in front of Postgres absorbs the fan-out.
@@ -12,11 +15,34 @@ declare global {
 export { DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS, DbTimeoutError, budget, withTimeout, withTimeoutOr } from "./db-timeout";
 export type { Budget } from "./db-timeout";
 
+/**
+ * A write nobody waits for: bounded like everything else, and registered with the platform so the
+ * instance stays alive to finish it. See lib/side-writes.ts for what happened when they were not.
+ *
+ * This is the only place that knows how the registration is done, which is why `after` is imported
+ * here and nowhere near the rules it keeps alive. `after()` throws outside a request — in a script,
+ * a test, or the cron's own flush — and there running the task directly is correct: nothing is
+ * about to be suspended.
+ */
+export const sideWrite = makeSideWrite({
+  keepalive: (task) => { try { after(task); } catch { void task(); } },
+  bound: withTimeout,
+  defaultMs: DB_SIDE_TIMEOUT_MS,
+});
+
 export function sql() {
   if (!globalThis.__crier_sql) {
     globalThis.__crier_sql = postgres(env.DATABASE_URL, {
       prepare: false,        // required for transaction-mode pooling
       max: 4,               // one instance serves many concurrent requests; the Supabase pooler is the real pool
+      // Held low deliberately. A socket kept across a Fluid suspension is how the 2026-09-10 wedge
+      // started, and the safe way to hold one longer — `attachDatabasePool` from @vercel/functions,
+      // which releases idle clients before an instance suspends — does not accept this client: it
+      // duck-types on `pool.on` plus `options.idleTimeoutMillis` (node-postgres) or `config`
+      // (mysql2) and throws "Unsupported database pool type" for anything else, and a postgres.js
+      // client is a tagged-template function with neither. Checked against @vercel/functions 3.9.7.
+      // The cost is 2,833 authentications a day; raising this without that release hook is not the
+      // way to cut them.
       idle_timeout: 20,
       connect_timeout: 10,   // TCP and auth only: past that, a silent pooler looks like a live connection
       max_lifetime: 300,     // retire pooled connections sooner so a bad one has less time to do harm
