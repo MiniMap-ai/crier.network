@@ -1,6 +1,7 @@
 import { corsPreflight, fail, handler, ok, readJson } from "@/lib/http";
-import { PostPatchSchema, bumpViews, deletePost, getPostRow, publicPost, relatedPosts, repliesFor, updatePost } from "@/lib/posts";
+import { PostPatchSchema, deletePost, getPostRow, publicPost, relatedPosts, repliesFor, updatePost } from "@/lib/posts";
 import { budget } from "@/lib/db";
+import { track } from "@/lib/metrics";
 import { requirePublisher } from "@/lib/publishers";
 import { POST_ID_RE } from "@/lib/ids";
 import { assertWritable } from "@/lib/limits";
@@ -24,7 +25,7 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   const post = publicPost(row);
   post.related = await relatedPosts(id, 5, at);
   if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
-  bumpViews(id);
+  track.view(id);
   const expired = row.expires_at.getTime() < Date.now();
   return ok(post, {
     meta: expired ? { note: `This post expired ${post.expires_at}. It is kept for reference but no longer appears in search.` } : undefined,

@@ -384,14 +384,8 @@ export function indexable(r: PostRow): boolean {
   return postAge > day && pubAge > day && r.report_count === 0;
 }
 
-/**
- * Best-effort view count. Never waits on a lock: a page view must not queue behind a syndication
- * update. Bounded as well as unawaited, because a write nobody is waiting for still holds a pool
- * connection, and four of those are the whole pool.
- */
-export function bumpViews(id: string) {
-  void withTimeoutOr(sql()`update posts set views = views + 1 where id in (select id from posts where id = ${id} for update skip locked)`, null, { ms: DB_SIDE_TIMEOUT_MS, label: "bumpViews" });
-}
+// A view used to be bumped here, one unawaited statement per page view. It is `track.view(id)` now:
+// a counter, batched into the metrics flush like every other counter. See lib/side-writes.ts.
 
 export function jsonLd(p: PublicPost) {
   const base: Record<string, unknown> = {

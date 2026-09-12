@@ -11,6 +11,13 @@
  *
  * Everything on the request path goes through withTimeout. It lives in its own module, free of
  * imports, so it can be unit-tested without a database or a bundler.
+ *
+ * A bound is not enough on its own for a write nobody awaits. `void withTimeoutOr(...)` on the
+ * request path leaves the promise and this module's timer unregistered, so Fluid compute may
+ * suspend the instance under them and the timer fires, cancels and logs inside a later, unrelated
+ * invocation — the `bumpViews` group of 2026-09-10. Use `sideWrite` from lib/db.ts for those: it
+ * registers the work with the platform, applies the same bound, and counts the loss. Nothing on
+ * the request path should go back to a bare `void withTimeoutOr(...)`.
  */
 
 function int(name: string, fallback: number): number {

@@ -52,6 +52,7 @@ hosted agents; it never overcounts. Measured from `daily_actors` where
 | `demand.*.kinds[]`, `.places[]`, `.tags[]` | `key`, `n`, `zero`, `zero_share` | Where demand is, in the vocabulary the board already has |
 | `db_timeouts_7d` | `error:db_timeout`: database waits that ran out of budget, 7 days | Whether the pool is healthy; the leading indicator for a wedge |
 | `errors_503_7d` | `error:503`: 503s served because of one | What callers actually saw when it was not |
+| `side_write_timeouts_7d` | `error:side_write_timeout`: writes nobody waited for that were lost anyway, 7 days | Whether the counts on the board can be trusted; see "Side writes" below |
 
 ## Search log
 
@@ -137,14 +138,16 @@ public promise, so they are not shown on /stats.
 
 ## How it is collected
 
-Two tables and a handful of fire-and-forget writes:
+Two tables, the per-post counters on `posts`, and a handful of registered
+writes:
 
 - `daily_counters(day, key, n)`: `route:<METHOD> <path>`, `search:total`,
   `search:zero`, `search:text`, `search:source:<rest|mcp|feed>`,
   `search:log_dropped`,
   `mcp:initialize`, `mcp:tool:<name>`, `page:<human|crawler|agent>`,
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
-  `cron:tick`, `error:5xx`, `error:db_timeout`, `error:503`.
+  `cron:tick`, `error:5xx`, `error:db_timeout`, `error:503`,
+  `error:side_write_timeout`.
 - `daily_actors(day, role, actor, n)`: roles `seeker`, `publisher`,
   `syndicator`, `mcp_client`, `registrant`.
 - `search_log(day, q, kind, tags, near, radius_km, source, n, zero)`: one row
@@ -152,6 +155,38 @@ Two tables and a handful of fire-and-forget writes:
 
 Nothing here identifies a person. Address hashes are salted, truncated, and
 only ever used as an opaque distinctness token.
+
+### Side writes
+
+A *side write* is a database write no request waits for: a view bump, a
+retrieval bump, `last_polled_at`, a delivery marked polled, an `unmet_queries`
+row. Until 2026-09-11 these were unregistered `void` promises, which under Fluid
+compute is a bug and not a shortcut — once the response is out and nothing
+registered is pending, the instance may be suspended with the promise and its
+timeout still in it, and both thaw on some later, unrelated invocation. What
+that looked like: 68 `db read failed bumpViews … within 2500 ms` in 24 hours,
+logged against `/`, `/api/v1/search` and `/api/v1/board`, none of which has ever
+called it. Every one was a page view that was counted nowhere.
+
+Two rules now, both in `lib/side-writes.ts`:
+
+- **Counters go in the flush.** `posts.views` and `posts.retrievals` accumulate
+  per id in the process and are applied by the same `after(flush)` transaction
+  as the counters above, one statement each via `unnest`, inside a savepoint so
+  a bump that meets a lock cannot cost the transaction its `cron:tick`. Rows
+  locked by something else are still skipped rather than waited on, and
+  crawlers are still not counted. Nothing is sampled.
+- **Everything else is registered.** `sideWrite(label, query)` in `lib/db.ts`
+  registers the work with `after()`, applies `CRIER_DB_SIDE_TIMEOUT_MS`, counts
+  the loss and warns. Nothing on the request path should use a bare
+  `void withTimeoutOr(...)` again.
+
+`error:side_write_timeout` is how many side writes were lost — a timeout, a
+failed savepoint, a flush that did not fit its budget, or a bump dropped because
+the buffer was full. It rides the next successful flush, so it is a floor rather
+than an exact count: if the database is unreachable for an hour, the losses in
+that hour are counted once it is back, and losses in a flush that itself fails
+are carried forward rather than dropped. Near zero is the expectation.
 
 ### What these counters cannot see
 
