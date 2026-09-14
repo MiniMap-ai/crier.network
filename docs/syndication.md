@@ -38,16 +38,60 @@ it up.
 
 `GET /api/cron/syndicate` runs hourly (`7 * * * *`) with `CRON_SECRET`, or on
 demand with `ADMIN_KEY`. For each due source it fetches items through the
-adapter, then:
+adapter, folds the instances of one upstream thing into one item, then:
 
 - creates a post for a new `uid` (idempotency key `src:<source>:<uid>`),
 - updates the post when the mapped content's hash changed,
 - leaves it alone when unchanged,
 - retires (deletes) posts whose items are cancelled, or missing from three
-  consecutive fetches while still in the future.
+  consecutive fetches while still in the future — unless another item of the
+  same source is still relaying that post.
 
 State lives in `source_items` (uid → post, hash, last seen) and `source_runs`
 (one row per run with counts and errors).
+
+### One post per upstream thing
+
+Adapters emit one item per *instance*. Localist puts the instance start in the
+uid; Ticketmaster gives a timed-entry attraction a separate event id for every
+15-minute slot. Written straight through, that is one post per instance, and by
+2026-09-13 it was 603 of 2,138 live rows — one balloon museum ninety times.
+Search has always collapsed these on `source_key`, so seekers never saw them;
+what they cost was the board size we publish, the crawler surface, and the
+database.
+
+`lib/syndication/collapse.ts` makes the write path agree with the read path.
+Items are grouped on the same `source_key` search collapses on — the item's URL,
+normalized — and each group becomes one item:
+
+- `starts_at` is the next instance still upcoming, so the post moves forward as
+  instances pass rather than being replaced,
+- `metadata.recurrence` carries the rest as ISO timestamps, capped at 20, with
+  `metadata.recurrence_count` for the true total,
+- the body gains an `Also at: …` line above the attribution line, naming the
+  first eight in the event's own timezone,
+- `expires_at` covers the last known instance, not the first.
+
+The uid the runner writes on is that `source_key`, so later runs update the row
+instead of inserting a sibling. Two things are deliberately **not** folded: an
+item with no URL, which cannot be proved to be the same thing as another, and a
+group whose items do not all share a title — a venue landing page really does
+sell four different Sunday brunches from one link, and folding those would
+publish one and lose three.
+
+### The live-row guard
+
+Independent of the fold, and the floor under it: before inserting, the runner
+counts live posts sharing `(source_id, source_key)`, and at three or more it
+does not insert. It takes over the earliest live sibling that no item is
+relaying yet, or holds the item back when every one already has an owner —
+writing into an owned post would only start a fight, each run rewriting what the
+other wrote. Three, because the number this holds is "no `source_key` with more
+than three live rows": inserting while three are live makes four.
+
+This is what bounds the shapes the fold will not touch, and adapters not yet
+written. It counts `synd:collapsed` in `daily_counters`, and `collapsed` on the
+run row; the fold counts `synd:folded` and `folded`.
 
 ## Admin
 

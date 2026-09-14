@@ -5,12 +5,15 @@ import type { Budget } from "./db";
 import { env } from "./env";
 import { HttpError } from "./http";
 import { newPostId } from "./ids";
+import { normalizeSourceKey } from "./source-key";
 import { embedDocuments, postEmbeddingText } from "./cohere";
 import { PublicPublisher, PublisherRow, publicPublisher } from "./publishers";
 import { contentFlags, piiNote, stripHiddenUnicode } from "./safety";
 import { hasBudget } from "./limits";
 import { track } from "./metrics";
 import { indexNow } from "./indexnow";
+
+export { normalizeSourceKey };
 
 export const KINDS = ["event", "offer", "request", "announcement", "thread"] as const;
 export type Kind = (typeof KINDS)[number];
@@ -159,18 +162,6 @@ export function publicPost(r: PostRow, opts: { withDistance?: boolean } = {}): P
 export const POST_COLUMNS = `
   p.*, u.name as pub_name, u.url as pub_url, u.domain as pub_domain, u.description as pub_description,
   u.domain_verified_at as pub_verified_at, u.created_at as pub_created_at, u.post_count as pub_post_count`;
-
-export function normalizeSourceKey(u: string | null | undefined): string | null {
-  if (!u) return null;
-  try {
-    const url = new URL(u);
-    url.hash = "";
-    for (const k of [...url.searchParams.keys()]) if (/^(utm_|fbclid|gclid|ref$)/i.test(k)) url.searchParams.delete(k);
-    let s = url.toString().toLowerCase().replace(/^https?:\/\/(www\.)?/, "");
-    s = s.replace(/\/+$/, "");
-    return s.slice(0, 500);
-  } catch { return null; }
-}
 
 const DEFAULT_TTL_DAYS = 30;
 const MAX_TTL_DAYS = 365;

@@ -147,7 +147,11 @@ writes:
   `mcp:initialize`, `mcp:tool:<name>`, `page:<human|crawler|agent>`,
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:503`,
-  `error:side_write_timeout`.
+  `error:side_write_timeout`,
+  `synd:folded` (instances of one upstream thing merged into one item before
+  anything was written) and `synd:collapsed` (an insert the live-row guard
+  refused because that URL already has its three). Both are posts that were not
+  written; see [syndication.md](syndication.md).
 - `daily_actors(day, role, actor, n)`: roles `seeker`, `publisher`,
   `syndicator`, `mcp_client`, `registrant`.
 - `search_log(day, q, kind, tags, near, radius_km, source, n, zero)`: one row

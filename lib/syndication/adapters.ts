@@ -1,3 +1,4 @@
+import { RECURRENCE_CAP } from "./collapse";
 import { icalDate, icalText, parseFeed, parseICal } from "./feeds";
 import { Adapter, AdapterContext, Item, SourceRow, fetchJson, fetchText, inHorizon, plainText } from "./types";
 
@@ -149,7 +150,9 @@ export const localist: Adapter = async (source, ctx) => {
       const id = String(e.id ?? ""); if (!id) continue;
       const geo = (e.geo ?? {}) as Record<string, unknown>;
       const instances = ((e.event_instances ?? []) as { event_instance: Record<string, unknown> }[]).map((x) => x.event_instance);
-      for (const inst of instances.slice(0, 5)) {
+      // Five was a brake on how many rows one event could become; the fold is the brake now, so take
+      // enough instances to fill the recurrence list it builds (the representative plus the rest).
+      for (const inst of instances.slice(0, RECURRENCE_CAP + 1)) {
         const start = str(inst.start); if (!start) continue;
         items.push({
           uid: `${id}:${start}`,
