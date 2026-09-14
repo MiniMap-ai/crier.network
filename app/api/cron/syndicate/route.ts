@@ -20,5 +20,8 @@ export async function GET(req: Request) {
   track.counter("cron:syndicate");
   await track.flush();
   const result = await runDue(100_000);
+  // The run's own counters (synd:folded, synd:collapsed) land here rather than riding on `after()`:
+  // the daily brief reads them out of daily_counters, and a tick that dropped them tells it nothing.
+  await track.flush();
   return NextResponse.json({ ok: true, ...result, ms: Date.now() - started });
 }
