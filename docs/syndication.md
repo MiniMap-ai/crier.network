@@ -31,8 +31,26 @@ it up.
 | `ticketmaster` | Discovery API: concerts, sports, theatre around a point. Needs `TICKETMASTER_API_KEY`. Terms require attribution and a link, which every post carries. | `{lat, lng, radius_km, city, segment?}` |
 | `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, venue calendars. Recurring series are not expanded. | `{url, timezone?, location_name?, lat?, lng?}` |
 | `rss` | Any RSS/Atom feed of notices. Items become announcements with a TTL. | `{url, ttl_days?, location_name?, lat?, lng?}` |
-| `localist` | Localist calendars (most universities). Public JSON API. | `{base}` |
+| `localist` | Localist calendars (most universities). Public JSON API. Placeholder venues are dropped, not published. | `{base, location_name?, lat?, lng?}` |
 | `nws` | National Weather Service active alerts for a state (public domain). Zone alerts get a centroid from the zone geometry. | `{area, min_severity?}` |
+
+### What an adapter may call a place
+
+An upstream sentinel is not a fact. Ticketmaster fills an empty classification with the literal
+name "Undefined"; Localist answers "where" with "Sign in to download the location" when the venue is
+gated and "TBD" when it is unset. Written through, those become the post — 179 live posts named
+their venue as an instruction to sign in before this was fixed. Each adapter drops its own
+sentinels, by an exact match on the trimmed value rather than a pattern: the same Localist feeds
+carry "Lincoln Park Campus (Room TBD)", which is a real place. A sentinel that means something true
+stays — "Online Event" is where a virtual event is.
+
+Coordinates are the other half of a place. Localist carries `geo.latitude`/`geo.longitude` for
+about a quarter of its events and has none at all for the rest — no address, no venue id, on the
+detail endpoint any more than the list — so `localist`, like `ical` and `rss`, takes `config.lat`
+and `config.lng` as the point to fall back on. Without them a physical event upstream gave no
+coordinates for is invisible to `near=`. The fallback is withheld from online events, and
+`experience` alone does not identify those: DePaul marks 44 of every 100 events "inperson" while
+naming the location "Online Event", so the place name is read too.
 
 ## Runner
 
