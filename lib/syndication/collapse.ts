@@ -129,7 +129,11 @@ function fold(key: string, live: Item[], now: Date): Item {
   return item;
 }
 
-/** "Also at: Sep 14, 22:00 · Sep 14, 22:15, and 74 more (America/New_York)." */
+/**
+ * "Also at: ", then up to ALSO_AT_SHOWN instances separated by " · ", then ", and N more" when
+ * there are others, then the zone. Two of two reads:
+ * `Also at: Sep 14, 22:00 · Sep 14, 22:15 (America/New_York).`
+ */
 function alsoAt(instants: string[], timezone: string | undefined): string {
   const clock = clockIn(timezone || "UTC");
   const shown = instants.slice(0, ALSO_AT_SHOWN).map(clock.at).join(" · ");
