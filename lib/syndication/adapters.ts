@@ -1,8 +1,7 @@
 import { RECURRENCE_CAP } from "./collapse.ts";
 import { icalDate, icalText, parseFeed, parseICal } from "./feeds.ts";
 import { fetchJson, fetchText, inHorizon, plainText } from "./types.ts";
-// Split from the line above because `npm test` imports this module through node's type
-// stripping, which erases a type-only import but cannot tell types from values inside one list.
+// Split out: node's type stripping erases `import type` but cannot spot types inside a mixed list.
 import type { Adapter, AdapterContext, Item, SourceRow } from "./types.ts";
 
 const str = (v: unknown, d = ""): string => (typeof v === "string" ? v : d);
@@ -148,21 +147,13 @@ export const rss: Adapter = async (source, ctx) => {
 /* ---------------- Localist (campus/community calendars) ----------------
    config: { base (e.g. https://events.stanford.edu), location_name?, lat?, lng? } */
 
-/**
- * Localist answers "where" with a sentence when it has no venue to give: a gated venue comes back as
- * "Sign in to download the location", an unset one as "TBD". Copied through, 179 live posts said
- * their venue was an instruction to sign in. Same class as Ticketmaster's literal "Undefined",
- * dropped since 4bc4004 — an upstream placeholder written down as a fact.
- *
- * An exact match on the trimmed value, not a pattern: the same feeds carry "Lincoln Park Campus
- * (Room TBD)", a real place that any /tbd/ test would throw away.
- */
+/** Localist's way of saying it has no venue. Exact match, not a pattern: "Lincoln Park Campus (Room TBD)" is real. */
 const LOCALIST_NO_PLACE = new Set(["sign in to download the location", "tbd"]);
 
-/** Localist's own word for an event that is not anywhere — a true answer, but not a place. */
+/** True, but not a place. */
 const LOCALIST_ONLINE = "online event";
 
-/** The first candidate that names a place. "" when upstream is only saying it has none. */
+/** The first candidate that names a place, or "" if none does. */
 function localistPlace(...candidates: unknown[]): string {
   for (const c of candidates) {
     const t = str(c).trim();
@@ -183,16 +174,12 @@ export const localist: Adapter = async (source, ctx) => {
       const geo = (e.geo ?? {}) as Record<string, unknown>;
       const place = localistPlace(e.location_name, e.location);
       const room = localistPlace(e.room_number);
-      // `experience` is not to be trusted on its own: DePaul marks 44 of every 100 events "inperson"
-      // while naming the location "Online Event".
+      // Read the name too: DePaul marks online events "inperson".
       const online = str(e.experience) === "virtual" || place.toLowerCase() === LOCALIST_ONLINE;
-      // An online event is not at the campus, so the source's fallback place and point are not its.
+      // An online event is not at the campus, so it gets neither of the source's fallbacks.
       const named = place || (online ? "" : str(source.config.location_name).trim());
       const where = [named, room].filter(Boolean).join(", ");
-      // geo.latitude/longitude arrive as numeric strings and are mapped wherever they are there,
-      // which is about a quarter of events. For the rest upstream has no coordinates at all — no
-      // address, no venue id, no city either, on the detail endpoint any more than the list — so
-      // config.lat/lng is the per-source fallback, the same one ical and rss already take.
+      // Upstream has coordinates for about a quarter of events; config.lat/lng covers the rest, as in ical and rss.
       const at = point(geo.latitude, geo.longitude) ?? (online ? undefined : point(source.config.lat, source.config.lng));
       const instances = ((e.event_instances ?? []) as { event_instance: Record<string, unknown> }[]).map((x) => x.event_instance);
       // Five was a brake on how many rows one event could become; the fold is the brake now, so take

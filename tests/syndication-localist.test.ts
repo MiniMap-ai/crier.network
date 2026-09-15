@@ -4,13 +4,8 @@ import { localist } from "../lib/syndication/adapters.ts";
 import type { SourceRow } from "../lib/syndication/types.ts";
 
 /**
- * What the Localist adapter is allowed to call a place.
- *
- * Every shape below is one the two live campus feeds actually serve, taken from
- * events.luc.edu and events.depaul.edu on 2026-09-14: a gated venue that comes back as
- * "Sign in to download the location" (181 of 1,000 events), an unset one as "TBD" (18), the
- * "Online Event" that is a true answer and must survive, the real place name with a trailing
- * space, and "Lincoln Park Campus (Room TBD)" — a real place that any /tbd/ test would throw away.
+ * What the Localist adapter is allowed to call a place. Every fixture shape below is one
+ * events.luc.edu and events.depaul.edu actually served on 2026-09-14.
  */
 
 const NOW = new Date("2026-09-14T12:00:00Z");
@@ -142,8 +137,7 @@ test("upstream coordinates win over the source's", async () => {
 });
 
 test("an online event is not put at the campus", async () => {
-  // DePaul marks 44 of every 100 events "inperson" and then names the location "Online Event", so
-  // the place name has to be read too — `experience` alone would place them all on campus.
+  // DePaul marks online events "inperson", so `experience` alone would put them all on campus.
   const [virtual, mislabelled] = await relay([
     event({ location_name: "", experience: "virtual" }),
     event({ location_name: "Online Event", experience: "inperson" }),
