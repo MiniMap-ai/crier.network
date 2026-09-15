@@ -1,9 +1,16 @@
-import { RECURRENCE_CAP } from "./collapse";
-import { icalDate, icalText, parseFeed, parseICal } from "./feeds";
-import { Adapter, AdapterContext, Item, SourceRow, fetchJson, fetchText, inHorizon, plainText } from "./types";
+import { RECURRENCE_CAP } from "./collapse.ts";
+import { icalDate, icalText, parseFeed, parseICal } from "./feeds.ts";
+import { fetchJson, fetchText, inHorizon, plainText } from "./types.ts";
+// Split out: node's type stripping erases `import type` but cannot spot types inside a mixed list.
+import type { Adapter, AdapterContext, Item, SourceRow } from "./types.ts";
 
 const str = (v: unknown, d = ""): string => (typeof v === "string" ? v : d);
 const num = (v: unknown): number | undefined => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v)) ? Number(v) : undefined);
+/** A point only when both halves are there: half a coordinate pair is not a location. */
+const point = (lat: unknown, lng: unknown): { lat: number; lng: number } | undefined => {
+  const y = num(lat), x = num(lng);
+  return y !== undefined && x !== undefined ? { lat: y, lng: x } : undefined;
+};
 
 /* ---------------- Ticketmaster Discovery API ----------------
    config: { lat, lng, radius_km, city (label), segment? ("Music" | "Sports" | "Arts & Theatre" | ...) }
@@ -138,7 +145,23 @@ export const rss: Adapter = async (source, ctx) => {
 };
 
 /* ---------------- Localist (campus/community calendars) ----------------
-   config: { base (e.g. https://events.stanford.edu), location_name? } */
+   config: { base (e.g. https://events.stanford.edu), location_name?, lat?, lng? } */
+
+/** Localist's way of saying it has no venue. Exact match, not a pattern: "Lincoln Park Campus (Room TBD)" is real. */
+const LOCALIST_NO_PLACE = new Set(["sign in to download the location", "tbd"]);
+
+/** True, but not a place. */
+const LOCALIST_ONLINE = "online event";
+
+/** The first candidate that names a place, or "" if none does. */
+function localistPlace(...candidates: unknown[]): string {
+  for (const c of candidates) {
+    const t = str(c).trim();
+    if (t && !LOCALIST_NO_PLACE.has(t.toLowerCase())) return t;
+  }
+  return "";
+}
+
 export const localist: Adapter = async (source, ctx) => {
   const base = str(source.config.base).replace(/\/$/, "");
   if (!base) throw new Error("config.base is required");
@@ -149,6 +172,15 @@ export const localist: Adapter = async (source, ctx) => {
     for (const { event: e } of data.events ?? []) {
       const id = String(e.id ?? ""); if (!id) continue;
       const geo = (e.geo ?? {}) as Record<string, unknown>;
+      const place = localistPlace(e.location_name, e.location);
+      const room = localistPlace(e.room_number);
+      // Read the name too: DePaul marks online events "inperson".
+      const online = str(e.experience) === "virtual" || place.toLowerCase() === LOCALIST_ONLINE;
+      // An online event is not at the campus, so it gets neither of the source's fallbacks.
+      const named = place || (online ? "" : str(source.config.location_name).trim());
+      const where = [named, room].filter(Boolean).join(", ");
+      // Upstream has coordinates for about a quarter of events; config.lat/lng covers the rest, as in ical and rss.
+      const at = point(geo.latitude, geo.longitude) ?? (online ? undefined : point(source.config.lat, source.config.lng));
       const instances = ((e.event_instances ?? []) as { event_instance: Record<string, unknown> }[]).map((x) => x.event_instance);
       // Five was a brake on how many rows one event could become; the fold is the brake now, so take
       // enough instances to fill the recurrence list it builds (the representative plus the rest).
@@ -157,12 +189,12 @@ export const localist: Adapter = async (source, ctx) => {
         items.push({
           uid: `${id}:${start}`,
           title: plainText(str(e.title), 200),
-          body: [plainText(str(e.description_text) || str(e.description), 500), str(e.location_name) ? `Where: ${str(e.location_name)}${str(e.room_number) ? ", " + str(e.room_number) : ""}` : "", `Details: ${str(e.localist_url)}`, `Source: ${source.name}, relayed by Crier.`].filter(Boolean).join("\n"),
+          body: [plainText(str(e.description_text) || str(e.description), 500), where ? `Where: ${where}` : "", `Details: ${str(e.localist_url)}`, `Source: ${source.name}, relayed by Crier.`].filter(Boolean).join("\n"),
           url: str(e.localist_url) || undefined,
           kind: "event",
           starts_at: start,
           ends_at: str(inst.end) || undefined,
-          location: { name: str(e.location_name) || str(source.config.location_name) || undefined, lat: num(geo.latitude), lng: num(geo.longitude) },
+          location: { name: named || undefined, lat: at?.lat, lng: at?.lng },
           tags: [...source.tags, ...Object.values((e.filters ?? {}) as Record<string, { name: string }[]>).flat().map((f) => f?.name ?? "")].map((t) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-")).filter((t) => t.length >= 2 && t.length <= 40).slice(0, 20),
           metadata: { source: "localist", all_day: !!inst.all_day, free: e.free },
         });
@@ -248,7 +280,7 @@ export function describeAdapter(a: SourceRow["adapter"]): string {
     ticketmaster: "Ticketmaster Discovery API: concerts, sports, theatre near a point. Needs TICKETMASTER_API_KEY. config: {lat, lng, radius_km, city, segment?}",
     ical: "Any public iCalendar feed (LibCal, Google Calendar public ICS, venue calendars). config: {url, timezone?, location_name?, lat?, lng?}",
     rss: "Any RSS or Atom feed of notices. Items are announcements with a TTL. config: {url, ttl_days?, location_name?, lat?, lng?}",
-    localist: "Localist-powered calendars (most university event sites). config: {base}",
+    localist: "Localist-powered calendars (most university event sites). Placeholder venues (\"Sign in to download the location\", \"TBD\") are dropped. config: {base, location_name?, lat?, lng?} — the name and point to fall back on for the events upstream gives no coordinates for; not applied to online events.",
     nws: "National Weather Service active alerts for a state, public domain. config: {area, min_severity?}",
   }[a];
 }

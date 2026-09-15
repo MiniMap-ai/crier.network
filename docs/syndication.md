@@ -31,8 +31,17 @@ it up.
 | `ticketmaster` | Discovery API: concerts, sports, theatre around a point. Needs `TICKETMASTER_API_KEY`. Terms require attribution and a link, which every post carries. | `{lat, lng, radius_km, city, segment?}` |
 | `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, venue calendars. Recurring series are not expanded. | `{url, timezone?, location_name?, lat?, lng?}` |
 | `rss` | Any RSS/Atom feed of notices. Items become announcements with a TTL. | `{url, ttl_days?, location_name?, lat?, lng?}` |
-| `localist` | Localist calendars (most universities). Public JSON API. | `{base}` |
+| `localist` | Localist calendars (most universities). Public JSON API. Placeholder venues are dropped, not published. | `{base, location_name?, lat?, lng?}` |
 | `nws` | National Weather Service active alerts for a state (public domain). Zone alerts get a centroid from the zone geometry. | `{area, min_severity?}` |
+
+### What an adapter may call a place
+
+An upstream sentinel is not a fact: Ticketmaster's "Undefined" and Localist's "Sign in to download
+the location" / "TBD" are dropped on an exact trimmed match, never a pattern — the same feeds carry
+the real "Lincoln Park Campus (Room TBD)". "Online Event" stays, because it is true.
+
+Where upstream gives no coordinates, `localist` falls back to `config.lat`/`config.lng` as `ical`
+and `rss` do, except on online events.
 
 ## Runner
 
