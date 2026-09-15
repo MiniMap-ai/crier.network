@@ -36,21 +36,12 @@ it up.
 
 ### What an adapter may call a place
 
-An upstream sentinel is not a fact. Ticketmaster fills an empty classification with the literal
-name "Undefined"; Localist answers "where" with "Sign in to download the location" when the venue is
-gated and "TBD" when it is unset. Written through, those become the post — 179 live posts named
-their venue as an instruction to sign in before this was fixed. Each adapter drops its own
-sentinels, by an exact match on the trimmed value rather than a pattern: the same Localist feeds
-carry "Lincoln Park Campus (Room TBD)", which is a real place. A sentinel that means something true
-stays — "Online Event" is where a virtual event is.
+An upstream sentinel is not a fact: Ticketmaster's "Undefined" and Localist's "Sign in to download
+the location" / "TBD" are dropped on an exact trimmed match, never a pattern — the same feeds carry
+the real "Lincoln Park Campus (Room TBD)". "Online Event" stays, because it is true.
 
-Coordinates are the other half of a place. Localist carries `geo.latitude`/`geo.longitude` for
-about a quarter of its events and has none at all for the rest — no address, no venue id, on the
-detail endpoint any more than the list — so `localist`, like `ical` and `rss`, takes `config.lat`
-and `config.lng` as the point to fall back on. Without them a physical event upstream gave no
-coordinates for is invisible to `near=`. The fallback is withheld from online events, and
-`experience` alone does not identify those: DePaul marks 44 of every 100 events "inperson" while
-naming the location "Online Event", so the place name is read too.
+Where upstream gives no coordinates, `localist` falls back to `config.lat`/`config.lng` as `ical`
+and `rss` do, except on online events.
 
 ## Runner
 
