@@ -1,0 +1,531 @@
+{"intent": "aisha-i01", "notice": "aisha-n01", "label": "fire", "hard": true, "reason": "A zoning hearing on the project, but the applicant appears only as HRP Parkside LLC and the project name never appears."}
+{"intent": "aisha-i01", "notice": "aisha-n09", "label": "fire", "hard": true, "reason": "The developer is named in a council agenda buried among consent items, filed as an announcement rather than an event."}
+{"intent": "aisha-i01", "notice": "aisha-n02", "label": "no", "hard": true, "reason": "Developer and project both named, but it is a job ad, not a meeting."}
+{"intent": "aisha-i01", "notice": "aisha-n06", "label": "no", "hard": true, "reason": "A public event with a similarly named developer, Harbor Ridge Partners, on a different project."}
+{"intent": "aisha-i01", "notice": "aisha-n03", "label": "no", "hard": false, "reason": "A housing press conference with no mention of the developer or the project."}
+{"intent": "aisha-i01", "notice": "aisha-n12", "label": "no", "hard": false, "reason": "A council hearing on a rent bill; neither the developer nor the project comes up."}
+{"intent": "aisha-i02", "notice": "aisha-n03", "label": "fire", "hard": false, "reason": "DHCD announcing a press conference, posted by the agency."}
+{"intent": "aisha-i02", "notice": "aisha-n06", "label": "fire", "hard": true, "reason": "DCHA calls it a media availability rather than a press conference, and the agency is spelled out as DC Housing Authority."}
+{"intent": "aisha-i02", "notice": "aisha-n04", "label": "no", "hard": true, "reason": "A news outlet's write-up of the DHCD press conference; she asked for the agency itself."}
+{"intent": "aisha-i02", "notice": "aisha-n05", "label": "no", "hard": true, "reason": "A press conference by Maryland's DHCD, same acronym, different agency and state."}
+{"intent": "aisha-i02", "notice": "aisha-n07", "label": "no", "hard": false, "reason": "A think-tank panel on rent stabilization, not an agency press conference."}
+{"intent": "aisha-i02", "notice": "aisha-n09", "label": "no", "hard": false, "reason": "A council agenda, not a press conference by either agency."}
+{"intent": "aisha-i02", "notice": "aisha-n12", "label": "no", "hard": false, "reason": "A council hearing at which agency staff testify; not a press conference."}
+{"intent": "aisha-i03", "notice": "aisha-n07", "label": "fire", "hard": false, "reason": "She is on the panel under her name."}
+{"intent": "aisha-i03", "notice": "aisha-n03", "label": "fire", "hard": true, "reason": "She gives remarks, but the post names only the office, never her name."}
+{"intent": "aisha-i03", "notice": "aisha-n12", "label": "fire", "hard": true, "reason": "She testifies as a government witness, listed by title only."}
+{"intent": "aisha-i03", "notice": "aisha-n08", "label": "no", "hard": true, "reason": "Her name and title are in the post, but the appearance is cancelled."}
+{"intent": "aisha-i03", "notice": "aisha-n04", "label": "no", "hard": true, "reason": "She is quoted in coverage of a press conference that already happened; nothing to attend."}
+{"intent": "aisha-i03", "notice": "aisha-n05", "label": "no", "hard": false, "reason": "A different official, Maryland's housing secretary, speaking in Baltimore."}
+{"intent": "aisha-i03", "notice": "aisha-n09", "label": "no", "hard": false, "reason": "A council agenda with no mention of her or her office."}
+{"intent": "aisha-i04", "notice": "aisha-n33", "label": "fire", "hard": false, "reason": "The department posting FOIA responses to its reading room."}
+{"intent": "aisha-i04", "notice": "aisha-n35", "label": "fire", "hard": true, "reason": "A DOB records release worded by statute section, with the agency name misspelled and no mention of FOIA."}
+{"intent": "aisha-i04", "notice": "aisha-n34", "label": "no", "hard": true, "reason": "A FOIA log from DLCP, the sibling agency split from DCRA, not the Department of Buildings."}
+{"intent": "aisha-i04", "notice": "aisha-n04", "label": "no", "hard": true, "reason": "A news story built on FOIA'd DOB records; from an outlet, not the department."}
+{"intent": "aisha-i04", "notice": "aisha-n03", "label": "no", "hard": false, "reason": "A DHCD press conference, nothing to do with FOIA or DOB."}
+{"intent": "aisha-i05", "notice": "aisha-n14", "label": "fire", "hard": false, "reason": "Tenants at Brookland Manor, in Ward 5, organising in a thread before a meeting with management."}
+{"intent": "aisha-i05", "notice": "aisha-n16", "label": "fire", "hard": true, "reason": "A building group forming at Edgewood Commons, which is in Ward 5, but posted as an announcement with only a street address."}
+{"intent": "aisha-i05", "notice": "aisha-n15", "label": "no", "hard": true, "reason": "A tenant association forming, but Marbury Plaza is in Ward 7."}
+{"intent": "aisha-i05", "notice": "aisha-n20", "label": "no", "hard": true, "reason": "A listing that says tenants in place; a sale in Bowie, not organising in Ward 5."}
+{"intent": "aisha-i05", "notice": "aisha-n18", "label": "borderline", "hard": true, "reason": "Not a thread, but it reveals a ward-wide Ward 5 tenant association launching; she would want to see it once."}
+{"intent": "aisha-i05", "notice": "aisha-n17", "label": "no", "hard": false, "reason": "A nonprofit in Ward 8 seeking a reporter, not tenants organising in Ward 5."}
+{"intent": "aisha-i05", "notice": "aisha-n12", "label": "no", "hard": false, "reason": "A council hearing on rent stabilization, not a tenant thread."}
+{"intent": "aisha-i06", "notice": "aisha-n17", "label": "fire", "hard": false, "reason": "A nonprofit asking for a reporter to look at a DC housing story."}
+{"intent": "aisha-i06", "notice": "aisha-n19", "label": "fire", "hard": true, "reason": "A would-be source asking for someone who writes about DC housing, without the words journalist or reporter."}
+{"intent": "aisha-i06", "notice": "aisha-n18", "label": "no", "hard": true, "reason": "A request for a photographer, not a reporter."}
+{"intent": "aisha-i06", "notice": "aisha-n13", "label": "no", "hard": true, "reason": "Soliciting op-eds, which she excluded; nobody is asking for coverage."}
+{"intent": "aisha-i06", "notice": "aisha-n26", "label": "no", "hard": true, "reason": "Says it is looking for reporters, but it is a fellowship call, not a source seeking coverage."}
+{"intent": "aisha-i06", "notice": "aisha-n02", "label": "no", "hard": false, "reason": "An employer hiring a development associate, not a source seeking a journalist."}
+{"intent": "aisha-i07", "notice": "aisha-n21", "label": "fire", "hard": false, "reason": "Three independent labs replicate the ambient-pressure room-temperature result."}
+{"intent": "aisha-i07", "notice": "aisha-n25", "label": "fire", "hard": true, "reason": "A news-feed item reporting the replication in plain words: confirm, reproduced, three labs."}
+{"intent": "aisha-i07", "notice": "aisha-n22", "label": "borderline", "hard": true, "reason": "The original single-lab claim, not a replication; she would want to see it once and then wait."}
+{"intent": "aisha-i07", "notice": "aisha-n23", "label": "no", "hard": true, "reason": "A lecture about replication failures, not a replication."}
+{"intent": "aisha-i07", "notice": "aisha-n24", "label": "no", "hard": true, "reason": "An independent replication, but at 45 K, not room temperature."}
+{"intent": "aisha-i07", "notice": "aisha-n28", "label": "no", "hard": false, "reason": "A science reporting grant, not a physics result."}
+{"intent": "aisha-i08", "notice": "aisha-n26", "label": "fire", "hard": false, "reason": "The foundation's reporting fellowship with a deadline."}
+{"intent": "aisha-i08", "notice": "aisha-n28", "label": "fire", "hard": true, "reason": "Same funder under the alias HTF, a grant cycle, and the deadline stated as the second Friday of November."}
+{"intent": "aisha-i08", "notice": "aisha-n27", "label": "no", "hard": true, "reason": "Same funder, a deadline, but a photojournalism fellowship, which she excluded."}
+{"intent": "aisha-i08", "notice": "aisha-n13", "label": "no", "hard": true, "reason": "Same funder and a deadline, but an op-ed call, not a grant or fellowship."}
+{"intent": "aisha-i08", "notice": "aisha-n17", "label": "no", "hard": false, "reason": "A nonprofit seeking a reporter, not a funder's deadline."}
+{"intent": "aisha-i09", "notice": "aisha-n29", "label": "fire", "hard": false, "reason": "The body, under budget, in Silver Spring."}
+{"intent": "aisha-i09", "notice": "aisha-n30", "label": "fire", "hard": true, "reason": "Listed only by model code ILCE-7M3, place given as Arlington in the body, $780."}
+{"intent": "aisha-i09", "notice": "aisha-n31", "label": "no", "hard": true, "reason": "Mentions the a7 III but sells a lens, and over budget."}
+{"intent": "aisha-i09", "notice": "aisha-n32", "label": "no", "hard": true, "reason": "The right body in the DC area, but $1,150 is over her bound."}
+{"intent": "aisha-i09", "notice": "aisha-n20", "label": "no", "hard": false, "reason": "A condo open house, not a camera."}
+{"intent": "aisha-i10", "notice": "aisha-n09", "label": "fire", "hard": false, "reason": "The Council's legislative meeting agenda for a Tuesday."}
+{"intent": "aisha-i10", "notice": "aisha-n10", "label": "fire", "hard": true, "reason": "The same weekly agenda posted as a draft, with COW as the only name for the Committee of the Whole and the date in prose."}
+{"intent": "aisha-i10", "notice": "aisha-n11", "label": "no", "hard": true, "reason": "A Tuesday council agenda, but Montgomery County's."}
+{"intent": "aisha-i10", "notice": "aisha-n12", "label": "no", "hard": true, "reason": "From the DC Council, but a committee hearing notice, not the weekly legislative agenda."}
+{"intent": "aisha-i10", "notice": "aisha-n01", "label": "no", "hard": false, "reason": "A Zoning Commission hearing, not a council agenda."}
+{"intent": "aisha-i10", "notice": "aisha-n03", "label": "no", "hard": false, "reason": "An executive-branch press conference, not the Council's agenda."}
+{"intent": "aisha-i11", "notice": "aisha-n04", "label": "fire", "hard": false, "reason": "Her byline on the story."}
+{"intent": "aisha-i11", "notice": "aisha-n14", "label": "fire", "hard": true, "reason": "A tenant cites her story with her surname misspelled as Bellow."}
+{"intent": "aisha-i11", "notice": "aisha-n20", "label": "no", "hard": true, "reason": "A realtor with the same name; not the journalist."}
+{"intent": "aisha-i11", "notice": "aisha-n01", "label": "no", "hard": true, "reason": "Bello appears as part of the law firm Bello & Grimm, not as her byline."}
+{"intent": "aisha-i11", "notice": "aisha-n17", "label": "no", "hard": false, "reason": "A request for a reporter that names nobody."}
+{"intent": "aisha-i11", "notice": "aisha-n19", "label": "no", "hard": false, "reason": "Someone looking for a housing writer, no name mentioned."}
+{"intent": "aisha-i12", "notice": "aisha-n07", "label": "fire", "hard": false, "reason": "A panel on DC rent stabilization."}
+{"intent": "aisha-i12", "notice": "aisha-n12", "label": "fire", "hard": false, "reason": "The Council hearing on the rent stabilization bill."}
+{"intent": "aisha-i12", "notice": "aisha-n10", "label": "fire", "hard": true, "reason": "The bill's first reading buried in a draft agenda alongside unrelated items."}
+{"intent": "aisha-i12", "notice": "aisha-n13", "label": "no", "hard": true, "reason": "About rent control, but a call for op-eds, which she excluded."}
+{"intent": "aisha-i12", "notice": "aisha-n11", "label": "no", "hard": true, "reason": "Rent stabilization on a council agenda, but Montgomery County's, not DC's."}
+{"intent": "aisha-i12", "notice": "aisha-n16", "label": "borderline", "hard": true, "reason": "A building fighting a 9% rent increase in Edgewood; adjacent to rent control but not the policy stream."}
+{"intent": "aisha-i12", "notice": "aisha-n08", "label": "no", "hard": false, "reason": "A housing-finance keynote, cancelled, not about rent control."}
+{"intent": "aisha-i12", "notice": "aisha-n15", "label": "no", "hard": false, "reason": "A tenant association forming over elevators and TOPA, not rent control."}
+{"intent": "aisha-i12", "notice": "aisha-n03", "label": "no", "hard": false, "reason": "A trust fund press conference, not rent control."}
+{"intent": "aisha-i12", "notice": "aisha-n14", "label": "no", "hard": false, "reason": "A relocation notice thread at Brookland Manor, not rent control."}
+{"intent":"jordan-i01","notice":"jordan-n01","label":"fire","hard":false,"reason":"NHTSA relay, exact model number, a recall."}
+{"intent":"jordan-i01","notice":"jordan-n02","label":"fire","hard":true,"reason":"Graco itself, second model number in the body only, called a free update kit and posted as an offer; no recall keyword, wrong kind."}
+{"intent":"jordan-i01","notice":"jordan-n03","label":"no","hard":true,"reason":"Same brand, same relay, same shape, but the SnugRide infant seat, which Jordan explicitly excluded."}
+{"intent":"jordan-i01","notice":"jordan-n04","label":"no","hard":true,"reason":"Right model number, right event, but a blog repost and Jordan wants Graco, NHTSA or the CPSC only."}
+{"intent":"jordan-i01","notice":"jordan-n05","label":"no","hard":true,"reason":"A CPSC recall of a baby product; keyword matcher on recall fires, but it is the crib, not the car seat."}
+{"intent":"jordan-i01","notice":"jordan-n06","label":"no","hard":false,"reason":"A crib notice from a different manufacturer."}
+{"intent":"jordan-i01","notice":"jordan-n16","label":"no","hard":false,"reason":"Baby gear for sale, not a recall."}
+{"intent":"jordan-i02","notice":"jordan-n05","label":"fire","hard":false,"reason":"CPSC relay, Babyletto Hudson crib, a recall."}
+{"intent":"jordan-i02","notice":"jordan-n06","label":"fire","hard":true,"reason":"The parent company posting under its own name, never says Babyletto or recall, no tags."}
+{"intent":"jordan-i02","notice":"jordan-n01","label":"no","hard":true,"reason":"A baby product recall from a relay, but a Graco car seat, not a crib."}
+{"intent":"jordan-i02","notice":"jordan-n03","label":"no","hard":true,"reason":"A baby product recall from a relay, but an infant car seat."}
+{"intent":"jordan-i02","notice":"jordan-n04","label":"no","hard":true,"reason":"Names the Babyletto Hudson recall, but a blog roundup rather than the manufacturer or regulator, and Jordan holds source loosely; the real notice is already covered."}
+{"intent":"jordan-i02","notice":"jordan-n02","label":"no","hard":false,"reason":"A Graco car seat notice, nothing to do with cribs."}
+{"intent":"jordan-i02","notice":"jordan-n16","label":"no","hard":false,"reason":"Baby gear for sale, not a recall."}
+{"intent":"jordan-i03","notice":"jordan-n25","label":"fire","hard":false,"reason":"The district itself, a district-wide e-learning day, buildings closed."}
+{"intent":"jordan-i03","notice":"jordan-n26","label":"fire","hard":true,"reason":"A district-wide announcement from 203 with none of the closure or e-learning words; it is about a clinic and an exclusion deadline."}
+{"intent":"jordan-i03","notice":"jordan-n27","label":"no","hard":true,"reason":"About 203 closing, but a parent rumor thread, not the district."}
+{"intent":"jordan-i03","notice":"jordan-n29","label":"no","hard":true,"reason":"Says no school Nov 6, but it is a PTA reply in a thread, not the district, and the school is one of many closed for conferences anyway."}
+{"intent":"jordan-i03","notice":"jordan-n35","label":"no","hard":true,"reason":"County health department about Naperville schools; not the district, not a closure, schools stay open."}
+{"intent":"jordan-i03","notice":"jordan-n28","label":"no","hard":true,"reason":"A Prairie Elementary PTA post about a school event; right district, wrong source."}
+{"intent":"jordan-i03","notice":"jordan-n14","label":"no","hard":false,"reason":"Park district registration, not the school district."}
+{"intent":"jordan-i04","notice":"jordan-n07","label":"fire","hard":true,"reason":"Free library event on a Saturday for ages 3-8, 3 km away, but the title is Pigeon Party and it never says kids, family or free in the title."}
+{"intent":"jordan-i04","notice":"jordan-n11","label":"fire","hard":false,"reason":"Free fall festival at Cosley Zoo, Saturday, 15 km away, ages 12 and under."}
+{"intent":"jordan-i04","notice":"jordan-n13","label":"fire","hard":false,"reason":"Free park district family fest, Saturday, in Naperville."}
+{"intent":"jordan-i04","notice":"jordan-n08","label":"borderline","hard":true,"reason":"A Saturday kids' event in Naperville, but admission is a USD 19.99 book per family; a thoughtful agent shows it once."}
+{"intent":"jordan-i04","notice":"jordan-n09","label":"no","hard":true,"reason":"Free, kids, a Sunday, but Harold Washington Library is 46 km away and has no coordinates to filter on."}
+{"intent":"jordan-i04","notice":"jordan-n12","label":"no","hard":true,"reason":"Free, kids, Saturday, but Schaumburg is 32 km away, outside the 20 km."}
+{"intent":"jordan-i04","notice":"jordan-n14","label":"no","hard":false,"reason":"Swim lesson registration, not a weekend event."}
+{"intent":"jordan-i04","notice":"jordan-n10","label":"no","hard":false,"reason":"A book release, not an event."}
+{"intent":"jordan-i05","notice":"jordan-n16","label":"fire","hard":false,"reason":"The exact double stroller, used, USD 260, Naperville."}
+{"intent":"jordan-i05","notice":"jordan-n17","label":"fire","hard":true,"reason":"Typo in the key word, no tags, no coordinates, place only in the body, but it is the right stroller at USD 225 in Lisle."}
+{"intent":"jordan-i05","notice":"jordan-n18","label":"no","hard":true,"reason":"Right brand and model line, right area, right price, but the single seat which Jordan excluded."}
+{"intent":"jordan-i05","notice":"jordan-n30","label":"no","hard":true,"reason":"Names the City Mini GT2 double, but it is another parent asking to buy one, inside a school thread."}
+{"intent":"jordan-i05","notice":"jordan-n24","label":"no","hard":false,"reason":"A nanny post, not a stroller."}
+{"intent":"jordan-i06","notice":"jordan-n19","label":"fire","hard":false,"reason":"Pediatric dentist, accepting new patients, in-network with Delta, 5 km away."}
+{"intent":"jordan-i06","notice":"jordan-n20","label":"fire","hard":true,"reason":"Never says accepting new patients; says a second chair and first visits available again, in Lisle, no tags or coordinates."}
+{"intent":"jordan-i06","notice":"jordan-n21","label":"no","hard":true,"reason":"Pediatric dentist in Naperville with the words new patients in it, but explicitly not accepting."}
+{"intent":"jordan-i06","notice":"jordan-n30","label":"no","hard":true,"reason":"Asks for a pediatric dentist taking new patients rather than offering one, in a thread."}
+{"intent":"jordan-i06","notice":"jordan-n22","label":"no","hard":false,"reason":"A babysitter, not a dentist."}
+{"intent":"jordan-i07","notice":"jordan-n14","label":"fire","hard":false,"reason":"Naperville Park District, Fall II swim lesson registration opens Sept 29."}
+{"intent":"jordan-i07","notice":"jordan-n15","label":"fire","hard":true,"reason":"Never says swim, Naperville or registration; Fort Hill and the level names identify it, time in prose."}
+{"intent":"jordan-i07","notice":"jordan-n11","label":"no","hard":true,"reason":"Swim lesson registration opening, same wording, but Wheaton Park District."}
+{"intent":"jordan-i07","notice":"jordan-n13","label":"no","hard":true,"reason":"Naperville Park District, registration now open, but for gymnastics."}
+{"intent":"jordan-i07","notice":"jordan-n07","label":"no","hard":false,"reason":"A library storytime."}
+{"intent":"jordan-i08","notice":"jordan-n22","label":"fire","hard":false,"reason":"Sitter offering weekday evenings in Naperville."}
+{"intent":"jordan-i08","notice":"jordan-n23","label":"fire","hard":true,"reason":"A sitter seeking families with evening availability, but posted as a reply in a school thread, so kind and near both miss it."}
+{"intent":"jordan-i08","notice":"jordan-n24","label":"no","hard":true,"reason":"Childcare in Naperville, but weekdays 8-4 and explicitly no evenings."}
+{"intent":"jordan-i08","notice":"jordan-n30","label":"no","hard":true,"reason":"Says evening sitter, weekdays after 5:30, but it is a family asking, the wrong direction."}
+{"intent":"jordan-i08","notice":"jordan-n19","label":"no","hard":false,"reason":"A dentist."}
+{"intent":"jordan-i09","notice":"jordan-n08","label":"fire","hard":false,"reason":"Mo Willems in person at Anderson's, Naperville."}
+{"intent":"jordan-i09","notice":"jordan-n09","label":"fire","hard":true,"reason":"He is never named; the Elephant & Piggie creator, live drawing and signing in Chicago, no coordinates."}
+{"intent":"jordan-i09","notice":"jordan-n07","label":"no","hard":true,"reason":"His name is in the body, his character in the title, but librarians run it and he is not there."}
+{"intent":"jordan-i09","notice":"jordan-n10","label":"no","hard":true,"reason":"His name in the title, but a book release that says he will not appear."}
+{"intent":"jordan-i09","notice":"jordan-n13","label":"no","hard":false,"reason":"A park district fest, no author."}
+{"intent":"jordan-i10","notice":"jordan-n36","label":"fire","hard":false,"reason":"Found dog in Cress Creek."}
+{"intent":"jordan-i10","notice":"jordan-n31","label":"fire","hard":true,"reason":"A found beagle-type dog 5 km away, but a reply in a school thread with no coordinates and no found-dog keywords in the title."}
+{"intent":"jordan-i10","notice":"jordan-n37","label":"no","hard":true,"reason":"Found, Cress Creek, right shape, but a cat."}
+{"intent":"jordan-i10","notice":"jordan-n29","label":"no","hard":true,"reason":"A beagle near a Naperville school, but lost rather than found, someone else's dog."}
+{"intent":"jordan-i10","notice":"jordan-n22","label":"no","hard":false,"reason":"A babysitter."}
+{"intent":"jordan-i11","notice":"jordan-n28","label":"fire","hard":false,"reason":"New post in the Prairie PTA thread, about the fall fundraiser."}
+{"intent":"jordan-i11","notice":"jordan-n30","label":"fire","hard":true,"reason":"A reply in the thread with no PTA or fundraiser words, only the thread id ties it."}
+{"intent":"jordan-i11","notice":"jordan-n31","label":"fire","hard":true,"reason":"A reply in the thread that says it is not PTA business; still a new post in the thread."}
+{"intent":"jordan-i11","notice":"jordan-n23","label":"fire","hard":false,"reason":"A reply in the thread."}
+{"intent":"jordan-i11","notice":"jordan-n27","label":"no","hard":true,"reason":"A parent thread about Naperville schools, but a different thread."}
+{"intent":"jordan-i11","notice":"jordan-n29","label":"no","hard":true,"reason":"A PTA thread reply with the same title shape, but Elmwood's thread, not Prairie's."}
+{"intent":"jordan-i11","notice":"jordan-n25","label":"no","hard":false,"reason":"A district announcement, not in the thread."}
+{"intent":"jordan-i12","notice":"jordan-n32","label":"fire","hard":false,"reason":"County health department confirms a measles case in a DuPage resident."}
+{"intent":"jordan-i12","notice":"jordan-n33","label":"fire","hard":true,"reason":"Says rubeola, names a hospital instead of the county, from a news feed; a DuPage measles exposure all the same."}
+{"intent":"jordan-i12","notice":"jordan-n34","label":"borderline","hard":true,"reason":"A confirmed measles case, but in Cook County; a strict reading says no, a parent 34 km away would want to see it once."}
+{"intent":"jordan-i12","notice":"jordan-n26","label":"no","hard":true,"reason":"Contains measles and DuPage County, but it is a vaccination clinic, not a case."}
+{"intent":"jordan-i12","notice":"jordan-n35","label":"no","hard":true,"reason":"County health department, Naperville schools, confirmed cases, but pertussis."}
+{"intent":"jordan-i12","notice":"jordan-n25","label":"no","hard":false,"reason":"A school e-learning day."}
+{"intent":"kai-i01","notice":"kai-n01","label":"fire","hard":false,"reason":"A paid bassist request at a Nashville venue, an original band."}
+{"intent":"kai-i01","notice":"kai-n04","label":"fire","hard":true,"reason":"Says 'low-end player' and 'tracking day', never 'bassist' or 'gig', and has no coordinates; it is a paid Nashville bass job."}
+{"intent":"kai-i01","notice":"kai-n02","label":"no","hard":true,"reason":"Paid Nashville gig with a date, but they want a guitarist."}
+{"intent":"kai-i01","notice":"kai-n03","label":"no","hard":true,"reason":"Paid, Nashville, bassist wanted, but it is a covers band through an agency, which he excluded."}
+{"intent":"kai-i01","notice":"kai-n06","label":"no","hard":true,"reason":"Exactly the right ask, in Denver."}
+{"intent":"kai-i01","notice":"kai-n09","label":"no","hard":true,"reason":"Paid bass job with a date, but Chattanooga is well outside Nashville and it is a covers set."}
+{"intent":"kai-i01","notice":"kai-n36","label":"no","hard":true,"reason":"Says bass players welcome at an East Nashville venue, but a jam night is not a paid gig."}
+{"intent":"kai-i01","notice":"kai-n08","label":"borderline","hard":true,"reason":"Paid, near Nashville, bassist wanted, but a wedding set is a covers gig by nature; he would want to see it once and decide."}
+{"intent":"kai-i01","notice":"kai-n22","label":"borderline","hard":true,"reason":"A producer's paid call for bass players in Nashville is a gig in all but form, but it is filed as an announcement, not a request."}
+{"intent":"kai-i01","notice":"kai-n05","label":"no","hard":false,"reason":"Unpaid, and in Denver."}
+{"intent":"kai-i01","notice":"kai-n07","label":"no","hard":false,"reason":"Paid bass gig, but Denver."}
+{"intent":"kai-i02","notice":"kai-n08","label":"fire","hard":false,"reason":"A planner posting directly with a date and a fee."}
+{"intent":"kai-i02","notice":"kai-n09","label":"fire","hard":true,"reason":"'Short a four-string' from the couple's coordinator; date, fee and 'I pay it' are all there, with none of the intent's words."}
+{"intent":"kai-i02","notice":"kai-n02","label":"no","hard":true,"reason":"A wedding, a planner, a date and a fee, but for a guitarist."}
+{"intent":"kai-i02","notice":"kai-n03","label":"no","hard":true,"reason":"Wedding band wants a bassist, but it is an agency listing with no date and agency-set pay, exactly what he excluded."}
+{"intent":"kai-i02","notice":"kai-n01","label":"no","hard":false,"reason":"A paid bass gig, not a wedding."}
+{"intent":"kai-i02","notice":"kai-n06","label":"no","hard":false,"reason":"A paid bass gig in Denver, not a wedding."}
+{"intent":"kai-i03","notice":"kai-n12","label":"fire","hard":false,"reason":"A real 1966 Jazz Bass at 3,100 shipped, the second of his two models."}
+{"intent":"kai-i03","notice":"kai-n10","label":"fire","hard":true,"reason":"A one-liner that says only ''73 P bass', no 'Fender', no 'Precision', no 'vintage', at 2,800 with shipping offered."}
+{"intent":"kai-i03","notice":"kai-n11","label":"no","hard":true,"reason":"Every keyword is there, ''70s', 'Precision', 'P-bass', but it is a 2024 Vintera reissue."}
+{"intent":"kai-i03","notice":"kai-n13","label":"no","hard":true,"reason":"A genuine 1972 Precision, but 5,200 is over his bound."}
+{"intent":"kai-i03","notice":"kai-n15","label":"no","hard":false,"reason":"Bass gear, but a cabinet."}
+{"intent":"kai-i03","notice":"kai-n14","label":"no","hard":false,"reason":"Bass gear in Nashville, but an amp head."}
+{"intent":"kai-i04","notice":"kai-n14","label":"fire","hard":false,"reason":"An SVT-CL head in Berry Hill, inside Nashville."}
+{"intent":"kai-i04","notice":"kai-n16","label":"fire","hard":true,"reason":"'Blue-line SVT, head only' in Madison, ten kilometres out; never says Ampeg or CL."}
+{"intent":"kai-i04","notice":"kai-n15","label":"no","hard":true,"reason":"Ampeg SVT in the title, Nashville pickup, but it is the 8x10 cabinet."}
+{"intent":"kai-i04","notice":"kai-n17","label":"no","hard":true,"reason":"An SVT-CL head at a good price, but Atlanta, local only."}
+{"intent":"kai-i04","notice":"kai-n11","label":"no","hard":false,"reason":"Bass gear for sale in Nashville, but an instrument."}
+{"intent":"kai-i04","notice":"kai-n13","label":"no","hard":false,"reason":"A bass, not an amp, in Los Angeles."}
+{"intent":"kai-i05","notice":"kai-n18","label":"fire","hard":false,"reason":"Hourly, backlined, on Gallatin Ave in East Nashville."}
+{"intent":"kai-i05","notice":"kai-n21","label":"fire","hard":true,"reason":"'A room to be loud in', by the hour, in Five Points; filed as an announcement with no coordinates or tags."}
+{"intent":"kai-i05","notice":"kai-n19","label":"no","hard":true,"reason":"Hourly backlined room, but in Franklin."}
+{"intent":"kai-i05","notice":"kai-n20","label":"no","hard":true,"reason":"Rehearsal space in Inglewood, East Nashville, but a monthly lockout that says 'no hourly'."}
+{"intent":"kai-i05","notice":"kai-n36","label":"no","hard":false,"reason":"An East Nashville music night, not a room for hire."}
+{"intent":"kai-i06","notice":"kai-n22","label":"fire","hard":false,"reason":"The producer, by name, booking sessions and asking for bass players."}
+{"intent":"kai-i06","notice":"kai-n24","label":"fire","hard":true,"reason":"Only the studio's name appears, with a typo in 'electric', but it is his sessions calling for upright and electric players."}
+{"intent":"kai-i06","notice":"kai-n23","label":"no","hard":true,"reason":"The right man, but a masterclass about tracking, not sessions that need players."}
+{"intent":"kai-i06","notice":"kai-n04","label":"no","hard":true,"reason":"A paid tracking session needing a bass player, but a different producer at a different studio."}
+{"intent":"kai-i06","notice":"kai-n25","label":"no","hard":false,"reason":"A call for bass players, but a festival house band, not his sessions."}
+{"intent":"kai-i06","notice":"kai-n27","label":"no","hard":false,"reason":"A call for a rhythm section, from a festival."}
+{"intent":"kai-i07","notice":"kai-n25","label":"fire","hard":false,"reason":"A festival's open call for its house band."}
+{"intent":"kai-i07","notice":"kai-n27","label":"fire","hard":true,"reason":"'Our tribute set needs a rhythm section' is a festival hiring backing players, without saying 'open call' or 'house band'."}
+{"intent":"kai-i07","notice":"kai-n26","label":"no","hard":true,"reason":"Same festival, same wording 'open call', but for vendors and food trucks."}
+{"intent":"kai-i07","notice":"kai-n22","label":"no","hard":true,"reason":"A call for rhythm-section players, but from a producer's studio, not a festival."}
+{"intent":"kai-i07","notice":"kai-n40","label":"no","hard":false,"reason":"A festival-sized tour announcement, not a call for players."}
+{"intent":"kai-i08","notice":"kai-n28","label":"fire","hard":false,"reason":"Transit 350 high roof, 78k miles, 29,500, Murfreesboro."}
+{"intent":"kai-i08","notice":"kai-n29","label":"fire","hard":true,"reason":"Says 'T-350' and 'tall roof' instead of 'Transit 350 high roof'; 61k miles and 31,900 both inside his bounds, Bowling Green is close."}
+{"intent":"kai-i08","notice":"kai-n30","label":"no","hard":true,"reason":"Right van, right city, right price, but 142k miles."}
+{"intent":"kai-i08","notice":"kai-n31","label":"no","hard":true,"reason":"'Ford Transit' and Nashville, but the Connect is the small van."}
+{"intent":"kai-i08","notice":"kai-n15","label":"no","hard":false,"reason":"Something heavy for sale in Nashville, but a bass cabinet."}
+{"intent":"kai-i09","notice":"kai-n33","label":"fire","hard":false,"reason":"A reply in his thread with cities and dates for the right week."}
+{"intent":"kai-i09","notice":"kai-n35","label":"fire","hard":true,"reason":"A reply titled only 'Re: who's out' with no tags, but it lists Madison, Des Moines and St Louis on the 15th to 18th."}
+{"intent":"kai-i09","notice":"kai-n32","label":"no","hard":true,"reason":"His own root post; a thread filter returns it."}
+{"intent":"kai-i09","notice":"kai-n34","label":"no","hard":true,"reason":"A route in the sibling thread for the week of Oct 19, and it says they are not out the week before."}
+{"intent":"kai-i09","notice":"kai-n06","label":"no","hard":false,"reason":"A gig request, not a reply in his thread."}
+{"intent":"kai-i10","notice":"kai-n36","label":"fire","hard":false,"reason":"A weekly Monday jam in East Nashville with sit-ins."}
+{"intent":"kai-i10","notice":"kai-n38","label":"fire","hard":true,"reason":"Called 'sessions', not 'jam', in the Gulch rather than the east side, but it is a weekly Wednesday sit-in for rhythm section."}
+{"intent":"kai-i10","notice":"kai-n37","label":"no","hard":true,"reason":"Weekly, East Nashville, Tuesday, but a solo singer-songwriter open mic with no backing bands."}
+{"intent":"kai-i10","notice":"kai-n39","label":"no","hard":true,"reason":"A weekly jam that says upright bass is always needed, but in Franklin."}
+{"intent":"kai-i10","notice":"kai-n05","label":"no","hard":true,"reason":"Says 'come jam with us', but it is a band audition in Denver."}
+{"intent":"kai-i10","notice":"kai-n43","label":"no","hard":false,"reason":"A one-off show at an East Nashville venue, not a jam."}
+{"intent":"kai-i11","notice":"kai-n06","label":"fire","hard":false,"reason":"Paid bassist gig at Globe Hall in Denver on Oct 9."}
+{"intent":"kai-i11","notice":"kai-n07","label":"fire","hard":true,"reason":"'Hold down the bottom end' on 'Saturday the 10th' at the Hi-Dive, paid, with no coordinates, no tags and no date field."}
+{"intent":"kai-i11","notice":"kai-n01","label":"no","hard":true,"reason":"A paid bassist gig that week, but in Nashville while he is in Denver."}
+{"intent":"kai-i11","notice":"kai-n05","label":"no","hard":true,"reason":"Denver, Oct 8, bassist wanted, but unpaid."}
+{"intent":"kai-i11","notice":"kai-n44","label":"no","hard":true,"reason":"Paid bass gig in Denver, but Oct 25, after he has left."}
+{"intent":"kai-i11","notice":"kai-n02","label":"no","hard":false,"reason":"Nashville, and a guitarist."}
+{"intent":"kai-i12","notice":"kai-n40","label":"fire","hard":false,"reason":"The band announces a 12-date reunion tour."}
+{"intent":"kai-i12","notice":"kai-n42","label":"fire","hard":true,"reason":"Never says 'reunion' or 'tour' and misspells the name, but ex-members confirm a fourteen-city run under the original name."}
+{"intent":"kai-i12","notice":"kai-n41","label":"no","hard":true,"reason":"'Bishop's Crossing' and 'reunion' in the title, but it is the tribute band reuniting."}
+{"intent":"kai-i12","notice":"kai-n27","label":"no","hard":true,"reason":"The band's name and a festival stage, but a tribute set played by other people."}
+{"intent":"kai-i12","notice":"kai-n43","label":"borderline","hard":true,"reason":"The actual band, together on stage for the first time since 2019, but a one-off benefit, which he excluded; his agent would still want him to see it once."}
+{"intent":"kai-i12","notice":"kai-n25","label":"no","hard":false,"reason":"A festival announcement with no connection to the band."}
+{"intent":"lena-i01","notice":"lena-n01","label":"fire","hard":false,"reason":"A preprint squarely about biosignature detection in exoplanet atmospheres."}
+{"intent":"lena-i01","notice":"lena-n02","label":"fire","hard":true,"reason":"A paper on the subject that never uses the word biosignature; a keyword matcher misses it."}
+{"intent":"lena-i01","notice":"lena-n05","label":"fire","hard":false,"reason":"A reanalysis of a claimed biosignature detection is itself a paper on biosignature detection."}
+{"intent":"lena-i01","notice":"lena-n04","label":"no","hard":true,"reason":"A press release about a habitable-zone planet, not a paper and not about biosignatures."}
+{"intent":"lena-i01","notice":"lena-n08","label":"no","hard":true,"reason":"A detection of life, but a news item about Enceladus, not a paper about an exoplanet atmosphere."}
+{"intent":"lena-i01","notice":"lena-n12","label":"no","hard":true,"reason":"Exoplanet atmosphere data she will want, but a data release, not a paper."}
+{"intent":"lena-i01","notice":"lena-n29","label":"no","hard":true,"reason":"About a biosignature paper, but a retraction notice, not new research."}
+{"intent":"lena-i01","notice":"lena-n03","label":"no","hard":false,"reason":"A public lecture, not a paper."}
+{"intent":"lena-i01","notice":"lena-n32","label":"no","hard":false,"reason":"A paper, but about Enceladus ice grains, not exoplanet atmospheres."}
+{"intent":"lena-i02","notice":"lena-n01","label":"fire","hard":false,"reason":"An arXiv relay post on the subject."}
+{"intent":"lena-i02","notice":"lena-n05","label":"fire","hard":true,"reason":"On arXiv and on the subject, but titled around DMS and K2-18 b rather than biosignatures."}
+{"intent":"lena-i02","notice":"lena-n02","label":"no","hard":true,"reason":"Right subject, but the researcher's agent posted it with a journal DOI; not from arXiv."}
+{"intent":"lena-i02","notice":"lena-n31","label":"no","hard":true,"reason":"A journal retraction notice on a biosignature paper; wrong source and not a paper."}
+{"intent":"lena-i02","notice":"lena-n04","label":"no","hard":false,"reason":"A press release, wrong subject and wrong source."}
+{"intent":"lena-i02","notice":"lena-n29","label":"no","hard":false,"reason":"A journal retraction, not an arXiv paper."}
+{"intent":"lena-i03","notice":"lena-n08","label":"fire","hard":false,"reason":"A confirmed, independently replicated detection of life beyond Earth."}
+{"intent":"lena-i03","notice":"lena-n09","label":"fire","hard":true,"reason":"Deliberately avoids the word life, but describes independent confirmation of metabolism in Europa samples."}
+{"intent":"lena-i03","notice":"lena-n03","label":"no","hard":true,"reason":"A lecture titled Life in the Universe, not a discovery."}
+{"intent":"lena-i03","notice":"lena-n04","label":"no","hard":true,"reason":"A habitable-zone planet is a place life could be, not life."}
+{"intent":"lena-i03","notice":"lena-n05","label":"borderline","hard":true,"reason":"A paper on a tentative biosignature; strictly no, but the one class of paper her agent should surface once."}
+{"intent":"lena-i03","notice":"lena-n06","label":"no","hard":true,"reason":"A novel about first contact on Enceladus."}
+{"intent":"lena-i03","notice":"lena-n07","label":"no","hard":true,"reason":"A conference about searching for life, not finding it."}
+{"intent":"lena-i03","notice":"lena-n01","label":"no","hard":false,"reason":"A detectability study, no claim of life."}
+{"intent":"lena-i03","notice":"lena-n32","label":"no","hard":true,"reason":"Organics in Enceladus plume grains are a precursor story, not a detection of life."}
+{"intent":"lena-i04","notice":"lena-n32","label":"fire","hard":false,"reason":"Her full name, first author, a new paper."}
+{"intent":"lena-i04","notice":"lena-n05","label":"fire","hard":true,"reason":"Listed as I. Halvorsen, third author, in an arXiv author line."}
+{"intent":"lena-i04","notice":"lena-n03","label":"no","hard":true,"reason":"Her name in a lecture announcement; a talk is not a publication."}
+{"intent":"lena-i04","notice":"lena-n17","label":"no","hard":true,"reason":"A different Halvorsen, in a job advertisement."}
+{"intent":"lena-i04","notice":"lena-n01","label":"no","hard":false,"reason":"A paper in her field by other authors."}
+{"intent":"lena-i05","notice":"lena-n10","label":"fire","hard":false,"reason":"AbSciCon abstract submission opened."}
+{"intent":"lena-i05","notice":"lena-n11","label":"fire","hard":true,"reason":"The Gordon conference never says call for abstracts; applications with poster abstracts are its equivalent."}
+{"intent":"lena-i05","notice":"lena-n07","label":"no","hard":true,"reason":"A call for abstracts in her subfield, but a different conference."}
+{"intent":"lena-i05","notice":"lena-n14","label":"no","hard":true,"reason":"A call, but for telescope proposals, not conference abstracts."}
+{"intent":"lena-i05","notice":"lena-n03","label":"no","hard":false,"reason":"A lecture, not a conference."}
+{"intent":"lena-i05","notice":"lena-n26","label":"no","hard":false,"reason":"A grant proposal deadline, not a conference call."}
+{"intent":"lena-i06","notice":"lena-n12","label":"fire","hard":false,"reason":"The program's TRAPPIST-1 e observations released in MAST."}
+{"intent":"lena-i06","notice":"lena-n13","label":"fire","hard":true,"reason":"Only the program number and MAST jargon; LHS 1140 b visits unembargoed is the release she wants."}
+{"intent":"lena-i06","notice":"lena-n14","label":"no","hard":true,"reason":"JWST, but a proposal call, not the program's data."}
+{"intent":"lena-i06","notice":"lena-n02","label":"no","hard":true,"reason":"TRAPPIST-1 e in the title, but a modelling paper, not a data release."}
+{"intent":"lena-i06","notice":"lena-n04","label":"no","hard":false,"reason":"A planet discovery press release, unrelated program."}
+{"intent":"lena-i07","notice":"lena-n15","label":"fire","hard":false,"reason":"A postdoc in her area at a California campus."}
+{"intent":"lena-i07","notice":"lena-n16","label":"fire","hard":true,"reason":"Called a research fellow, not a postdoc, and fully remote with no location at all."}
+{"intent":"lena-i07","notice":"lena-n17","label":"no","hard":true,"reason":"A California postdoc in the wrong field."}
+{"intent":"lena-i07","notice":"lena-n32","label":"no","hard":true,"reason":"A postdoc in her area, but in Bern and buried at the end of a paper announcement."}
+{"intent":"lena-i07","notice":"lena-n10","label":"no","hard":false,"reason":"A conference, not a job."}
+{"intent":"lena-i07","notice":"lena-n26","label":"no","hard":false,"reason":"A funding deadline, not a job."}
+{"intent":"lena-i08","notice":"lena-n18","label":"fire","hard":false,"reason":"An 8-inch Dob at $550 in Altadena, a few kilometres away."}
+{"intent":"lena-i08","notice":"lena-n19","label":"fire","hard":true,"reason":"Under budget and in Glendale, but the place is only in the body with no coordinates or tags."}
+{"intent":"lena-i08","notice":"lena-n20","label":"no","hard":true,"reason":"Right kind of telescope, nearby, but $1,900."}
+{"intent":"lena-i08","notice":"lena-n25","label":"no","hard":true,"reason":"Telescopes in the text, but a free viewing night, not a sale."}
+{"intent":"lena-i08","notice":"lena-n24","label":"no","hard":true,"reason":"Telescopes provided, but at a public star party, not for sale."}
+{"intent":"lena-i08","notice":"lena-n06","label":"no","hard":false,"reason":"An evening event at a bookstore, not a telescope."}
+{"intent":"lena-i09","notice":"lena-n21","label":"fire","hard":false,"reason":"The thread itself opening."}
+{"intent":"lena-i09","notice":"lena-n22","label":"fire","hard":true,"reason":"A reply in the thread that talks about PDFs and figure 6, with none of the intent's words."}
+{"intent":"lena-i09","notice":"lena-n23","label":"no","hard":true,"reason":"A reviewer reply, but in the thread for a different manuscript."}
+{"intent":"lena-i09","notice":"lena-n30","label":"no","hard":true,"reason":"A journal thread about a different paper's expression of concern."}
+{"intent":"lena-i09","notice":"lena-n10","label":"no","hard":false,"reason":"A conference announcement, not a thread."}
+{"intent":"lena-i10","notice":"lena-n24","label":"fire","hard":false,"reason":"Griffith's monthly public star party, on a Saturday."}
+{"intent":"lena-i10","notice":"lena-n25","label":"fire","hard":true,"reason":"The same event described as telescopes on the lawn, place only in the body, date in prose."}
+{"intent":"lena-i10","notice":"lena-n03","label":"no","hard":true,"reason":"A public astronomy evening in Pasadena, but a lecture at Caltech."}
+{"intent":"lena-i10","notice":"lena-n06","label":"no","hard":true,"reason":"An evening space-themed event nearby, but a book launch."}
+{"intent":"lena-i10","notice":"lena-n18","label":"no","hard":false,"reason":"A telescope for sale, not an observing night."}
+{"intent":"lena-i11","notice":"lena-n26","label":"fire","hard":false,"reason":"NASA's own NOI deadline for Exobiology."}
+{"intent":"lena-i11","notice":"lena-n28","label":"fire","hard":true,"reason":"Says only E.3 and delayed; that is the Habitable Worlds due date moving, straight from NASA."}
+{"intent":"lena-i11","notice":"lena-n27","label":"no","hard":true,"reason":"Same deadline, same words, but reposted by a grant digest."}
+{"intent":"lena-i11","notice":"lena-n14","label":"no","hard":true,"reason":"A proposal deadline, but STScI's JWST call, not a NASA ROSES element."}
+{"intent":"lena-i11","notice":"lena-n10","label":"no","hard":false,"reason":"A conference abstract deadline."}
+{"intent":"lena-i12","notice":"lena-n29","label":"fire","hard":false,"reason":"Retraction of the ApJL paper she cites."}
+{"intent":"lena-i12","notice":"lena-n30","label":"fire","hard":true,"reason":"An expression of concern on the Nature Astronomy paper, posted as a thread under an editorial-notice title."}
+{"intent":"lena-i12","notice":"lena-n31","label":"no","hard":true,"reason":"A retraction of a different Okonkwo paper she did not cite."}
+{"intent":"lena-i12","notice":"lena-n05","label":"no","hard":true,"reason":"A reanalysis that undermines the cited paper, but not a retraction or expression of concern."}
+{"intent":"lena-i12","notice":"lena-n01","label":"no","hard":false,"reason":"An ordinary new paper."}
+{"intent":"lena-i13","notice":"lena-n08","label":"fire","hard":false,"reason":"Enceladus in the headline."}
+{"intent":"lena-i13","notice":"lena-n32","label":"fire","hard":true,"reason":"Only Saturn II and the E-ring source moon; never says Enceladus."}
+{"intent":"lena-i13","notice":"lena-n06","label":"no","hard":true,"reason":"Enceladus in the title, but a novel launch."}
+{"intent":"lena-i13","notice":"lena-n09","label":"no","hard":true,"reason":"An ocean-world plume result, but Europa."}
+{"intent":"lena-i13","notice":"lena-n02","label":"no","hard":false,"reason":"An exoplanet paper."}
+{"intent":"lena-i13","notice":"lena-n07","label":"no","hard":false,"reason":"Ocean worlds broadly, not Enceladus."}
+{"intent":"maya-i01","notice":"maya-n01","label":"fire","hard":false,"reason":"The artist, a show, inside the Boston radius."}
+{"intent":"maya-i01","notice":"maya-n02","label":"fire","hard":true,"reason":"He is on the bill under his real name, in Allston, with no coordinates; a keyword or radius matcher misses it."}
+{"intent":"maya-i01","notice":"maya-n03","label":"no","hard":true,"reason":"Name in the title, right city, but a tribute night, which she excluded."}
+{"intent":"maya-i01","notice":"maya-n04","label":"no","hard":true,"reason":"Right artist, wrong city, outside the radius."}
+{"intent":"maya-i01","notice":"maya-n05","label":"borderline","hard":true,"reason":"Not a show announcement, but it implies one she may not know about; her agent would want to see it once."}
+{"intent":"maya-i01","notice":"maya-n06","label":"no","hard":false,"reason":"Same genre, same city, different artist."}
+{"intent":"maya-i01","notice":"maya-n13","label":"borderline","hard":true,"reason":"A thread, not an announcement, but it says Sonny Moore is on the Allston poster; she would want it once."}
+{"intent":"maya-i01","notice":"maya-n14","label":"no","hard":true,"reason":"Same room as his Boston date, different act."}
+{"intent":"maya-i02","notice":"maya-n07","label":"fire","hard":false,"reason":"A venue's presale for Caribou, exactly what she asked."}
+{"intent":"maya-i02","notice":"maya-n08","label":"fire","hard":true,"reason":"A Four Tet presale announced under Kieran Hebden; the name Four Tet never appears."}
+{"intent":"maya-i02","notice":"maya-n09","label":"no","hard":true,"reason":"The right four names and the word presale, but a code reseller, which she ruled out."}
+{"intent":"maya-i02","notice":"maya-n10","label":"no","hard":true,"reason":"Bicep is on the bill and passes go on sale, but it is a festival on-sale, not an artist presale."}
+{"intent":"maya-i02","notice":"maya-n18","label":"no","hard":true,"reason":"Four Tet and 'pre-order', but a record, not a presale."}
+{"intent":"maya-i02","notice":"maya-n19","label":"no","hard":true,"reason":"Caribou tickets, but a fan's spare at face, not a presale."}
+{"intent":"maya-i02","notice":"maya-n25","label":"no","hard":true,"reason":"Jamie xx in the title, but it is a carpool thread."}
+{"intent":"maya-i02","notice":"maya-n12","label":"no","hard":false,"reason":"A different artist's on-sale."}
+{"intent":"maya-i03","notice":"maya-n11","label":"fire","hard":false,"reason":"A show at the Sinclair."}
+{"intent":"maya-i03","notice":"maya-n12","label":"fire","hard":true,"reason":"No venue name and no coordinates; only the street address says it is the Sinclair."}
+{"intent":"maya-i03","notice":"maya-n31","label":"borderline","hard":true,"reason":"Set times for a Sinclair show she can already see; strictly not a new show, but it is Sinclair news."}
+{"intent":"maya-i03","notice":"maya-n08","label":"no","hard":true,"reason":"A Boston date at Royale, a similar room a mile away."}
+{"intent":"maya-i03","notice":"maya-n03","label":"no","hard":true,"reason":"Right kind of night, right side of the river, wrong venue."}
+{"intent":"maya-i03","notice":"maya-n07","label":"no","hard":false,"reason":"House of Blues, not the Sinclair."}
+{"intent":"maya-i03","notice":"maya-n22","label":"no","hard":false,"reason":"A small room in Somerville, not the Sinclair."}
+{"intent":"maya-i04","notice":"maya-n02","label":"fire","hard":false,"reason":"The lineup announcement itself."}
+{"intent":"maya-i04","notice":"maya-n13","label":"fire","hard":true,"reason":"A friend's thread saying the poster dropped, headliners named, festival never named."}
+{"intent":"maya-i04","notice":"maya-n10","label":"no","hard":true,"reason":"A festival lineup drop in the same season, wrong festival."}
+{"intent":"maya-i04","notice":"maya-n01","label":"no","hard":true,"reason":"A headliner's own Boston show, not the festival lineup."}
+{"intent":"maya-i04","notice":"maya-n06","label":"no","hard":false,"reason":"A club show, nothing to do with the festival."}
+{"intent":"maya-i05","notice":"maya-n14","label":"fire","hard":false,"reason":"The second date, announced plainly."}
+{"intent":"maya-i05","notice":"maya-n15","label":"fire","hard":true,"reason":"'Saturday added' and 'Lansdowne St' with no venue name, no coordinates and no MGM in the text."}
+{"intent":"maya-i05","notice":"maya-n16","label":"no","hard":true,"reason":"Jungle tickets for the sold-out night at nearly triple face; resale, not a new date."}
+{"intent":"maya-i05","notice":"maya-n10","label":"no","hard":true,"reason":"Jungle on a festival bill in Queens, not a Boston second night."}
+{"intent":"maya-i05","notice":"maya-n32","label":"no","hard":true,"reason":"Jungle at the same venue, but set times for the sold-out night, not a new date."}
+{"intent":"maya-i05","notice":"maya-n01","label":"no","hard":false,"reason":"Same venue, different act."}
+{"intent":"maya-i06","notice":"maya-n08","label":"fire","hard":true,"reason":"US dates announced under Kieran Hebden; the name Four Tet never appears."}
+{"intent":"maya-i06","notice":"maya-n17","label":"fire","hard":true,"reason":"Misspelled as Fourtet, a Queens show."}
+{"intent":"maya-i06","notice":"maya-n18","label":"no","hard":true,"reason":"Four Tet by name, but an album and two UK shows."}
+{"intent":"maya-i06","notice":"maya-n09","label":"no","hard":true,"reason":"Four Tet by name, but presale codes for sale, not a show."}
+{"intent":"maya-i06","notice":"maya-n10","label":"no","hard":false,"reason":"A US festival lineup he is not on."}
+{"intent":"maya-i06","notice":"maya-n25","label":"no","hard":false,"reason":"A carpool thread for a different artist."}
+{"intent":"maya-i07","notice":"maya-n19","label":"fire","hard":false,"reason":"One floor ticket at face for the exact show."}
+{"intent":"maya-i07","notice":"maya-n20","label":"fire","hard":true,"reason":"Dan Snaith, 'the 6th' and Lansdowne St; a keyword matcher on Caribou or House of Blues sees nothing."}
+{"intent":"maya-i07","notice":"maya-n07","label":"borderline","hard":true,"reason":"Not a ticket offer, but the venue presale is her cheapest route to a face-value floor ticket."}
+{"intent":"maya-i07","notice":"maya-n21","label":"no","hard":true,"reason":"Same show, face value, but mezzanine seats, which she excluded."}
+{"intent":"maya-i07","notice":"maya-n16","label":"no","hard":true,"reason":"Same show, floor, but a broker at more than double face."}
+{"intent":"maya-i07","notice":"maya-n09","label":"no","hard":true,"reason":"Caribou in the title, but selling a presale code, not a ticket."}
+{"intent":"maya-i07","notice":"maya-n05","label":"no","hard":false,"reason":"Face-value floor tickets, different show."}
+{"intent":"maya-i08","notice":"maya-n01","label":"fire","hard":false,"reason":"Skrillex in Boston, inside the northeast."}
+{"intent":"maya-i08","notice":"maya-n04","label":"fire","hard":false,"reason":"Skrillex in Brooklyn; outside the Boston intent, inside this one."}
+{"intent":"maya-i08","notice":"maya-n02","label":"fire","hard":true,"reason":"Sonny Moore on a festival bill in Allston."}
+{"intent":"maya-i08","notice":"maya-n10","label":"fire","hard":true,"reason":"Fred again.. headlining a Queens festival, buried in a lineup list."}
+{"intent":"maya-i08","notice":"maya-n13","label":"borderline","hard":true,"reason":"A thread that mentions Sonny Moore on the Allston poster; not an announcement."}
+{"intent":"maya-i08","notice":"maya-n28","label":"borderline","hard":true,"reason":"A carpool reply implies a Fred again.. Montréal date she may not have heard about."}
+{"intent":"maya-i08","notice":"maya-n03","label":"no","hard":true,"reason":"Skrillex in the title, a tribute night."}
+{"intent":"maya-i08","notice":"maya-n17","label":"no","hard":true,"reason":"An electronic bill in Queens, neither artist."}
+{"intent":"maya-i08","notice":"maya-n06","label":"no","hard":false,"reason":"Flume, not either of them."}
+{"intent":"maya-i09","notice":"maya-n22","label":"fire","hard":false,"reason":"Saturday at the Comedy Studio, $25."}
+{"intent":"maya-i09","notice":"maya-n23","label":"fire","hard":true,"reason":"No venue name, no dollar figure, no tags; 'eighteen bucks' at 1 Bow Market Way on a Saturday."}
+{"intent":"maya-i09","notice":"maya-n24","label":"no","hard":true,"reason":"Right room, but a Thursday at $48."}
+{"intent":"maya-i09","notice":"maya-n11","label":"no","hard":true,"reason":"A Saturday under $40 in a small room, but a music show in Cambridge."}
+{"intent":"maya-i09","notice":"maya-n12","label":"no","hard":false,"reason":"A rock show, not comedy."}
+{"intent":"maya-i10","notice":"maya-n26","label":"fire","hard":false,"reason":"A reply in her thread, addressed to her."}
+{"intent":"maya-i10","notice":"maya-n27","label":"fire","hard":true,"reason":"A reply in the thread that never mentions Jamie xx, Portland or her; only the title ties it in."}
+{"intent":"maya-i10","notice":"maya-n25","label":"no","hard":true,"reason":"The root post, which she already read and replied to."}
+{"intent":"maya-i10","notice":"maya-n28","label":"no","hard":true,"reason":"A carpool reply from Boston, in a different thread."}
+{"intent":"maya-i10","notice":"maya-n09","label":"no","hard":true,"reason":"Jamie xx keyword, unrelated offer."}
+{"intent":"maya-i11","notice":"maya-n29","label":"fire","hard":false,"reason":"A friend's spare for a Fenway game at face."}
+{"intent":"maya-i11","notice":"maya-n30","label":"fire","hard":true,"reason":"Never says Red Sox; Fenway, Loge 130 and 'free to a friend' carry it."}
+{"intent":"maya-i11","notice":"maya-n16","label":"no","hard":true,"reason":"Red Sox at Fenway, but a broker's verified resale, which she ruled out."}
+{"intent":"maya-i11","notice":"maya-n19","label":"no","hard":true,"reason":"A friend's spare at face, but a concert, not a game."}
+{"intent":"maya-i11","notice":"maya-n21","label":"no","hard":false,"reason":"A friend's concert seats, not baseball."}
+{"intent":"maya-i12","notice":"maya-n31","label":"fire","hard":false,"reason":"Set times posted the day before a show."}
+{"intent":"maya-i12","notice":"maya-n32","label":"fire","hard":true,"reason":"A one-liner from someone's agent: times per the box office, the day before, never says 'set times'."}
+{"intent":"maya-i12","notice":"maya-n11","label":"no","hard":true,"reason":"'Doors 8, show 9' is a listing, not set times."}
+{"intent":"maya-i12","notice":"maya-n06","label":"no","hard":true,"reason":"'Doors 7' on a listing."}
+{"intent":"maya-i12","notice":"maya-n15","label":"no","hard":false,"reason":"'10am' is an on-sale time."}
+{"intent":"maya-i12","notice":"maya-n13","label":"no","hard":false,"reason":"Lineup gossip, no times."}
+{"intent": "nadia-i01", "notice": "nadia-n01", "label": "fire", "hard": true, "reason": "A courier request in Ironbound under 50 kg, with no coordinates, the place only in the body and never the phrase same-day."}
+{"intent": "nadia-i01", "notice": "nadia-n20", "label": "fire", "hard": false, "reason": "A dated catering run of light boxes across Ironbound, Harrison and Kearny; a request she can quote."}
+{"intent": "nadia-i01", "notice": "nadia-n26", "label": "fire", "hard": false, "reason": "A weekly Saturday delivery request in downtown Newark, boxes under 10 kg."}
+{"intent": "nadia-i01", "notice": "nadia-n21", "label": "fire", "hard": true, "reason": "Posted as an event, but the body asks for a rider for twenty paid stops downtown; the kind filter drops it."}
+{"intent": "nadia-i01", "notice": "nadia-n27", "label": "fire", "hard": false, "reason": "A recurring courier request in Manhattan paid per box; inside the area and under the weight."}
+{"intent": "nadia-i01", "notice": "nadia-n02", "label": "no", "hard": true, "reason": "Same-day, light, a courier request, but Philadelphia is far outside her area."}
+{"intent": "nadia-i01", "notice": "nadia-n03", "label": "no", "hard": true, "reason": "Right place, right kind, but a 600 kg pallet with a liftgate is the freight she excluded."}
+{"intent": "nadia-i01", "notice": "nadia-n14", "label": "no", "hard": true, "reason": "A request in Secaucus about delivery drivers, but it is a hiring ad, not a job to bid on."}
+{"intent": "nadia-i01", "notice": "nadia-n30", "label": "no", "hard": true, "reason": "Parcels and same-day language in her area, but it is an offer of capacity, not a request."}
+{"intent": "nadia-i01", "notice": "nadia-n04", "label": "borderline", "hard": true, "reason": "An open paid leg from Newark she could bid on, but it is a thread coordinating a relay, not a request."}
+{"intent": "nadia-i01", "notice": "nadia-n07", "label": "borderline", "hard": true, "reason": "A concrete Kearny-to-Chelsea ask addressed to her, but it is a reply in her own thread and she sees it under that intent."}
+{"intent": "nadia-i02", "notice": "nadia-n04", "label": "fire", "hard": false, "reason": "A relay thread with an open Newark leg and a handoff to another agent."}
+{"intent": "nadia-i02", "notice": "nadia-n06", "label": "fire", "hard": true, "reason": "A reply asking for the last leg of a Boston to Jersey City relay via a Secaucus handoff, with no coordinates and none of her words."}
+{"intent": "nadia-i02", "notice": "nadia-n05", "label": "no", "hard": true, "reason": "A multi-leg relay thread, but every leg is in Chicago."}
+{"intent": "nadia-i02", "notice": "nadia-n07", "label": "no", "hard": true, "reason": "A thread in her area, but a single delivery ask to one courier, not agents coordinating legs."}
+{"intent": "nadia-i02", "notice": "nadia-n31", "label": "no", "hard": true, "reason": "Agents coordinating capacity in the Bronx, but a standing overflow arrangement, not a multi-leg delivery."}
+{"intent": "nadia-i02", "notice": "nadia-n26", "label": "no", "hard": false, "reason": "A delivery request, not a thread."}
+{"intent": "nadia-i02", "notice": "nadia-n08", "label": "no", "hard": false, "reason": "A reply in her own thread booking December slots, nothing multi-leg."}
+{"intent": "nadia-i03", "notice": "nadia-n07", "label": "fire", "hard": true, "reason": "A reply in post_9k2m7w with no Re: prefix and no quoted title, just the thread id and her handle."}
+{"intent": "nadia-i03", "notice": "nadia-n08", "label": "fire", "hard": false, "reason": "A customer replying in her thread."}
+{"intent": "nadia-i03", "notice": "nadia-n06", "label": "no", "hard": true, "reason": "Mentions her handle and asks her a question, but it is a reply in someone else's thread."}
+{"intent": "nadia-i03", "notice": "nadia-n20", "label": "no", "hard": true, "reason": "The same customer who replied in her thread, but this is a fresh top-level request, not a reply."}
+{"intent": "nadia-i03", "notice": "nadia-n04", "label": "no", "hard": false, "reason": "A thread inviting replies, but not hers."}
+{"intent": "nadia-i03", "notice": "nadia-n05", "label": "no", "hard": false, "reason": "A different thread in a different city."}
+{"intent": "nadia-i04", "notice": "nadia-n09", "label": "fire", "hard": false, "reason": "A Transit cargo van at 16,500 in Linden, 15 km away."}
+{"intent": "nadia-i04", "notice": "nadia-n10", "label": "fire", "hard": true, "reason": "Never says e-cargo bike, just the model name, no coordinates, Greenpoint only in the body; 3,200 is under her ceiling and 20 km away."}
+{"intent": "nadia-i04", "notice": "nadia-n11", "label": "no", "hard": true, "reason": "Right class of van, inside the radius, but 34,900 is nearly double her limit."}
+{"intent": "nadia-i04", "notice": "nadia-n12", "label": "no", "hard": true, "reason": "Says cargo e-bike and Harrison, but it is a rider offering shifts, not a bike for sale."}
+{"intent": "nadia-i04", "notice": "nadia-n30", "label": "no", "hard": false, "reason": "An offer in the delivery world with no vehicle for sale."}
+{"intent": "nadia-i04", "notice": "nadia-n14", "label": "no", "hard": false, "reason": "A hiring ad, not a vehicle."}
+{"intent": "nadia-i05", "notice": "nadia-n12", "label": "fire", "hard": false, "reason": "An individual courier in Harrison saying they are available for shifts."}
+{"intent": "nadia-i05", "notice": "nadia-n15", "label": "fire", "hard": true, "reason": "Never says driver or courier: a retired letter carrier in Bloomfield with a car offering to run parcels."}
+{"intent": "nadia-i05", "notice": "nadia-n13", "label": "no", "hard": true, "reason": "A person seeking work in Newark logistics, but explicitly an office role and explicitly not driving."}
+{"intent": "nadia-i05", "notice": "nadia-n14", "label": "no", "hard": true, "reason": "Drivers and Newark-area, but it is an employer hiring, the request side of the market."}
+{"intent": "nadia-i05", "notice": "nadia-n30", "label": "no", "hard": true, "reason": "Offers delivery capacity, but from a company, not a person looking for work."}
+{"intent": "nadia-i05", "notice": "nadia-n10", "label": "no", "hard": false, "reason": "An e-bike for sale, not a rider."}
+{"intent": "nadia-i06", "notice": "nadia-n16", "label": "fire", "hard": false, "reason": "NJDOT lane closure on the Skyway, named by road number."}
+{"intent": "nadia-i06", "notice": "nadia-n28", "label": "fire", "hard": false, "reason": "NJDOT full closure of the Skyway."}
+{"intent": "nadia-i06", "notice": "nadia-n32", "label": "fire", "hard": true, "reason": "City of Newark closes McCarter Highway and never says Route 21; only the alias appears."}
+{"intent": "nadia-i06", "notice": "nadia-n18", "label": "fire", "hard": true, "reason": "An NWS flood watch by county that happens to name both corridors in the body; nothing says closure."}
+{"intent": "nadia-i06", "notice": "nadia-n29", "label": "fire", "hard": true, "reason": "The city calls it the Skyway with no road number and no coordinates, but it is an official full closure."}
+{"intent": "nadia-i06", "notice": "nadia-n17", "label": "no", "hard": true, "reason": "Route 21 and closure in the title, but a traffic blog citing readers, not an official source."}
+{"intent": "nadia-i06", "notice": "nadia-n24", "label": "no", "hard": true, "reason": "An official closure from the Port Authority, but the port gates, not either corridor."}
+{"intent": "nadia-i06", "notice": "nadia-n19", "label": "no", "hard": true, "reason": "An official NWS alert, but for Sussex, Warren and Morris, nowhere near the corridors."}
+{"intent": "nadia-i06", "notice": "nadia-n25", "label": "no", "hard": false, "reason": "A relay's airport ground stop, neither official nor a road."}
+{"intent": "nadia-i07", "notice": "nadia-n20", "label": "fire", "hard": false, "reason": "The bakery's agent posting a request."}
+{"intent": "nadia-i07", "notice": "nadia-n08", "label": "fire", "hard": true, "reason": "The bakery's agent speaking as a reply inside her thread rather than a post of its own."}
+{"intent": "nadia-i07", "notice": "nadia-n01", "label": "no", "hard": true, "reason": "Ferreira Bakery is the pickup point, but the poster is a customer's personal agent."}
+{"intent": "nadia-i07", "notice": "nadia-n21", "label": "no", "hard": true, "reason": "The bakery is named in a vendor list posted by the market."}
+{"intent": "nadia-i07", "notice": "nadia-n26", "label": "no", "hard": false, "reason": "The market posting a request, no bakery involved."}
+{"intent": "nadia-i08", "notice": "nadia-n22", "label": "fire", "hard": false, "reason": "QuickHop announcing Staten Island and Bayonne as new same-day zones."}
+{"intent": "nadia-i08", "notice": "nadia-n23", "label": "fire", "hard": true, "reason": "Posted under the van livery name QH Same-Day with no coordinates; it is an expansion to Westchester."}
+{"intent": "nadia-i08", "notice": "nadia-n14", "label": "no", "hard": true, "reason": "QuickHop posting, but a hiring ad, which she excluded."}
+{"intent": "nadia-i08", "notice": "nadia-n13", "label": "no", "hard": true, "reason": "QuickHop appears only as a former employer in a job-seeker's post."}
+{"intent": "nadia-i08", "notice": "nadia-n30", "label": "borderline", "hard": true, "reason": "QuickHop offering capacity in the Bronx; not an expansion announcement, but it reveals a zone she may not have known they run."}
+{"intent": "nadia-i08", "notice": "nadia-n27", "label": "no", "hard": false, "reason": "A greenmarket, no competitor."}
+{"intent": "nadia-i09", "notice": "nadia-n24", "label": "fire", "hard": false, "reason": "Port Authority notice of a gate closure at Port Newark for a work stoppage."}
+{"intent": "nadia-i09", "notice": "nadia-n25", "label": "fire", "hard": true, "reason": "A relay's ground stop that says only EWR, with no coordinates and no mention of Newark."}
+{"intent": "nadia-i09", "notice": "nadia-n05", "label": "no", "hard": true, "reason": "An airport ground stop, but at O'Hare, buried in a Chicago relay thread."}
+{"intent": "nadia-i09", "notice": "nadia-n28", "label": "no", "hard": true, "reason": "A full closure of the main truck route to the port, official and nearby, but not a disruption at the port itself."}
+{"intent": "nadia-i09", "notice": "nadia-n22", "label": "no", "hard": false, "reason": "A courier's service-area announcement."}
+{"intent": "nadia-i09", "notice": "nadia-n16", "label": "no", "hard": false, "reason": "A lane closure on a road, not the port or the airport."}
+{"intent": "nadia-i10", "notice": "nadia-n26", "label": "fire", "hard": false, "reason": "The market's weekly request for a Saturday pre-order rider."}
+{"intent": "nadia-i10", "notice": "nadia-n21", "label": "fire", "hard": true, "reason": "Filed as an event under the name downtown Newark market, but the body carries this week's ask for a rider."}
+{"intent": "nadia-i10", "notice": "nadia-n27", "label": "no", "hard": true, "reason": "A farmers' market asking for a weekly delivery partner, but Union Square in Manhattan, not Military Park."}
+{"intent": "nadia-i10", "notice": "nadia-n20", "label": "no", "hard": true, "reason": "A delivery request in downtown Newark food, but from the bakery for one December afternoon, not the market's weekly ask."}
+{"intent": "nadia-i10", "notice": "nadia-n01", "label": "no", "hard": true, "reason": "Food moved from Ironbound on a Saturday-ish schedule, but a one-off from a customer, not the market."}
+{"intent": "nadia-i11", "notice": "nadia-n28", "label": "fire", "hard": false, "reason": "NJDOT full closure of the Skyway in both directions for a weekend."}
+{"intent": "nadia-i11", "notice": "nadia-n29", "label": "fire", "hard": true, "reason": "One hour, a film permit, the city calling it the Skyway with no road number; still every lane in both directions."}
+{"intent": "nadia-i11", "notice": "nadia-n16", "label": "borderline", "hard": true, "reason": "The Skyway, official, closure in the title, but one lane one direction; a strict reading says no, a careful agent might glance once."}
+{"intent": "nadia-i11", "notice": "nadia-n32", "label": "no", "hard": true, "reason": "A full closure of both directions, official, in Newark, but McCarter Highway, not the Skyway."}
+{"intent": "nadia-i11", "notice": "nadia-n17", "label": "no", "hard": true, "reason": "A rumoured full closure from a blog, and of Route 21 in any case."}
+{"intent": "nadia-i11", "notice": "nadia-n18", "label": "no", "hard": true, "reason": "Names Route 1&9 and roadways flooding, but it is a county flood watch, not a closure."}
+{"intent": "nadia-i11", "notice": "nadia-n24", "label": "no", "hard": false, "reason": "A gate closure at the port."}
+{"intent": "nadia-i12", "notice": "nadia-n30", "label": "fire", "hard": false, "reason": "A standing overflow offer with an explicit per-parcel price."}
+{"intent": "nadia-i12", "notice": "nadia-n31", "label": "fire", "hard": true, "reason": "Posted as a thread, calls parcels slots and the price a piece, but it is a standing daily overflow offer priced per unit."}
+{"intent": "nadia-i12", "notice": "nadia-n04", "label": "no", "hard": true, "reason": "An agent paying another agent for capacity, but a one-off leg at a flat 120, not standing and not per parcel."}
+{"intent": "nadia-i12", "notice": "nadia-n22", "label": "no", "hard": true, "reason": "A courier announcing same-day capacity in new zones, but it is a service announcement, not a priced overflow offer."}
+{"intent": "nadia-i12", "notice": "nadia-n27", "label": "no", "hard": true, "reason": "Paid per box and recurring, but a market buying delivery, the request side, not an agent offering overflow."}
+{"intent": "nadia-i12", "notice": "nadia-n03", "label": "no", "hard": false, "reason": "A freight request."}
+{"intent": "nadia-i12", "notice": "nadia-n09", "label": "no", "hard": false, "reason": "A van for sale."}
+{"intent":"sam-i01","notice":"sam-n01","label":"fire","hard":false,"reason":"tokio 2.0.0 final from the release relay."}
+{"intent":"sam-i01","notice":"sam-n02","label":"fire","hard":true,"reason":"sqlx 1.0 announced under the repo name launchbadge/sqlx, and the word major never appears."}
+{"intent":"sam-i01","notice":"sam-n03","label":"no","hard":true,"reason":"Right package, a minor release; nothing but the version number says so."}
+{"intent":"sam-i01","notice":"sam-n04","label":"no","hard":true,"reason":"A release candidate of exactly the version he wants, which he excluded."}
+{"intent":"sam-i01","notice":"sam-n06","label":"no","hard":true,"reason":"sqlx from the maintainers, but a patch release."}
+{"intent":"sam-i01","notice":"sam-n07","label":"no","hard":true,"reason":"Says tokio in the package name, but it is tokio-postgres and an advisory, not a release."}
+{"intent":"sam-i01","notice":"sam-n08","label":"no","hard":true,"reason":"A newsletter that mentions the tokio 2.0 rc and 'a new sqlx release' without either being a major."}
+{"intent":"sam-i01","notice":"sam-n05","label":"no","hard":false,"reason":"A hyper advisory, not a release of either package."}
+{"intent":"sam-i01","notice":"sam-n20","label":"no","hard":false,"reason":"A job post that lists tokio and sqlx in its stack."}
+{"intent":"sam-i02","notice":"sam-n05","label":"fire","hard":false,"reason":"RustSec advisory for hyper, a crate in his stack."}
+{"intent":"sam-i02","notice":"sam-n06","label":"fire","hard":true,"reason":"The sqlx maintainers describing an injection fix with no advisory or CVE in the text; the GHSA id is in passing."}
+{"intent":"sam-i02","notice":"sam-n07","label":"no","hard":true,"reason":"tokio-postgres is not tokio, and rustls appears only as the connector name."}
+{"intent":"sam-i02","notice":"sam-n08","label":"no","hard":true,"reason":"A newsletter summarising the hyper advisory; he wanted the primary source."}
+{"intent":"sam-i02","notice":"sam-n01","label":"no","hard":false,"reason":"A tokio release with no security content."}
+{"intent":"sam-i02","notice":"sam-n04","label":"no","hard":false,"reason":"A release candidate, not an advisory."}
+{"intent":"sam-i03","notice":"sam-n09","label":"fire","hard":false,"reason":"PDX Rust monthly at New Relic."}
+{"intent":"sam-i03","notice":"sam-n11","label":"fire","hard":true,"reason":"'crabs and beers' at the Lucky Lab: no coordinates, no tags, Rust only as rustlings and Pin."}
+{"intent":"sam-i03","notice":"sam-n10","label":"no","hard":true,"reason":"Rust, a hack night, the right shape, in Seattle."}
+{"intent":"sam-i03","notice":"sam-n12","label":"no","hard":true,"reason":"A Portland meetup at a hackerspace, any language, not Rust."}
+{"intent":"sam-i03","notice":"sam-n14","label":"no","hard":true,"reason":"Rust and Portland in the same headline, but an office opening, not a meetup."}
+{"intent":"sam-i03","notice":"sam-n16","label":"borderline","hard":true,"reason":"RustConf coming to Portland is not a meetup, but he would want to see it once."}
+{"intent":"sam-i03","notice":"sam-n22","label":"no","hard":true,"reason":"Rust and Portland again, in a job posting."}
+{"intent":"sam-i04","notice":"sam-n17","label":"fire","hard":false,"reason":"Database conference CFP closing in eight weeks."}
+{"intent":"sam-i04","notice":"sam-n18","label":"fire","hard":true,"reason":"'Taking talk proposals through October 31' with no CFP anywhere in the text, for a data conference."}
+{"intent":"sam-i04","notice":"sam-n19","label":"no","hard":true,"reason":"A distributed-systems talk at a conference, not a call for proposals."}
+{"intent":"sam-i04","notice":"sam-n16","label":"no","hard":true,"reason":"A conference announcement whose CFP opens in January; nothing is closing."}
+{"intent":"sam-i04","notice":"sam-n31","label":"no","hard":true,"reason":"A call for papers that closes December 1, but for an agents workshop, not databases."}
+{"intent":"sam-i04","notice":"sam-n21","label":"no","hard":false,"reason":"A job posting."}
+{"intent":"sam-i05","notice":"sam-n20","label":"fire","hard":false,"reason":"Senior, remote, 45 people, Rust and Postgres named."}
+{"intent":"sam-i05","notice":"sam-n21","label":"fire","hard":true,"reason":"Never says remote, senior or Rust: 'no office', 'staff-ish', tokio/axum and Postgres."}
+{"intent":"sam-i05","notice":"sam-n22","label":"no","hard":true,"reason":"Same stack, same seniority, hybrid three days a week in Portland."}
+{"intent":"sam-i05","notice":"sam-n15","label":"no","hard":true,"reason":"A Rust organisation hiring in Portland, but a coordinator role that must live nearby."}
+{"intent":"sam-i05","notice":"sam-n14","label":"no","hard":true,"reason":"Says the Foundation will grow engineering staff in Portland, but there is no role and it is not remote."}
+{"intent":"sam-i05","notice":"sam-n01","label":"no","hard":false,"reason":"A tokio release."}
+{"intent":"sam-i06","notice":"sam-n25","label":"fire","hard":false,"reason":"Asks for exactly what backstop does and names it."}
+{"intent":"sam-i06","notice":"sam-n26","label":"fire","hard":true,"reason":"Never says idempotency or middleware: 'charge twice' when Stripe retries an axum webhook."}
+{"intent":"sam-i06","notice":"sam-n27","label":"no","hard":true,"reason":"Retries again, but client-side backoff for reqwest; a different crate solves it."}
+{"intent":"sam-i06","notice":"sam-n23","label":"no","hard":true,"reason":"Mentions backstop and Postgres but is a maintainer offer, not a request for help."}
+{"intent":"sam-i06","notice":"sam-n24","label":"no","hard":true,"reason":"About backstop's integration PR, not someone needing help."}
+{"intent":"sam-i06","notice":"sam-n28","label":"no","hard":false,"reason":"An agent coordination thread."}
+{"intent":"sam-i07","notice":"sam-n23","label":"fire","hard":false,"reason":"A reply in the thread offering to take the Postgres side."}
+{"intent":"sam-i07","notice":"sam-n24","label":"fire","hard":true,"reason":"In the thread, but titled by the PR and the thread id; never says maintainer or backstop."}
+{"intent":"sam-i07","notice":"sam-n25","label":"no","hard":true,"reason":"Names backstop and asks for help, but a fresh request, not a reply in his thread."}
+{"intent":"sam-i07","notice":"sam-n30","label":"no","hard":true,"reason":"A reply offering to maintain something, in the LongHaul secret-rotation thread."}
+{"intent":"sam-i07","notice":"sam-n28","label":"no","hard":false,"reason":"An unrelated thread."}
+{"intent":"sam-i08","notice":"sam-n19","label":"fire","hard":false,"reason":"His EuroRust talk, listed by name."}
+{"intent":"sam-i08","notice":"sam-n17","label":"fire","hard":true,"reason":"He is the keynote, named in the last line of a CFP post of kind announcement."}
+{"intent":"sam-i08","notice":"sam-n09","label":"no","hard":true,"reason":"A talk about his RFC, given by someone else, with his handle in the title."}
+{"intent":"sam-i08","notice":"sam-n10","label":"no","hard":true,"reason":"A lightning talk by a different Tomasz."}
+{"intent":"sam-i08","notice":"sam-n31","label":"no","hard":false,"reason":"A benchmark paper."}
+{"intent":"sam-i09","notice":"sam-n32","label":"fire","hard":false,"reason":"Boba U4T, $85, SE Portland pickup."}
+{"intent":"sam-i09","notice":"sam-n33","label":"fire","hard":true,"reason":"Switches named as Gazzew U4T, Beaverton only in the body, no coordinates."}
+{"intent":"sam-i09","notice":"sam-n34","label":"no","hard":true,"reason":"Right price, right city, Gateron Yellows."}
+{"intent":"sam-i09","notice":"sam-n35","label":"no","hard":true,"reason":"Right switches, right city, $140."}
+{"intent":"sam-i09","notice":"sam-n36","label":"no","hard":true,"reason":"Right switches, right price, Seattle."}
+{"intent":"sam-i09","notice":"sam-n21","label":"no","hard":false,"reason":"A job posting."}
+{"intent":"sam-i10","notice":"sam-n28","label":"fire","hard":false,"reason":"A coordination thread for the exact task."}
+{"intent":"sam-i10","notice":"sam-n29","label":"fire","hard":true,"reason":"The task is only abbreviated LH24 fct, and the word coordination never appears."}
+{"intent":"sam-i10","notice":"sam-n30","label":"no","hard":true,"reason":"Same benchmark, the secret-rotation task."}
+{"intent":"sam-i10","notice":"sam-n31","label":"no","hard":true,"reason":"About LongHaul-24 and names the task, but a paper and workshop CFP, not a coordination thread."}
+{"intent":"sam-i10","notice":"sam-n23","label":"no","hard":false,"reason":"A reply in an open-source maintainers thread."}
+{"intent":"sam-i11","notice":"sam-n14","label":"fire","hard":false,"reason":"The announcement itself."}
+{"intent":"sam-i11","notice":"sam-n15","label":"fire","hard":true,"reason":"'Keys to a floor at NW 11th and Couch' from the Foundation; office and Portland are never said."}
+{"intent":"sam-i11","notice":"sam-n10","label":"no","hard":true,"reason":"A Rust Foundation office, in Seattle."}
+{"intent":"sam-i11","notice":"sam-n16","label":"no","hard":true,"reason":"The Foundation bringing RustConf to Portland, not an office."}
+{"intent":"sam-i11","notice":"sam-n09","label":"no","hard":true,"reason":"Rust in Portland, but a meetup."}
+{"intent":"sam-i11","notice":"sam-n22","label":"no","hard":false,"reason":"A Rust job in Portland at a private company."}
+{"intent":"sam-i12","notice":"sam-n12","label":"fire","hard":false,"reason":"The hackerspace's own October post."}
+{"intent":"sam-i12","notice":"sam-n13","label":"fire","hard":true,"reason":"November's, from the space, as an announcement with the date in prose, no coordinates, and the venue as ^H."}
+{"intent":"sam-i12","notice":"sam-n09","label":"no","hard":true,"reason":"A monthly Portland meetup at New Relic, not the hack night."}
+{"intent":"sam-i12","notice":"sam-n10","label":"no","hard":true,"reason":"A hack night, in Seattle."}
+{"intent":"sam-i12","notice":"sam-n11","label":"borderline","hard":true,"reason":"An ad hoc Portland hack session at a pub; not the ^H night, but he would want to see it once."}
+{"intent":"sam-i12","notice":"sam-n16","label":"no","hard":false,"reason":"A conference."}
+{"intent":"sam-i12","notice":"sam-n14","label":"no","hard":false,"reason":"An office opening."}
