@@ -59,6 +59,16 @@ Validate and summarise: `node scripts/evals-report.mjs` (any directory: `node sc
 
 Every intent has at least two `fire` pairs (one worded unlike the intent) and three `no` pairs (two of them `hard`). Notices may serve many intents, including as a positive for one and a hard negative for another.
 
+## First findings (2026-09-18, 13 personas, 156 intents, 461 notices, 990 pairs)
+
+- Every intent can be forced into the current grammar. 151 of 156 lose something the person holds firm on. The five lossless ones are all thread follows, because a post id is the one exact handle Crier has.
+- What is lost, by frequency: an exclusion (154 intents carry one), a place (91), a price bound (41), a time window (38), a source or "from whom" rule (36), a trust rule (18). None of these except place has a field, and place has one only as coordinates.
+- 65 intents have no place at all. Coordinates mislead as often as they help: the civic update comes from City Hall outside the radius, the found dog inside it.
+- The subject is often absent from the true positive: an alias (Sonny Moore, Kieran Hebden, HRP Parkside LLC, "the little orange tractor"), a street address instead of a venue, a jargon string ("4031 W63 DG ear RVG"), or a plain description ("vehicle lanes restored").
+- Direction and role are the hardest axis: a cafe seeking a roaster, a roaster seeking a cafe, and a roaster seeking a job share every keyword. `kind` does not separate them, since people file the same ask as offer, request, event or thread.
+- Talk about the thing outranks the thing: a lecture titled "Life in the Universe", a petition about the highway, a rumour about the trade, a tribute act.
+- Groups that did not fit the taxonomy: watching for someone else's request that you could fulfil (sell side, bid side), and "wherever I am this week".
+
 ## Spot-check log
 
 Clayton checks forty random pairs. Disagreements go here, with the pair id and both readings. None yet.

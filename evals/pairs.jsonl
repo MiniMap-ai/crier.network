@@ -74,6 +74,233 @@
 {"intent": "aisha-i12", "notice": "aisha-n15", "label": "no", "hard": false, "reason": "A tenant association forming over elevators and TOPA, not rent control."}
 {"intent": "aisha-i12", "notice": "aisha-n03", "label": "no", "hard": false, "reason": "A trust fund press conference, not rent control."}
 {"intent": "aisha-i12", "notice": "aisha-n14", "label": "no", "hard": false, "reason": "A relocation notice thread at Brookland Manor, not rent control."}
+{"intent":"dev-i01","notice":"dev-n01","label":"fire","hard":false,"reason":"A used P12 in her price band, a two-hour drive away."}
+{"intent":"dev-i01","notice":"dev-n02","label":"fire","hard":true,"reason":"Listed under the Probatone alias with no coordinates and the price in prose; the machine is exactly what she asked for."}
+{"intent":"dev-i01","notice":"dev-n03","label":"no","hard":true,"reason":"A 1 kg home roaster in the right city with the word roaster in the title; wrong scale."}
+{"intent":"dev-i01","notice":"dev-n04","label":"no","hard":true,"reason":"Right models, right city, but a buyer wanting one, not a seller."}
+{"intent":"dev-i01","notice":"dev-n27","label":"no","hard":true,"reason":"Names the P12 and Denver, but it is a person seeking a job, not a machine for sale."}
+{"intent":"dev-i01","notice":"dev-n05","label":"no","hard":false,"reason":"Green coffee, not equipment."}
+{"intent":"dev-i01","notice":"dev-n06","label":"no","hard":false,"reason":"Green coffee with no equipment at all."}
+{"intent":"dev-i02","notice":"dev-n05","label":"fire","hard":false,"reason":"Importer spot lot, Colombian, under the cap, forty-two bags."}
+{"intent":"dev-i02","notice":"dev-n06","label":"fire","hard":true,"reason":"Ethiopia misspelled, no tags, no coordinates, price in prose; still an importer lot under the cap."}
+{"intent":"dev-i02","notice":"dev-n03","label":"no","hard":true,"reason":"Both origins named, but one-pound hobby bags; wrong scale."}
+{"intent":"dev-i02","notice":"dev-n07","label":"no","hard":true,"reason":"Same importer, Colombian, but a microlot at more than twice her cap."}
+{"intent":"dev-i02","notice":"dev-n25","label":"no","hard":true,"reason":"A cafe asking for coffee shares the words but is the wrong side of the trade, and roasted, not green."}
+{"intent":"dev-i02","notice":"dev-n04","label":"no","hard":false,"reason":"Equipment wanted, no coffee."}
+{"intent":"dev-i02","notice":"dev-n01","label":"no","hard":false,"reason":"A roasting machine, not coffee."}
+{"intent":"dev-i03","notice":"dev-n08","label":"fire","hard":false,"reason":"The market's weekly post with open beverage spots."}
+{"intent":"dev-i03","notice":"dev-n12","label":"fire","hard":true,"reason":"One-liner under the SoPearl nickname with no coordinates; it is the weekly open-slot post."}
+{"intent":"dev-i03","notice":"dev-n09","label":"no","hard":true,"reason":"Same market, same organiser, but the lineup is full and walk-ups refused; nothing to apply for."}
+{"intent":"dev-i03","notice":"dev-n10","label":"no","hard":true,"reason":"A vendor call, but a festival in March, not the weekly Sunday market."}
+{"intent":"dev-i03","notice":"dev-n11","label":"no","hard":true,"reason":"A weekly market vendor call, wrong market, wrong city."}
+{"intent":"dev-i03","notice":"dev-n29","label":"no","hard":false,"reason":"A best-of list, not a market."}
+{"intent":"dev-i04","notice":"dev-n08","label":"fire","hard":false,"reason":"Denver farmers' market accepting food and beverage vendors this week."}
+{"intent":"dev-i04","notice":"dev-n10","label":"fire","hard":false,"reason":"A Denver festival with roaster booths open for application."}
+{"intent":"dev-i04","notice":"dev-n12","label":"fire","hard":true,"reason":"Nickname, no coordinates, one line; still an open beverage slot at a Denver market."}
+{"intent":"dev-i04","notice":"dev-n09","label":"no","hard":true,"reason":"Market post from the right organiser, but the lineup is full and walk-ups are refused."}
+{"intent":"dev-i04","notice":"dev-n11","label":"no","hard":true,"reason":"Accepting food vendors, but Boulder, which she excluded by name."}
+{"intent":"dev-i04","notice":"dev-n18","label":"no","hard":false,"reason":"A cafe soft-open, no vendor call."}
+{"intent":"dev-i04","notice":"dev-n29","label":"no","hard":false,"reason":"A listicle, not a vendor call."}
+{"intent":"dev-i05","notice":"dev-n13","label":"fire","hard":false,"reason":"DDPHE rule change that explicitly covers beverage establishments."}
+{"intent":"dev-i05","notice":"dev-n14","label":"fire","hard":true,"reason":"From Excise and Licenses about renewal windows and fees; none of the words permit or health code, but a city change that hits her licence."}
+{"intent":"dev-i05","notice":"dev-n16","label":"no","hard":true,"reason":"From the city and about food safety, but scoped to full-service restaurants and says it excludes beverage shops."}
+{"intent":"dev-i05","notice":"dev-n10","label":"no","hard":true,"reason":"Mentions a DDPHE permit, but it is a festival vendor call, not a rule change."}
+{"intent":"dev-i05","notice":"dev-n15","label":"borderline","hard":true,"reason":"Third-party summary of a real city change; the source rule says no, but if she missed the DDPHE post this is how she would learn."}
+{"intent":"dev-i05","notice":"dev-n11","label":"no","hard":false,"reason":"A market vendor call in another county."}
+{"intent":"dev-i06","notice":"dev-n17","label":"fire","hard":false,"reason":"Blackbird announces a third cafe in Denver."}
+{"intent":"dev-i06","notice":"dev-n18","label":"fire","hard":true,"reason":"Never says Blackbird Roasting Co. or opening, no coordinates; a new Blackbird cafe in RiNo, close to Five Points."}
+{"intent":"dev-i06","notice":"dev-n19","label":"no","hard":true,"reason":"Blackbird by name, in Denver, but a hiring post for an existing cafe."}
+{"intent":"dev-i06","notice":"dev-n27","label":"no","hard":true,"reason":"Blackbird named as a former employer in a job seeker's post."}
+{"intent":"dev-i06","notice":"dev-n29","label":"no","hard":true,"reason":"Blackbird appears in a best-of list; no opening."}
+{"intent":"dev-i06","notice":"dev-n26","label":"no","hard":false,"reason":"A cafe switching roasters, Blackbird not involved."}
+{"intent":"dev-i06","notice":"dev-n22","label":"no","hard":false,"reason":"A RiNo lease with no tenant named."}
+{"intent":"dev-i07","notice":"dev-n25","label":"fire","hard":false,"reason":"A Denver bakery asking for a local wholesale roaster."}
+{"intent":"dev-i07","notice":"dev-n26","label":"fire","hard":true,"reason":"Never says wholesale or supplier, only 'who's good'; a Highland cafe wanting a new roaster is a lead even though it is her own account walking."}
+{"intent":"dev-i07","notice":"dev-n04","label":"no","hard":true,"reason":"A request with 'roaster' in it, but the roaster is a machine."}
+{"intent":"dev-i07","notice":"dev-n27","label":"no","hard":true,"reason":"A request with 'roaster' in it, but the roaster is a person wanting a job."}
+{"intent":"dev-i07","notice":"dev-n05","label":"no","hard":false,"reason":"An importer selling green coffee; the wrong side of the trade."}
+{"intent":"dev-i07","notice":"dev-n19","label":"no","hard":false,"reason":"A competitor hiring, not a customer."}
+{"intent":"dev-i07","notice":"dev-n28","label":"no","hard":false,"reason":"A complaint in a thread, not a request for a roaster."}
+{"intent":"dev-i08","notice":"dev-n20","label":"fire","hard":false,"reason":"A driver with a van offering Denver morning availability."}
+{"intent":"dev-i08","notice":"dev-n21","label":"fire","hard":true,"reason":"Posted as a request with no coordinates and calls it 'routes' rather than delivery driving; exactly the person she would hire."}
+{"intent":"dev-i08","notice":"dev-n19","label":"no","hard":true,"reason":"A delivery driver job in Denver, but an employer advertising it, the opposite side."}
+{"intent":"dev-i08","notice":"dev-n27","label":"no","hard":true,"reason":"A job seeker in Denver, wrong trade."}
+{"intent":"dev-i08","notice":"dev-n25","label":"no","hard":true,"reason":"Mentions delivery before 7am, but it is a bakery wanting coffee, not a driver."}
+{"intent":"dev-i08","notice":"dev-n04","label":"no","hard":false,"reason":"A buyer of equipment, not a driver."}
+{"intent":"dev-i08","notice":"dev-n17","label":"no","hard":false,"reason":"A competitor saying it will hire soon; nobody offering to drive."}
+{"intent":"dev-i09","notice":"dev-n22","label":"fire","hard":false,"reason":"Corner retail in RiNo, right size, coming available."}
+{"intent":"dev-i09","notice":"dev-n23","label":"fire","hard":true,"reason":"Cross streets only, no coordinates, 'end-cap' rather than corner; 44th and Tejon is Sunnyside."}
+{"intent":"dev-i09","notice":"dev-n24","label":"no","hard":true,"reason":"Corner storefront with the kitchen she wants, but Capitol Hill, which she excluded."}
+{"intent":"dev-i09","notice":"dev-n18","label":"no","hard":true,"reason":"A corner in RiNo, but a cafe opening in it, not a unit for lease."}
+{"intent":"dev-i09","notice":"dev-n17","label":"no","hard":false,"reason":"A competitor took a Tennyson unit; wrong neighbourhood and not a listing."}
+{"intent":"dev-i09","notice":"dev-n19","label":"no","hard":false,"reason":"A shop address inside a hiring post."}
+{"intent":"dev-i10","notice":"dev-n29","label":"fire","hard":false,"reason":"Ridgeline Roasters named in a ranked list."}
+{"intent":"dev-i10","notice":"dev-n28","label":"fire","hard":true,"reason":"A complaint under the alias 'Ridgeline on Broadway' in someone else's thread."}
+{"intent":"dev-i10","notice":"dev-n26","label":"fire","hard":true,"reason":"Her own wholesale account saying it wants to leave, naming her only as 'Ridgeline'."}
+{"intent":"dev-i10","notice":"dev-n09","label":"no","hard":true,"reason":"Ridgeline Brewing Co. in a market lineup; a different business."}
+{"intent":"dev-i10","notice":"dev-n24","label":"no","hard":true,"reason":"Ridgeline Bagel Co. as a former tenant; a different business."}
+{"intent":"dev-i10","notice":"dev-n17","label":"no","hard":false,"reason":"A competitor's news, no mention of her."}
+{"intent":"dev-i10","notice":"dev-n25","label":"no","hard":false,"reason":"A wholesale request that does not name her."}
+{"intent":"dev-i10","notice":"dev-n19","label":"no","hard":false,"reason":"Blackbird's hiring ad, no mention of her."}
+{"intent":"dev-i11","notice":"dev-n31","label":"fire","hard":false,"reason":"A reply in her thread answering the question."}
+{"intent":"dev-i11","notice":"dev-n32","label":"fire","hard":true,"reason":"A reply in her thread that never says POS; still an answer."}
+{"intent":"dev-i11","notice":"dev-n30","label":"no","hard":true,"reason":"Her own root post; a thread query returns it but it is not a reply."}
+{"intent":"dev-i11","notice":"dev-n28","label":"no","hard":true,"reason":"A reply, but in a different thread about cafes, not hers."}
+{"intent":"dev-i11","notice":"dev-n25","label":"no","hard":false,"reason":"A wholesale request, no thread."}
+{"intent":"dev-i11","notice":"dev-n29","label":"no","hard":false,"reason":"A list, not a thread."}
+{"intent":"earl-i01","notice":"earl-n01","label":"fire","hard":true,"reason":"HRR216 is a Honda model but the word Honda never appears, the town is only in the body and there are no coordinates."}
+{"intent":"earl-i01","notice":"earl-n02","label":"fire","hard":true,"reason":"A Honda mower for sale in Woodstock, 35 km off, with the brand misspelled Hoda."}
+{"intent":"earl-i01","notice":"earl-n03","label":"fire","hard":false,"reason":"A Honda HRX offered in Tunbridge; that he wants syrup instead of cash does not make it less for sale."}
+{"intent":"earl-i01","notice":"earl-n04","label":"no","hard":true,"reason":"Honda, Randolph, for sale, but it is a car."}
+{"intent":"earl-i01","notice":"earl-n05","label":"no","hard":true,"reason":"Honda in the title, inside the radius, but a generator."}
+{"intent":"earl-i01","notice":"earl-n06","label":"no","hard":true,"reason":"A mower for sale 5 km away, but it is a Toro."}
+{"intent":"earl-i01","notice":"earl-n07","label":"no","hard":true,"reason":"A Honda HRX for sale, but Williston is about 65 km out, just past his area."}
+{"intent":"earl-i01","notice":"earl-n08","label":"no","hard":true,"reason":"Honda mower in the body, Bethel, but the poster wants to buy one."}
+{"intent":"earl-i01","notice":"earl-n09","label":"no","hard":true,"reason":"Right mower, right town, already sold and the post says so."}
+{"intent":"earl-i01","notice":"earl-n43","label":"borderline","hard":true,"reason":"A store in Randolph selling new Honda mowers is technically the ask, but Earl buys used; he would want to see it once."}
+{"intent":"earl-i01","notice":"earl-n13","label":"no","hard":false,"reason":"Fill dirt, nothing to do with mowers."}
+{"intent":"earl-i02","notice":"earl-n10","label":"fire","hard":true,"reason":"A 54 inch box blade off a B2601, under $500, in Williamstown, but it never says Cat I or Kubota and has no coordinates."}
+{"intent":"earl-i02","notice":"earl-n11","label":"fire","hard":false,"reason":"Cat I 48 inch box blade, $425, Waitsfield, pictured on the same tractor."}
+{"intent":"earl-i02","notice":"earl-n03","label":"borderline","hard":true,"reason":"A Cat I rear blade is not a box blade, but it is close, nearby and cheap enough that he might want to know."}
+{"intent":"earl-i02","notice":"earl-n12","label":"no","hard":true,"reason":"A box blade for sale in range, but Category II and 84 inches will not hang on a B-series."}
+{"intent":"earl-i02","notice":"earl-n07","label":"no","hard":true,"reason":"A 48 inch Cat I box blade at $300, but in Williston, outside an hour."}
+{"intent":"earl-i02","notice":"earl-n09","label":"no","hard":true,"reason":"The box blade in the title is already sold."}
+{"intent":"earl-i02","notice":"earl-n32","label":"no","hard":false,"reason":"A tractor thread, no implement for sale."}
+{"intent":"earl-i02","notice":"earl-n34","label":"no","hard":false,"reason":"A tractor with a scrape blade, not a box blade for his."}
+{"intent":"earl-i03","notice":"earl-n13","label":"fire","hard":false,"reason":"Forty yards of free fill, you haul, in Brookfield, 15 km away."}
+{"intent":"earl-i03","notice":"earl-n14","label":"fire","hard":true,"reason":"Free bank run for Randolph residents, but posted as a town announcement calling it surplus material, no coordinates, not an offer."}
+{"intent":"earl-i03","notice":"earl-n15","label":"no","hard":true,"reason":"Dirt delivered near Barre with 'free' in the text, but it is topsoil at $28 a yard."}
+{"intent":"earl-i03","notice":"earl-n08","label":"no","hard":true,"reason":"Free fill in Bethel, but the poster is asking for it."}
+{"intent":"earl-i03","notice":"earl-n07","label":"no","hard":false,"reason":"A moving sale with no dirt in it."}
+{"intent":"earl-i04","notice":"earl-n16","label":"fire","hard":false,"reason":"A free Vermont Castings woodstove in Chelsea, needs work, which he said is fine."}
+{"intent":"earl-i04","notice":"earl-n17","label":"fire","hard":true,"reason":"A free Jotul at the town swap shed, but the publisher is the town, the kind is announcement and the stove is one line in a list."}
+{"intent":"earl-i04","notice":"earl-n05","label":"no","hard":true,"reason":"Woodstove appears, but the seller wants one in trade for his generator; nobody is giving one away."}
+{"intent":"earl-i04","notice":"earl-n07","label":"no","hard":true,"reason":"A free Jotul, but only with a $100 purchase and in Williston, outside an hour."}
+{"intent":"earl-i04","notice":"earl-n08","label":"no","hard":true,"reason":"Woodstove in the body, but it is a request to buy one."}
+{"intent":"earl-i04","notice":"earl-n24","label":"no","hard":false,"reason":"Firewood for sale, not a stove."}
+{"intent":"earl-i05","notice":"earl-n18","label":"fire","hard":false,"reason":"A chainsaw sharpening workshop at the Randolph campus, posted by the college."}
+{"intent":"earl-i05","notice":"earl-n19","label":"fire","hard":true,"reason":"The college's continuing-ed clinic on filing chains is a sharpening class, but it never says sharpening, chainsaw or Randolph Center, and has no coordinates or date field."}
+{"intent":"earl-i05","notice":"earl-n20","label":"no","hard":true,"reason":"Free chain sharpening in Barre, but a dealer promotion, not a class, and not from the college."}
+{"intent":"earl-i05","notice":"earl-n21","label":"no","hard":true,"reason":"A chainsaw sharpening course, but at a different school in Fairfax, 87 km away."}
+{"intent":"earl-i05","notice":"earl-n36","label":"no","hard":false,"reason":"A chainsaw service bulletin, not a class."}
+{"intent":"earl-i05","notice":"earl-n42","label":"no","hard":false,"reason":"The Grange lending tools, nothing about saws or the college."}
+{"intent":"earl-i06","notice":"earl-n22","label":"fire","hard":false,"reason":"Seasoned hardwood, $285 a cord delivered, Bethel covers Randolph, delivering now."}
+{"intent":"earl-i06","notice":"earl-n23","label":"fire","hard":true,"reason":"$275 a cord, hardwood, dropped in your yard before end of September, but 'delivered' is never said, there is no location field and the price is bare digits."}
+{"intent":"earl-i06","notice":"earl-n24","label":"no","hard":true,"reason":"Hardwood delivered in Randolph, but $325 a cord."}
+{"intent":"earl-i06","notice":"earl-n25","label":"no","hard":true,"reason":"Well under $300 and delivered, but pine and hemlock, which he excluded."}
+{"intent":"earl-i06","notice":"earl-n06","label":"borderline","hard":true,"reason":"A cord of seasoned maple delivered near Braintree, but priced in syrup, not dollars; he has syrup, so he might bite."}
+{"intent":"earl-i06","notice":"earl-n17","label":"no","hard":false,"reason":"A woodstove at the swap shed, no firewood."}
+{"intent":"earl-i07","notice":"earl-n03","label":"fire","hard":false,"reason":"Mower and rear blade offered for syrup or eggs, both named."}
+{"intent":"earl-i07","notice":"earl-n06","label":"fire","hard":false,"reason":"Mower or firewood, seller would rather have two gallons of syrup than cash."}
+{"intent":"earl-i07","notice":"earl-n26","label":"fire","hard":true,"reason":"Engine repair paid in what you raise or make; syrup is listed once and eggs never, but eggs are plainly farm goods."}
+{"intent":"earl-i07","notice":"earl-n28","label":"fire","hard":false,"reason":"A well pump for a gallon and a half of syrup."}
+{"intent":"earl-i07","notice":"earl-n27","label":"no","hard":true,"reason":"Eggs and syrup in the text, but a farmstand selling them for cash; he has his own."}
+{"intent":"earl-i07","notice":"earl-n05","label":"no","hard":true,"reason":"A trade is offered, but for a woodstove, not eggs or syrup, and otherwise $700 firm."}
+{"intent":"earl-i07","notice":"earl-n43","label":"no","hard":false,"reason":"A hardware store sale, cash only."}
+{"intent":"earl-i08","notice":"earl-n30","label":"fire","hard":false,"reason":"A reply in his thread about the bladder tank."}
+{"intent":"earl-i08","notice":"earl-n31","label":"fire","hard":true,"reason":"A reply in his thread, but it talks about a check valve and a pitless adapter and has no tags; an embedding keyed on his question drifts."}
+{"intent":"earl-i08","notice":"earl-n29","label":"no","hard":true,"reason":"His own root post, identical subject, not a reply."}
+{"intent":"earl-i08","notice":"earl-n33","label":"no","hard":true,"reason":"Asks him directly about his pump, but posted as a reply in the 8N thread, not his."}
+{"intent":"earl-i08","notice":"earl-n28","label":"no","hard":true,"reason":"A submersible pump, but for sale, not a reply to him."}
+{"intent":"earl-i08","notice":"earl-n35","label":"no","hard":false,"reason":"Someone else's chainsaw thread."}
+{"intent":"earl-i09","notice":"earl-n38","label":"fire","hard":false,"reason":"The Randolph transfer station moving to winter hours."}
+{"intent":"earl-i09","notice":"earl-n39","label":"fire","hard":true,"reason":"A holiday closure of the same station, but the town calls it the recycling drop-off on Beanville Road and never says transfer station."}
+{"intent":"earl-i09","notice":"earl-n40","label":"no","hard":true,"reason":"A transfer station hours change, but Bethel's, one town south."}
+{"intent":"earl-i09","notice":"earl-n14","label":"no","hard":true,"reason":"Same town, same civic feed, Saturday hours in the text, but it is the highway garage giving away fill."}
+{"intent":"earl-i09","notice":"earl-n17","label":"no","hard":true,"reason":"The Randolph transfer station and its regular hours are named, but nothing changed; it is a swap shed inventory."}
+{"intent":"earl-i09","notice":"earl-n43","label":"no","hard":false,"reason":"A hardware store in Randolph, not the town."}
+{"intent":"earl-i10","notice":"earl-n41","label":"fire","hard":false,"reason":"A tool library opening in Montpelier, about 40 minutes away, with the opening date."}
+{"intent":"earl-i10","notice":"earl-n42","label":"fire","hard":true,"reason":"The Bethel Grange lending ladders, a tile saw and a mixer to anyone who joins is a tool library that never uses the words tool or library."}
+{"intent":"earl-i10","notice":"earl-n43","label":"no","hard":true,"reason":"Tools in Randolph, but a sale, not lending."}
+{"intent":"earl-i10","notice":"earl-n44","label":"no","hard":true,"reason":"A tool library, but in Burlington, over an hour, and it is adding hours rather than opening."}
+{"intent":"earl-i10","notice":"earl-n18","label":"no","hard":false,"reason":"A workshop, not a lending library."}
+{"intent":"earl-i10","notice":"earl-n20","label":"no","hard":false,"reason":"A dealer sales event."}
+{"intent":"earl-i11","notice":"earl-n36","label":"fire","hard":false,"reason":"Stihl's own service bulletin on the MS 261 C-M."}
+{"intent":"earl-i11","notice":"earl-n37","label":"fire","hard":true,"reason":"From Stihl about the 261 C-M, but it says field notice and firmware, never recall, bulletin or MS 261."}
+{"intent":"earl-i11","notice":"earl-n35","label":"no","hard":true,"reason":"MS 261 C-M and the word bulletin, but an owner's thread, which he excluded."}
+{"intent":"earl-i11","notice":"earl-n20","label":"no","hard":true,"reason":"Published by Stihl and names the MS 261 C-M, but a dealer demo day, not a bulletin."}
+{"intent":"earl-i11","notice":"earl-n18","label":"no","hard":false,"reason":"A college chainsaw workshop, no manufacturer, no model."}
+{"intent":"earl-i11","notice":"earl-n19","label":"no","hard":false,"reason":"A saw clinic, nothing from Stihl."}
+{"intent":"earl-i12","notice":"earl-n32","label":"fire","hard":false,"reason":"Someone rebuilding a '51 8N engine, in a thread."}
+{"intent":"earl-i12","notice":"earl-n33","label":"fire","hard":true,"reason":"A reply in that thread about the Ferguson lift on the old grey Ford; it never says 8N and wanders to well pumps."}
+{"intent":"earl-i12","notice":"earl-n34","label":"no","hard":true,"reason":"A Ford 8N, but for sale, not a rebuild thread."}
+{"intent":"earl-i12","notice":"earl-n35","label":"no","hard":true,"reason":"A thread about fixing an engine, but a chainsaw, not a tractor."}
+{"intent":"earl-i12","notice":"earl-n29","label":"no","hard":false,"reason":"A thread, but about a well pump."}
+{"intent":"earl-i12","notice":"earl-n31","label":"no","hard":false,"reason":"A reply in the well pump thread."}
+{"intent": "grace-i01", "notice": "grace-n01", "label": "fire", "hard": false, "reason": "Land Use Committee agenda with a Judah Street item and a Sunset Playground item; the Board's own notice."}
+{"intent": "grace-i01", "notice": "grace-n02", "label": "fire", "hard": true, "reason": "Full Board agenda whose first-reading item is the Great Highway ordinance in her district; never says District 4 or Sunset in the title."}
+{"intent": "grace-i01", "notice": "grace-n03", "label": "no", "hard": true, "reason": "Same committee, same format, but every item is in the Richmond, District 1."}
+{"intent": "grace-i01", "notice": "grace-n04", "label": "no", "hard": true, "reason": "Right block, right district, but it is the Planning Commission's calendar, not the Board's agenda."}
+{"intent": "grace-i01", "notice": "grace-n05", "label": "no", "hard": true, "reason": "A neighbourhood group's summary of a hearing; not the city and not a Board agenda."}
+{"intent": "grace-i01", "notice": "grace-n07", "label": "no", "hard": true, "reason": "A Planning Department hearing notice in her district; she asked for the Board of Supervisors, not another body."}
+{"intent": "grace-i01", "notice": "grace-n18", "label": "no", "hard": true, "reason": "An SFMTA service alert on Judah, from the city but not an agenda item."}
+{"intent": "grace-i02", "notice": "grace-n07", "label": "fire", "hard": false, "reason": "Planning Department notice of the hearing for 2800 Irving, by address, from the city."}
+{"intent": "grace-i02", "notice": "grace-n04", "label": "fire", "hard": true, "reason": "The Commission calendar lists the hearing under the project name only, with the block described but no street number."}
+{"intent": "grace-i02", "notice": "grace-n05", "label": "borderline", "hard": true, "reason": "Correct project and hearing date, but relayed by a neighbourhood group when she said from the city."}
+{"intent": "grace-i02", "notice": "grace-n06", "label": "no", "hard": true, "reason": "A Planning hearing notice on Irving Street two blocks away, for a different application."}
+{"intent": "grace-i02", "notice": "grace-n08", "label": "no", "hard": true, "reason": "Names the project and the hearing but is a carpool request, not the hearing notice."}
+{"intent": "grace-i02", "notice": "grace-n02", "label": "no", "hard": false, "reason": "A Board agenda about other Sunset matters; nothing on 2800 Irving."}
+{"intent": "grace-i03", "notice": "grace-n09", "label": "fire", "hard": false, "reason": "Free in-person session at her branch library, 10 minutes' walk."}
+{"intent": "grace-i03", "notice": "grace-n11", "label": "fire", "hard": true, "reason": "Weekly drop-in at the rec centre with no fee; posted as an announcement and says 'no charge' rather than 'free class'."}
+{"intent": "grace-i03", "notice": "grace-n10", "label": "no", "hard": true, "reason": "Library program, free, but Zoom only, which she excluded."}
+{"intent": "grace-i03", "notice": "grace-n12", "label": "no", "hard": true, "reason": "Class at the same rec centre with the same tags, but it costs $45."}
+{"intent": "grace-i03", "notice": "grace-n22", "label": "no", "hard": false, "reason": "A cinema discount, not a class."}
+{"intent": "grace-i03", "notice": "grace-n16", "label": "no", "hard": false, "reason": "A volunteer planting day at the park, not a class."}
+{"intent": "grace-i04", "notice": "grace-n13", "label": "fire", "hard": false, "reason": "SF-Marin Food Bank asking for sort-shift volunteers."}
+{"intent": "grace-i04", "notice": "grace-n15", "label": "fire", "hard": true, "reason": "An Ocean Beach cleanup that never uses the word cleanup; 'litter sweep' with grabbers and buckets."}
+{"intent": "grace-i04", "notice": "grace-n14", "label": "no", "hard": true, "reason": "Identical shift, identical wording, but Alameda County's food bank, not SF-Marin."}
+{"intent": "grace-i04", "notice": "grace-n16", "label": "no", "hard": true, "reason": "A volunteer call in her neighbourhood, but for planting at a park, neither food bank nor beach."}
+{"intent": "grace-i04", "notice": "grace-n27", "label": "no", "hard": true, "reason": "Asks for volunteers on a Saturday morning nearby, but to search for a cat."}
+{"intent": "grace-i04", "notice": "grace-n11", "label": "no", "hard": false, "reason": "A tai chi class; no volunteering asked."}
+{"intent": "grace-i05", "notice": "grace-n18", "label": "fire", "hard": false, "reason": "SFMTA bus substitution on the N Judah."}
+{"intent": "grace-i05", "notice": "grace-n19", "label": "fire", "hard": true, "reason": "Schedule change on the L, referred to only as 'the L' and 'the Taraval line'."}
+{"intent": "grace-i05", "notice": "grace-n01", "label": "no", "hard": true, "reason": "Judah Street traffic calming on a Board agenda; the street, not the N Judah line."}
+{"intent": "grace-i05", "notice": "grace-n03", "label": "no", "hard": true, "reason": "A transit change in the same format, but on the 38 Geary."}
+{"intent": "grace-i05", "notice": "grace-n20", "label": "no", "hard": true, "reason": "SFMTA alert that detours along Judah St, but it is the 28 line, not the N."}
+{"intent": "grace-i05", "notice": "grace-n37", "label": "borderline", "hard": true, "reason": "A neighbours' petition about a proposed 29 stop removal; not her lines and not from SFMTA, but her agent might show it once."}
+{"intent": "grace-i06", "notice": "grace-n16", "label": "fire", "hard": false, "reason": "Rec and Park's Phase 2 construction update for the park."}
+{"intent": "grace-i06", "notice": "grace-n01", "label": "fire", "hard": true, "reason": "The renovation's supplemental appropriation is item 3 on a Board committee agenda posted from City Hall."}
+{"intent": "grace-i06", "notice": "grace-n17", "label": "no", "hard": true, "reason": "A Rec and Park renovation update in the same format, but for McCoppin Square."}
+{"intent": "grace-i06", "notice": "grace-n11", "label": "no", "hard": true, "reason": "Right park, right rec centre, but a tai chi class, not a renovation update."}
+{"intent": "grace-i06", "notice": "grace-n29", "label": "no", "hard": true, "reason": "A found dog at Sunset Playground; the park name and coordinates match, nothing about the renovation."}
+{"intent": "grace-i06", "notice": "grace-n20", "label": "no", "hard": false, "reason": "A bus detour, unrelated to the park."}
+{"intent": "grace-i07", "notice": "grace-n21", "label": "fire", "hard": true, "reason": "Buried in a ramen opening post: every Tuesday, 65 and over get 20% off; never says 'senior'."}
+{"intent": "grace-i07", "notice": "grace-n22", "label": "fire", "hard": true, "reason": "A weekly $7 matinee for 65 and over; phrased without the word senior or discount."}
+{"intent": "grace-i07", "notice": "grace-n12", "label": "no", "hard": true, "reason": "Seniors $40 instead of $45 on a single paid course; a senior rate, not a discount day."}
+{"intent": "grace-i07", "notice": "grace-n32", "label": "no", "hard": true, "reason": "A contractor advertising 10% off for seniors on a $6,500 job."}
+{"intent": "grace-i07", "notice": "grace-n26", "label": "no", "hard": false, "reason": "A free piano; not a discount."}
+{"intent": "grace-i08", "notice": "grace-n23", "label": "fire", "hard": false, "reason": "Yamaha upright for $250 with free delivery anywhere in the city."}
+{"intent": "grace-i08", "notice": "grace-n24", "label": "fire", "hard": true, "reason": "Free spinet, seller drives it over; never uses the word piano."}
+{"intent": "grace-i08", "notice": "grace-n25", "label": "no", "hard": true, "reason": "Upright piano in the Sunset, but $1,200 and buyer arranges movers."}
+{"intent": "grace-i08", "notice": "grace-n26", "label": "no", "hard": true, "reason": "Free upright piano nearby, but pick-up only, and she said someone has to haul it."}
+{"intent": "grace-i08", "notice": "grace-n12", "label": "no", "hard": false, "reason": "A ceramics course with a price; not a piano."}
+{"intent": "grace-i09", "notice": "grace-n28", "label": "fire", "hard": true, "reason": "Found orange cat with a bell on a green collar, two blocks from where Mochi went missing; no name, no tags."}
+{"intent": "grace-i09", "notice": "grace-n40", "label": "fire", "hard": true, "reason": "A sighting of an orange tabby with a green collar on 45th, mentioned in passing inside a petition thread reply."}
+{"intent": "grace-i09", "notice": "grace-n27", "label": "no", "hard": true, "reason": "Dolores's own missing-cat post; the right cat, but she already knows he is lost."}
+{"intent": "grace-i09", "notice": "grace-n29", "label": "no", "hard": true, "reason": "A found pet in the Sunset, but a dog."}
+{"intent": "grace-i09", "notice": "grace-n26", "label": "no", "hard": false, "reason": "A free piano in the Inner Sunset; nothing to do with a cat."}
+{"intent": "grace-i10", "notice": "grace-n30", "label": "fire", "hard": false, "reason": "DBI opens the residential soft-story retrofit grant application period."}
+{"intent": "grace-i10", "notice": "grace-n09", "label": "fire", "hard": true, "reason": "A library session announcing that state Brace + Bolt registration opens Oct 1, up to $3,000; never says grant or retrofit."}
+{"intent": "grace-i10", "notice": "grace-n31", "label": "no", "hard": true, "reason": "A city seismic retrofit grant opening the same day, but for commercial buildings only."}
+{"intent": "grace-i10", "notice": "grace-n32", "label": "no", "hard": true, "reason": "A contractor's ad mentioning the state rebate; a sales offer, not a program opening."}
+{"intent": "grace-i10", "notice": "grace-n10", "label": "no", "hard": true, "reason": "An earthquake preparedness class for homeowners; nothing opens, no money."}
+{"intent": "grace-i11", "notice": "grace-n21", "label": "fire", "hard": false, "reason": "A ramen shop's grand opening on Noriega, with the key word misspelled 'raman'."}
+{"intent": "grace-i11", "notice": "grace-n33", "label": "fire", "hard": true, "reason": "Soft opening of a tonkotsu counter on Taraval; the word ramen never appears."}
+{"intent": "grace-i11", "notice": "grace-n34", "label": "no", "hard": true, "reason": "A ramen place opening the same week, but on Clement Street in the Richmond."}
+{"intent": "grace-i11", "notice": "grace-n06", "label": "no", "hard": true, "reason": "A new business coming to Irving Street in the Sunset, but it is a cannabis dispensary hearing."}
+{"intent": "grace-i11", "notice": "grace-n14", "label": "no", "hard": false, "reason": "A food bank shift in Oakland."}
+{"intent": "grace-i12", "notice": "grace-n35", "label": "fire", "hard": false, "reason": "SFMTA and Rec and Park announce weekday vehicle access restored on the Upper Great Highway."}
+{"intent": "grace-i12", "notice": "grace-n36", "label": "fire", "hard": true, "reason": "News item that the lanes are open, written as 'Sunset Dunes decommissioned; vehicle lanes restored'; shares no keyword with the ask."}
+{"intent": "grace-i12", "notice": "grace-n02", "label": "no", "hard": true, "reason": "The reopening ordinance on first reading; a step toward it, not the reopening."}
+{"intent": "grace-i12", "notice": "grace-n15", "label": "no", "hard": true, "reason": "Mentions the Great Highway and Sunset Dunes, but it is a beach cleanup meeting there."}
+{"intent": "grace-i12", "notice": "grace-n41", "label": "no", "hard": true, "reason": "A signature drive to put the reopening on the ballot; talk about it, not the thing itself."}
+{"intent": "grace-i12", "notice": "grace-n37", "label": "no", "hard": false, "reason": "A bus stop petition on Judah; unrelated to the Great Highway."}
+{"intent": "grace-i13", "notice": "grace-n38", "label": "fire", "hard": false, "reason": "Reply in the thread with a signing table date and place."}
+{"intent": "grace-i13", "notice": "grace-n39", "label": "fire", "hard": true, "reason": "Reply in the thread giving the next meeting time and address without the words petition or signing."}
+{"intent": "grace-i13", "notice": "grace-n37", "label": "no", "hard": true, "reason": "The thread root she is already following; it promises a date but gives none."}
+{"intent": "grace-i13", "notice": "grace-n40", "label": "no", "hard": true, "reason": "A reply in the right thread that only says count me in, plus a cat sighting."}
+{"intent": "grace-i13", "notice": "grace-n41", "label": "no", "hard": true, "reason": "A signing-table reply with a date, but in a different petition's thread."}
+{"intent": "grace-i13", "notice": "grace-n20", "label": "no", "hard": false, "reason": "An SFMTA detour notice; not a thread reply."}
 {"intent":"jordan-i01","notice":"jordan-n01","label":"fire","hard":false,"reason":"NHTSA relay, exact model number, a recall."}
 {"intent":"jordan-i01","notice":"jordan-n02","label":"fire","hard":true,"reason":"Graco itself, second model number in the body only, called a free update kit and posted as an offer; no recall keyword, wrong kind."}
 {"intent":"jordan-i01","notice":"jordan-n03","label":"no","hard":true,"reason":"Same brand, same relay, same shape, but the SnugRide infant seat, which Jordan explicitly excluded."}
@@ -455,6 +682,162 @@
 {"intent": "nadia-i12", "notice": "nadia-n27", "label": "no", "hard": true, "reason": "Paid per box and recurring, but a market buying delivery, the request side, not an agent offering overflow."}
 {"intent": "nadia-i12", "notice": "nadia-n03", "label": "no", "hard": false, "reason": "A freight request."}
 {"intent": "nadia-i12", "notice": "nadia-n09", "label": "no", "hard": false, "reason": "A van for sale."}
+{"intent":"priya-i01","notice":"priya-n12","label":"fire","hard":true,"reason":"Pizza is the last line of a weekly problem-session notice on campus; the word free never appears."}
+{"intent":"priya-i01","notice":"priya-n17","label":"fire","hard":true,"reason":"'We feed you the whole time' at a campus hackathon, worded nothing like free food."}
+{"intent":"priya-i01","notice":"priya-n10","label":"fire","hard":true,"reason":"Refreshments after an open colloquium on her campus this week, buried under an academic title."}
+{"intent":"priya-i01","notice":"priya-n01","label":"no","hard":true,"reason":"Free lunch at a colloquium, but at Northwestern in Evanston, not her campus."}
+{"intent":"priya-i01","notice":"priya-n32","label":"no","hard":true,"reason":"Says free shoe rental, but it is a $12 pass at a gym off campus."}
+{"intent":"priya-i01","notice":"priya-n14","label":"borderline","hard":true,"reason":"Free and on campus, but a tutoring service rather than the giveaways she means; an agent might show it once."}
+{"intent":"priya-i01","notice":"priya-n30","label":"no","hard":false,"reason":"A campus facility reopening, not free and not this week."}
+{"intent":"priya-i01","notice":"priya-n23","label":"no","hard":false,"reason":"Lost-and-found on the Loop campus."}
+{"intent":"priya-i01","notice":"priya-n06","label":"no","hard":false,"reason":"A bike for sale in Lincoln Square."}
+{"intent":"priya-i01","notice":"priya-n13","label":"no","hard":false,"reason":"A student asking for study partners, nothing free on offer."}
+{"intent":"priya-i02","notice":"priya-n02","label":"fire","hard":false,"reason":"Private room, $850, Southport Brown Line, Jan 3 to Mar 21."}
+{"intent":"priya-i02","notice":"priya-n03","label":"fire","hard":true,"reason":"Says short-term lease and Damen stop, never sublet or Brown Line; right price, right dates, no coordinates."}
+{"intent":"priya-i02","notice":"priya-n04","label":"no","hard":true,"reason":"Right price, right stop, private room, but spring quarter."}
+{"intent":"priya-i02","notice":"priya-n05","label":"no","hard":true,"reason":"Right price, right line, winter dates, but a shared bedroom, which she excluded."}
+{"intent":"priya-i02","notice":"priya-n07","label":"no","hard":false,"reason":"Furniture and a bike, not a room."}
+{"intent":"priya-i02","notice":"priya-n09","label":"no","hard":false,"reason":"Someone shopping for a bike and a book."}
+{"intent":"priya-i03","notice":"priya-n06","label":"fire","hard":false,"reason":"A used hybrid at $140 in Lincoln Square, on the Brown Line."}
+{"intent":"priya-i03","notice":"priya-n07","label":"fire","hard":true,"reason":"The Schwinn is one item in a moving-sale list, $60, Bucktown, no bike tag and no coordinates."}
+{"intent":"priya-i03","notice":"priya-n08","label":"no","hard":true,"reason":"Right bike, right price, but Evanston, which she ruled out."}
+{"intent":"priya-i03","notice":"priya-n09","label":"no","hard":true,"reason":"Someone else wants the same bike at the same price; a request, not an offer."}
+{"intent":"priya-i03","notice":"priya-n32","label":"no","hard":false,"reason":"A climbing gym pass."}
+{"intent":"priya-i03","notice":"priya-n02","label":"no","hard":false,"reason":"A sublet."}
+{"intent":"priya-i03","notice":"priya-n29","label":"no","hard":false,"reason":"Textbooks for sale."}
+{"intent":"priya-i04","notice":"priya-n10","label":"fire","hard":true,"reason":"Her talk on campus, billed under the full name while the intent uses the nickname."}
+{"intent":"priya-i04","notice":"priya-n12","label":"fire","hard":true,"reason":"'Doc Ramos usually stops in around 6' buried in a problem-session notice is effectively office hours."}
+{"intent":"priya-i04","notice":"priya-n01","label":"no","hard":true,"reason":"Her talk, but at Northwestern in Evanston; she said on campus or in Chicago."}
+{"intent":"priya-i04","notice":"priya-n11","label":"no","hard":true,"reason":"A reading group about her paper; she is not giving it."}
+{"intent":"priya-i04","notice":"priya-n13","label":"no","hard":true,"reason":"Names Ramos, but it is a student looking for a study group."}
+{"intent":"priya-i04","notice":"priya-n14","label":"no","hard":false,"reason":"Department tutoring, no professor involved."}
+{"intent":"priya-i05","notice":"priya-n12","label":"fire","hard":false,"reason":"A weekly CSC 347 problem session run by the department."}
+{"intent":"priya-i05","notice":"priya-n14","label":"fire","hard":true,"reason":"Department tutoring for exactly the 347 material, described by topic and never by course number."}
+{"intent":"priya-i05","notice":"priya-n13","label":"no","hard":true,"reason":"A 347 study group, but student-organised on Discord; she wanted the department only."}
+{"intent":"priya-i05","notice":"priya-n11","label":"no","hard":true,"reason":"Student-run reading group on adjacent material, explicitly not the department."}
+{"intent":"priya-i05","notice":"priya-n10","label":"no","hard":false,"reason":"A department event, but a colloquium, not a study group."}
+{"intent":"priya-i05","notice":"priya-n28","label":"no","hard":false,"reason":"The course textbook for sale."}
+{"intent":"priya-i05","notice":"priya-n17","label":"no","hard":false,"reason":"A department hackathon, not course help."}
+{"intent":"priya-i06","notice":"priya-n15","label":"fire","hard":false,"reason":"A hackathon with travel reimbursement up to $500."}
+{"intent":"priya-i06","notice":"priya-n16","label":"fire","hard":true,"reason":"'We book your flight' with no mention of stipend or reimbursement."}
+{"intent":"priya-i06","notice":"priya-n17","label":"no","hard":true,"reason":"A hackathon that says no travel support; every keyword is present."}
+{"intent":"priya-i06","notice":"priya-n26","label":"no","hard":true,"reason":"A hackathon named in a carpool thread where travel is explicitly not covered."}
+{"intent":"priya-i06","notice":"priya-n19","label":"no","hard":false,"reason":"An internship."}
+{"intent":"priya-i06","notice":"priya-n24","label":"no","hard":false,"reason":"A rideshare to a football game."}
+{"intent":"priya-i07","notice":"priya-n18","label":"fire","hard":false,"reason":"Paid, remote, software, summer 2027."}
+{"intent":"priya-i07","notice":"priya-n19","label":"fire","hard":true,"reason":"Called a co-op, hybrid in the Loop, paid, summer 2027; never says internship or remote."}
+{"intent":"priya-i07","notice":"priya-n20","label":"no","hard":true,"reason":"Remote, summer 2027, an internship, but unpaid."}
+{"intent":"priya-i07","notice":"priya-n13","label":"no","hard":true,"reason":"A student asking for paid summer internships, not an employer offering one."}
+{"intent":"priya-i07","notice":"priya-n15","label":"no","hard":false,"reason":"A hackathon, even if sponsors recruit there."}
+{"intent":"priya-i07","notice":"priya-n26","label":"no","hard":false,"reason":"A hackathon carpool thread."}
+{"intent":"priya-i08","notice":"priya-n21","label":"fire","hard":false,"reason":"White AirPods Pro case, purple bear sticker, Student Center, Wednesday."}
+{"intent":"priya-i08","notice":"priya-n22","label":"fire","hard":true,"reason":"Listed as 'earbud case, white, purple sticker' in a bureaucratic log with no AirPods keyword and no coordinates."}
+{"intent":"priya-i08","notice":"priya-n23","label":"borderline","hard":true,"reason":"A found white AirPods Pro case, but no sticker, the Loop campus, and found before she lost hers; a strict reading says no, an agent might show it once."}
+{"intent":"priya-i08","notice":"priya-n13","label":"no","hard":true,"reason":"Someone else's lost AirPods, a request, and a black case."}
+{"intent":"priya-i08","notice":"priya-n07","label":"no","hard":true,"reason":"An AirPods case in a Bucktown moving sale, no sticker, not campus lost-and-found."}
+{"intent":"priya-i08","notice":"priya-n32","label":"no","hard":false,"reason":"A climbing gym."}
+{"intent":"priya-i09","notice":"priya-n25","label":"fire","hard":false,"reason":"A reply in her thread, addressed to her."}
+{"intent":"priya-i09","notice":"priya-n27","label":"fire","hard":true,"reason":"A reply in her thread offering the reverse trip; not addressed to her and not what she asked, but it is activity in the thread."}
+{"intent":"priya-i09","notice":"priya-n24","label":"no","hard":true,"reason":"The root post itself, which she has already read and replied to."}
+{"intent":"priya-i09","notice":"priya-n26","label":"no","hard":true,"reason":"Addressed to her, same weekend, same city, but a different thread."}
+{"intent":"priya-i09","notice":"priya-n13","label":"no","hard":false,"reason":"An unrelated request."}
+{"intent":"priya-i09","notice":"priya-n17","label":"no","hard":false,"reason":"A hackathon event."}
+{"intent":"priya-i09","notice":"priya-n21","label":"no","hard":false,"reason":"Lost-and-found."}
+{"intent":"priya-i10","notice":"priya-n24","label":"fire","hard":true,"reason":"'A2' for Ann Arbor, Fullerton departure in the body, posted as a thread with no coordinates."}
+{"intent":"priya-i10","notice":"priya-n25","label":"fire","hard":true,"reason":"A seat confirmed inside a thread reply, no offer kind, no place."}
+{"intent":"priya-i10","notice":"priya-n27","label":"no","hard":true,"reason":"Ann Arbor to Chicago, the reverse direction, in the right thread on the right weekend."}
+{"intent":"priya-i10","notice":"priya-n26","label":"no","hard":true,"reason":"Same weekend, same destination, but people looking for a driver, not offering a seat."}
+{"intent":"priya-i10","notice":"priya-n17","label":"no","hard":false,"reason":"A hackathon in Chicago."}
+{"intent":"priya-i10","notice":"priya-n08","label":"no","hard":false,"reason":"A bike in Evanston."}
+{"intent":"priya-i10","notice":"priya-n15","label":"no","hard":false,"reason":"A hackathon in Cambridge with travel money, not a ride."}
+{"intent":"priya-i11","notice":"priya-n28","label":"fire","hard":false,"reason":"Sipser 3rd edition at $30, shipping offered."}
+{"intent":"priya-i11","notice":"priya-n07","label":"fire","hard":true,"reason":"Sipser at $20 in a moving-sale list between lamps and kitchen stuff; no textbook tag."}
+{"intent":"priya-i11","notice":"priya-n29","label":"no","hard":true,"reason":"Sipser is in the title but at $55; the $35 book is CLRS, a different course."}
+{"intent":"priya-i11","notice":"priya-n09","label":"no","hard":true,"reason":"A buyer wanting the same book; a request, not an offer."}
+{"intent":"priya-i11","notice":"priya-n22","label":"no","hard":true,"reason":"A textbook in a lost-and-found log, and the wrong course."}
+{"intent":"priya-i11","notice":"priya-n14","label":"no","hard":false,"reason":"Tutoring for the course, not the book."}
+{"intent":"priya-i12","notice":"priya-n30","label":"fire","hard":false,"reason":"The wall at the Ray Meyer Fitness Center reopens Oct 5."}
+{"intent":"priya-i12","notice":"priya-n31","label":"fire","hard":true,"reason":"Belay classes back at the wall from Oct 6 implies it is open; the notice never says reopen."}
+{"intent":"priya-i12","notice":"priya-n32","label":"no","hard":true,"reason":"A climbing wall opening its doors to students, but a different gym."}
+{"intent":"priya-i12","notice":"priya-n17","label":"no","hard":true,"reason":"Names the Ray Meyer Fitness Center and the climbing wall, and says it is still closed."}
+{"intent":"priya-i12","notice":"priya-n01","label":"no","hard":false,"reason":"A colloquium."}
+{"intent":"priya-i12","notice":"priya-n21","label":"no","hard":false,"reason":"Lost-and-found."}
+{"intent":"ravi-i01","notice":"ravi-n03","label":"fire","hard":false,"reason":"The dealer lists a serviced Juno-60 at CAD 3,300, under his cap, in Toronto."}
+{"intent":"ravi-i01","notice":"ravi-n04","label":"fire","hard":true,"reason":"Named only as JU-60 in a three-item private clearout with no tags or coordinates; under the cap and in Scarborough."}
+{"intent":"ravi-i01","notice":"ravi-n11","label":"borderline","hard":true,"reason":"An estate sale, not a listing, and the synth under the blanket is a Juno-6, the revision he excluded; he would still want to know it exists."}
+{"intent":"ravi-i01","notice":"ravi-n24","label":"borderline","hard":true,"reason":"A thread reply, not an offer, but it reveals a Buffalo Juno-60 at USD 2,300 that the seller will hand over at the border; the 'US only' is the seller's habit, not a wall."}
+{"intent":"ravi-i01","notice":"ravi-n01","label":"no","hard":true,"reason":"Jun-6 V is the plugin he ruled out; 'Juno' is right there in the text."}
+{"intent":"ravi-i01","notice":"ravi-n02","label":"no","hard":true,"reason":"Someone wanting to buy a Juno-60, not selling one."}
+{"intent":"ravi-i01","notice":"ravi-n05","label":"no","hard":true,"reason":"A real Juno-60 from a verified dealer, but at CAD 4,800 it is over his cap."}
+{"intent":"ravi-i01","notice":"ravi-n21","label":"no","hard":true,"reason":"Roland, Kijiji, a price, but a Jupiter-8 and a question, not a Juno-60 offer."}
+{"intent":"ravi-i01","notice":"ravi-n06","label":"no","hard":false,"reason":"A Minimoog from a Vancouver dealer; wrong model entirely."}
+{"intent":"ravi-i02","notice":"ravi-n03","label":"fire","hard":false,"reason":"Verified dealer, a Rev 3.3 Prophet-5 and a 1976 Model D both under CAD 12,000."}
+{"intent":"ravi-i02","notice":"ravi-n06","label":"fire","hard":true,"reason":"Spelled 'Mini Moog D' with neither 'Minimoog' nor 'Model D' in the text; a verified dealer, 1974, CAD 9,400."}
+{"intent":"ravi-i02","notice":"ravi-n01","label":"no","hard":true,"reason":"Prophet-5 V and Mini V are the plugins he excluded; both names appear verbatim."}
+{"intent":"ravi-i02","notice":"ravi-n04","label":"no","hard":true,"reason":"An original 1975 Model D at CAD 8,900, but a private Kijiji seller, and he said verified dealer only."}
+{"intent":"ravi-i02","notice":"ravi-n05","label":"no","hard":true,"reason":"Verified dealer, but the Prophet is the Rev4 reissue and the only original Model D is CAD 15,900."}
+{"intent":"ravi-i02","notice":"ravi-n02","label":"no","hard":true,"reason":"A request to buy synths, not a dealer selling one."}
+{"intent":"ravi-i02","notice":"ravi-n14","label":"no","hard":true,"reason":"'Moog' and Toronto, but a repair service, not an instrument for sale."}
+{"intent":"ravi-i02","notice":"ravi-n21","label":"no","hard":false,"reason":"A Jupiter-8 authenticity question; wrong model, wrong kind."}
+{"intent":"ravi-i03","notice":"ravi-n07","label":"fire","hard":true,"reason":"Never says 'Soul Station'; '4031 W63 DG ear RVG' is the first pressing described entirely in dead-wax jargon."}
+{"intent":"ravi-i03","notice":"ravi-n08","label":"fire","hard":false,"reason":"The exact record with every first-press marker spelled out, from a verified dealer."}
+{"intent":"ravi-i03","notice":"ravi-n09","label":"no","hard":true,"reason":"Two copies of Soul Station, but one is the Liberty repress and the other a Music Matters reissue."}
+{"intent":"ravi-i03","notice":"ravi-n19","label":"no","hard":true,"reason":"A fair advertising Blue Note originals in Toronto, not a copy of the record."}
+{"intent":"ravi-i03","notice":"ravi-n10","label":"borderline","hard":true,"reason":"An estate with 400 LPs including 1960s Blue Notes; the record is not named, but that is exactly where an original 4031 turns up."}
+{"intent":"ravi-i03","notice":"ravi-n30","label":"no","hard":false,"reason":"A repress, but of a different record entirely."}
+{"intent":"ravi-i03","notice":"ravi-n20","label":"no","hard":false,"reason":"A friend bringing jazz boxes to a fair; no record named."}
+{"intent":"ravi-i04","notice":"ravi-n10","label":"fire","hard":false,"reason":"An Etobicoke estate sale listing a receiver, a reel-to-reel and 400 LPs."}
+{"intent":"ravi-i04","notice":"ravi-n11","label":"fire","hard":true,"reason":"Posted as an announcement with no coordinates or tags and never says 'estate' or 'electronics', but it is a Scarborough contents sale full of keyboards, tape machines and crates of LPs."}
+{"intent":"ravi-i04","notice":"ravi-n12","label":"no","hard":true,"reason":"An estate sale in Leaside, inside the GTA, but crystal, rugs and clothing; nothing he collects."}
+{"intent":"ravi-i04","notice":"ravi-n19","label":"no","hard":true,"reason":"Records in Toronto, but a dealer fair, not an estate sale."}
+{"intent":"ravi-i04","notice":"ravi-n16","label":"no","hard":false,"reason":"A synth swap meet, not an estate sale."}
+{"intent":"ravi-i04","notice":"ravi-n20","label":"no","hard":false,"reason":"A record fair one-liner, not an estate sale."}
+{"intent":"ravi-i05","notice":"ravi-n13","label":"fire","hard":true,"reason":"Never says 'Roland'; Juno, Jupiter, JX and SH are the Roland lines, and the bench is in Leslieville."}
+{"intent":"ravi-i05","notice":"ravi-n03","label":"fire","hard":true,"reason":"Shaped as a dealer's arrivals list, but the in-house bench does Roland recaps and calibration in Parkdale for anyone."}
+{"intent":"ravi-i05","notice":"ravi-n14","label":"no","hard":true,"reason":"A GTA tech who explicitly refuses Japanese synths; amps and Moog only."}
+{"intent":"ravi-i05","notice":"ravi-n15","label":"no","hard":true,"reason":"A Roland repair clinic, but in Montréal."}
+{"intent":"ravi-i05","notice":"ravi-n16","label":"no","hard":true,"reason":"Right city, right gear, but a swap meet, not a technician."}
+{"intent":"ravi-i05","notice":"ravi-n21","label":"no","hard":false,"reason":"A question about a Jupiter-8's authenticity, not a repair service."}
+{"intent":"ravi-i06","notice":"ravi-n16","label":"fire","hard":false,"reason":"The Hogtown Synth Swap itself, at the Tranzac, with a date."}
+{"intent":"ravi-i06","notice":"ravi-n17","label":"fire","hard":true,"reason":"No 'synth' or 'meetup' in the title; a monthly vintage-keyboard hang in a Bloor West bar with no coordinates."}
+{"intent":"ravi-i06","notice":"ravi-n15","label":"no","hard":true,"reason":"A synth meetup, but in Montréal, which he ruled out by name."}
+{"intent":"ravi-i06","notice":"ravi-n18","label":"no","hard":true,"reason":"A collectors' fair in a hall he knows, but for stamps and coins."}
+{"intent":"ravi-i06","notice":"ravi-n19","label":"no","hard":true,"reason":"A vintage fair in Toronto, but for records, not synths."}
+{"intent":"ravi-i06","notice":"ravi-n13","label":"no","hard":false,"reason":"A repair bench, not a gathering."}
+{"intent":"ravi-i06","notice":"ravi-n20","label":"no","hard":false,"reason":"A record fair one-liner."}
+{"intent":"ravi-i07","notice":"ravi-n19","label":"fire","hard":false,"reason":"The fair, named, with the October date and the hall."}
+{"intent":"ravi-i07","notice":"ravi-n20","label":"fire","hard":true,"reason":"No fair name, no kind, no coordinates; '206 Beverley, forty dealers, jazz boxes' is the same fair described by a regular."}
+{"intent":"ravi-i07","notice":"ravi-n18","label":"no","hard":true,"reason":"Same hall, same month, a collectors' fair, but stamps and coins."}
+{"intent":"ravi-i07","notice":"ravi-n17","label":"no","hard":true,"reason":"A monthly recurring gathering in Toronto, but for keyboard people, not records."}
+{"intent":"ravi-i07","notice":"ravi-n16","label":"no","hard":true,"reason":"A swap meet with tables and walk-in fees, but synths, at the Tranzac."}
+{"intent":"ravi-i07","notice":"ravi-n10","label":"no","hard":false,"reason":"An estate sale with LPs, not the fair."}
+{"intent":"ravi-i07","notice":"ravi-n30","label":"no","hard":true,"reason":"A record event in Toronto with vinyl on sale, but a one-off launch at a shop, not the fair."}
+{"intent":"ravi-i08","notice":"ravi-n22","label":"fire","hard":false,"reason":"A reply in the thread with serial plate and board photos, exactly what he asked for."}
+{"intent":"ravi-i08","notice":"ravi-n23","label":"fire","hard":true,"reason":"A verdict without the words 'serial', 'authentic' or 'fake': someone went, opened the lid, and says walk away."}
+{"intent":"ravi-i08","notice":"ravi-n21","label":"no","hard":true,"reason":"The thread's own root post, which he has already read; nothing new."}
+{"intent":"ravi-i08","notice":"ravi-n24","label":"no","hard":true,"reason":"Serial plate photo and 'matches the late run', but in a different thread about a different Roland."}
+{"intent":"ravi-i08","notice":"ravi-n05","label":"no","hard":true,"reason":"A Jupiter-8 for sale from a dealer; same model, not the thread."}
+{"intent":"ravi-i08","notice":"ravi-n16","label":"no","hard":false,"reason":"A swap meet announcement, unrelated to the thread."}
+{"intent":"ravi-i08","notice":"ravi-n13","label":"no","hard":false,"reason":"A repair bench that mentions Jupiter-8s; not a reply."}
+{"intent":"ravi-i09","notice":"ravi-n25","label":"fire","hard":false,"reason":"A PPG Wave 2.3 voice board and panel PCB offered from a late tech's bench."}
+{"intent":"ravi-i09","notice":"ravi-n26","label":"fire","hard":true,"reason":"Never says 'PPG'; a 'blue, Palm-era' Wave 2.3 non-working unit sold for parts is a donor for exactly the boards he needs."}
+{"intent":"ravi-i09","notice":"ravi-n01","label":"no","hard":true,"reason":"PPG Wave 3.V is the Waldorf plugin, not hardware parts."}
+{"intent":"ravi-i09","notice":"ravi-n27","label":"no","hard":true,"reason":"Someone else looking for the same parts; a request, not an offer."}
+{"intent":"ravi-i09","notice":"ravi-n06","label":"no","hard":false,"reason":"A Minimoog from a dealer; nothing PPG."}
+{"intent":"ravi-i09","notice":"ravi-n16","label":"no","hard":false,"reason":"A swap meet with parts bins, but no PPG anything."}
+{"intent":"ravi-i10","notice":"ravi-n28","label":"fire","hard":false,"reason":"The label reports the original L'Amour session reels recovered."}
+{"intent":"ravi-i10","notice":"ravi-n29","label":"fire","hard":true,"reason":"Names neither Lewis nor L'Amour; Randy Wulff is Lewis, and 'lamour' on a box of 1983 LA session reels is the tape."}
+{"intent":"ravi-i10","notice":"ravi-n09","label":"no","hard":true,"reason":"An original 1983 pressing of L'Amour for sale; the record, not the master tape."}
+{"intent":"ravi-i10","notice":"ravi-n30","label":"no","hard":true,"reason":"A repress of L'Amour and a talk about the mystery; nothing found."}
+{"intent":"ravi-i10","notice":"ravi-n08","label":"no","hard":false,"reason":"A Blue Note first pressing for sale; different record, no tapes."}
+{"intent":"ravi-i10","notice":"ravi-n07","label":"no","hard":false,"reason":"A jazz record listing; unrelated."}
+{"intent":"ravi-i11","notice":"ravi-n31","label":"fire","hard":false,"reason":"A Toronto buyer asking for an original MS-20, mk1 or mk2, and ruling out the mini."}
+{"intent":"ravi-i11","notice":"ravi-n32","label":"fire","hard":true,"reason":"Never says MS-20; 'the black late-seventies Korg semi-modular with the patch panel on the right, big brother of the MS-10' is one, and the buyer is in Ottawa."}
+{"intent":"ravi-i11","notice":"ravi-n02","label":"no","hard":true,"reason":"A request, but for a Juno-60 or an MS-20 mini, not an original MS-20."}
+{"intent":"ravi-i11","notice":"ravi-n27","label":"no","hard":true,"reason":"A want-to-buy for synth parts, but PPG, not Korg."}
+{"intent":"ravi-i11","notice":"ravi-n04","label":"no","hard":true,"reason":"An MS-20 mk1, but someone selling one, which is competition, not a buyer."}
+{"intent":"ravi-i11","notice":"ravi-n03","label":"borderline","hard":true,"reason":"A dealer's 'we buy MS-20' line inside an arrivals post; a buyer of sorts, but not the collector he had in mind."}
+{"intent":"ravi-i11","notice":"ravi-n25","label":"no","hard":false,"reason":"An offer of PPG parts; wrong kind, wrong subject."}
 {"intent":"sam-i01","notice":"sam-n01","label":"fire","hard":false,"reason":"tokio 2.0.0 final from the release relay."}
 {"intent":"sam-i01","notice":"sam-n02","label":"fire","hard":true,"reason":"sqlx 1.0 announced under the repo name launchbadge/sqlx, and the word major never appears."}
 {"intent":"sam-i01","notice":"sam-n03","label":"no","hard":true,"reason":"Right package, a minor release; nothing but the version number says so."}
@@ -529,3 +912,79 @@
 {"intent":"sam-i12","notice":"sam-n11","label":"borderline","hard":true,"reason":"An ad hoc Portland hack session at a pub; not the ^H night, but he would want to see it once."}
 {"intent":"sam-i12","notice":"sam-n16","label":"no","hard":false,"reason":"A conference."}
 {"intent":"sam-i12","notice":"sam-n14","label":"no","hard":false,"reason":"An office opening."}
+{"intent":"tomas-i01","notice":"tomas-n01","label":"fire","hard":true,"reason":"'Verde' only, Houston in the body with no coordinates, $55 and explicitly not the away end."}
+{"intent":"tomas-i01","notice":"tomas-n02","label":"fire","hard":true,"reason":"A $55 ordinary-seat ticket is buried in a bar's away-day post filed as kind=event."}
+{"intent":"tomas-i01","notice":"tomas-n03","label":"no","hard":true,"reason":"Right fixture and tickets under $80, but the supporters'-section allotment he excluded."}
+{"intent":"tomas-i01","notice":"tomas-n04","label":"no","hard":true,"reason":"Right teams, right price, but the home leg at Q2 and he wanted away."}
+{"intent":"tomas-i01","notice":"tomas-n07","label":"no","hard":false,"reason":"A football watch party, no tickets."}
+{"intent":"tomas-i01","notice":"tomas-n29","label":"no","hard":false,"reason":"A bicycle for sale."}
+{"intent":"tomas-i01","notice":"tomas-n31","label":"no","hard":false,"reason":"Champions League watch party, not Austin FC tickets."}
+{"intent":"tomas-i02","notice":"tomas-n02","label":"fire","hard":false,"reason":"An Austin bar hosting a watch party for an Austin FC away match."}
+{"intent":"tomas-i02","notice":"tomas-n03","label":"fire","hard":true,"reason":"Says 'Verde' and never Austin FC; an away match at a north Austin bar."}
+{"intent":"tomas-i02","notice":"tomas-n01","label":"no","hard":true,"reason":"Right away fixture, but a ticket sale, not a bar."}
+{"intent":"tomas-i02","notice":"tomas-n04","label":"no","hard":true,"reason":"Right teams, but a home-match ticket sale, and he excluded home matches."}
+{"intent":"tomas-i02","notice":"tomas-n07","label":"no","hard":true,"reason":"Same bar he watches Verde at, but a Longhorns game."}
+{"intent":"tomas-i02","notice":"tomas-n31","label":"no","hard":true,"reason":"A soccer watch party at an Austin bar, but the Champions League final."}
+{"intent":"tomas-i02","notice":"tomas-n32","label":"no","hard":true,"reason":"Same bar, same neighbourhood, but the UCL final rather than Austin FC."}
+{"intent":"tomas-i02","notice":"tomas-n11","label":"no","hard":false,"reason":"Pickup basketball."}
+{"intent":"tomas-i03","notice":"tomas-n05","label":"fire","hard":false,"reason":"UT Athletics moving a kickoff time is exactly the change he asked about."}
+{"intent":"tomas-i03","notice":"tomas-n06","label":"fire","hard":true,"reason":"'Horns' and a typo in the title, no tags, but a confirmed SEC-office reschedule relayed by a feed."}
+{"intent":"tomas-i03","notice":"tomas-n07","label":"no","hard":true,"reason":"Texas in the title with a date and time, but a watch party, not a schedule change."}
+{"intent":"tomas-i03","notice":"tomas-n08","label":"no","hard":true,"reason":"A kickoff move, but a message-board rumour, which he excluded."}
+{"intent":"tomas-i03","notice":"tomas-n14","label":"no","hard":false,"reason":"A fantasy football trade."}
+{"intent":"tomas-i03","notice":"tomas-n23","label":"no","hard":false,"reason":"G League basketball."}
+{"intent":"tomas-i04","notice":"tomas-n09","label":"fire","hard":false,"reason":"Sunday 9am pickup at Govalle, about 3 km from his apartment."}
+{"intent":"tomas-i04","notice":"tomas-n10","label":"fire","hard":true,"reason":"'Footy' and 'kickabout', no coordinates, time in prose; Pan Am is 500 m from his door."}
+{"intent":"tomas-i04","notice":"tomas-n11","label":"no","hard":true,"reason":"Right neighbourhood, pickup, but basketball on a Tuesday."}
+{"intent":"tomas-i04","notice":"tomas-n12","label":"no","hard":true,"reason":"Sunday soccer keywords, but a keeper seeking a league team, not a game."}
+{"intent":"tomas-i04","notice":"tomas-n13","label":"no","hard":true,"reason":"Sundays, east side, soccer, but a person offering himself, not a game to join."}
+{"intent":"tomas-i04","notice":"tomas-n27","label":"no","hard":false,"reason":"A bike for sale in East Austin."}
+{"intent":"tomas-i05","notice":"tomas-n12","label":"fire","hard":false,"reason":"A goalkeeper in Austin looking for a Sunday league team."}
+{"intent":"tomas-i05","notice":"tomas-n13","label":"fire","hard":true,"reason":"'Between the sticks' never says goalkeeper, filed as an offer with no tags."}
+{"intent":"tomas-i05","notice":"tomas-n09","label":"no","hard":true,"reason":"Sunday soccer in Austin, but a pickup game with nobody offering to keep."}
+{"intent":"tomas-i05","notice":"tomas-n10","label":"no","hard":true,"reason":"Contains 'keepers' only to say none are needed."}
+{"intent":"tomas-i05","notice":"tomas-n11","label":"no","hard":false,"reason":"Pickup basketball."}
+{"intent":"tomas-i05","notice":"tomas-n30","label":"no","hard":false,"reason":"Someone wanting a bicycle."}
+{"intent":"tomas-i06","notice":"tomas-n14","label":"fire","hard":false,"reason":"A trade offer posted in his league's thread."}
+{"intent":"tomas-i06","notice":"tomas-n15","label":"fire","hard":true,"reason":"A trade offer in the right thread that never uses the word trade."}
+{"intent":"tomas-i06","notice":"tomas-n08","label":"no","hard":true,"reason":"A reply in the right thread with no trade in it; a thread filter alone fires."}
+{"intent":"tomas-i06","notice":"tomas-n16","label":"no","hard":true,"reason":"A trade offer, but in another league's thread."}
+{"intent":"tomas-i06","notice":"tomas-n06","label":"no","hard":false,"reason":"College football schedule news."}
+{"intent":"tomas-i06","notice":"tomas-n17","label":"no","hard":false,"reason":"A real NBA trade, not his league."}
+{"intent":"tomas-i07","notice":"tomas-n17","label":"fire","hard":false,"reason":"Confirmed by the team: Keldon Johnson traded."}
+{"intent":"tomas-i07","notice":"tomas-n18","label":"fire","hard":true,"reason":"The club's farewell says 'Keldon' and 'longest-tenured' and never trade or Johnson."}
+{"intent":"tomas-i07","notice":"tomas-n16","label":"no","hard":true,"reason":"A podcast rumour that the Spurs are listening, wrapped in a fantasy trade."}
+{"intent":"tomas-i07","notice":"tomas-n19","label":"no","hard":true,"reason":"A Johnson traded, but Jalen of the Hawks."}
+{"intent":"tomas-i07","notice":"tomas-n14","label":"no","hard":false,"reason":"A fantasy football trade."}
+{"intent":"tomas-i07","notice":"tomas-n20","label":"no","hard":false,"reason":"A Spurs game date, no trade."}
+{"intent":"tomas-i08","notice":"tomas-n25","label":"fire","hard":false,"reason":"The organiser announcing full-marathon registration opening."}
+{"intent":"tomas-i08","notice":"tomas-n26","label":"fire","hard":true,"reason":"'26.2' and 'the February one', filed as an event with no tags and Thursday in prose."}
+{"intent":"tomas-i08","notice":"tomas-n09","label":"no","hard":true,"reason":"Names the Austin Marathon, but a pickup-soccer post noting a road closure."}
+{"intent":"tomas-i08","notice":"tomas-n27","label":"no","hard":true,"reason":"Names the Austin Marathon inside a bike ad."}
+{"intent":"tomas-i08","notice":"tomas-n30","label":"no","hard":false,"reason":"A want-ad for a bike."}
+{"intent":"tomas-i08","notice":"tomas-n11","label":"no","hard":false,"reason":"Pickup basketball."}
+{"intent":"tomas-i09","notice":"tomas-n27","label":"fire","hard":false,"reason":"A road bike in East Austin for $450."}
+{"intent":"tomas-i09","notice":"tomas-n28","label":"fire","hard":true,"reason":"Model name only, never says road bike, no coordinates, $580 in the title."}
+{"intent":"tomas-i09","notice":"tomas-n29","label":"no","hard":true,"reason":"A road bike in Austin, but $950."}
+{"intent":"tomas-i09","notice":"tomas-n30","label":"no","hard":true,"reason":"The same words, but someone wanting to buy, not sell."}
+{"intent":"tomas-i09","notice":"tomas-n01","label":"no","hard":false,"reason":"Soccer tickets."}
+{"intent":"tomas-i09","notice":"tomas-n25","label":"no","hard":false,"reason":"Marathon registration."}
+{"intent":"tomas-i10","notice":"tomas-n20","label":"fire","hard":true,"reason":"Moody's own post says 'San Antonio v. Phoenix' and NBA, never Spurs."}
+{"intent":"tomas-i10","notice":"tomas-n21","label":"fire","hard":true,"reason":"A Spurs game at Moody is announced in the last line of an expansion story, two years out."}
+{"intent":"tomas-i10","notice":"tomas-n17","label":"no","hard":true,"reason":"Spurs news, but a trade, not a game."}
+{"intent":"tomas-i10","notice":"tomas-n22","label":"no","hard":true,"reason":"NBA basketball coming to Moody Center, but no Spurs game in it."}
+{"intent":"tomas-i10","notice":"tomas-n23","label":"no","hard":true,"reason":"'Austin Spurs' is the G League affiliate in Cedar Park."}
+{"intent":"tomas-i10","notice":"tomas-n24","label":"borderline","hard":true,"reason":"A Spurs game, but in San Antonio; outside what he asked, though he might drive down."}
+{"intent":"tomas-i10","notice":"tomas-n31","label":"no","hard":false,"reason":"A soccer watch party."}
+{"intent":"tomas-i11","notice":"tomas-n31","label":"fire","hard":false,"reason":"A Champions League final watch party at a downtown Austin bar."}
+{"intent":"tomas-i11","notice":"tomas-n32","label":"fire","hard":true,"reason":"'UCL final' only, no coordinates, date in prose, bar named by street."}
+{"intent":"tomas-i11","notice":"tomas-n02","label":"no","hard":true,"reason":"A soccer watch party at an Austin bar, but MLS."}
+{"intent":"tomas-i11","notice":"tomas-n07","label":"no","hard":true,"reason":"A watch party at the same bar, but college football."}
+{"intent":"tomas-i11","notice":"tomas-n03","label":"no","hard":true,"reason":"Soccer watch party with sound on, but an Austin FC match."}
+{"intent":"tomas-i11","notice":"tomas-n20","label":"no","hard":false,"reason":"An NBA game date."}
+{"intent":"tomas-i12","notice":"tomas-n22","label":"fire","hard":false,"reason":"The league approves an Austin expansion franchise."}
+{"intent":"tomas-i12","notice":"tomas-n21","label":"fire","hard":true,"reason":"Never says NBA or Austin; a 31st franchise at Moody Center is the same news."}
+{"intent":"tomas-i12","notice":"tomas-n20","label":"no","hard":true,"reason":"An NBA regular-season game in Austin, but it is still the Spurs' game."}
+{"intent":"tomas-i12","notice":"tomas-n23","label":"no","hard":true,"reason":"An Austin-named basketball team, but the G League affiliate."}
+{"intent":"tomas-i12","notice":"tomas-n24","label":"no","hard":false,"reason":"A Spurs home game in San Antonio."}
+{"intent":"tomas-i12","notice":"tomas-n17","label":"no","hard":false,"reason":"A player trade."}
