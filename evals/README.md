@@ -37,8 +37,11 @@ Precision, recall and F1 for the fire class. Strict counts gold `borderline` as 
 |---|---|---:|---:|---:|---|
 | crier | real Crier, local, no embeddings | 32.8 | 21.1 | 4.9 | 141 of 156 intents saved; one cron tick matched 461 posts against 141 subscriptions in 110 ms |
 | lexical | in-process stand-in for the keyword branch | 40.6 | 30.1 | 14.5 | more lenient than Postgres full-text on stems and the structural gaps below |
-| judge | this session's model reading each pair blind | pending | | | ten batches, rubric in `cache/judge/RUBRIC.md` |
+| judge | a frontier model reading each pair blind, no gates | 97.2 | 98.2 | 94.9 | ten batches of 99, rubric in `cache/judge/RUBRIC.md`; every disagreement with gold is a borderline or a "about an hour away" radius call |
+| lexical-loose | any query or subject term present, after structural filters | see predictions | | | a recall-first gate stand-in; what a cheap gate keeps before a judge |
 | semantic, today | embedding branch and the deployed OR | needs a Cohere key | | | |
+
+Caveat on the judge number: the labels and the judge come from the same model family, so 97 measures agreement with the labels, not with a person. Clayton's forty-pair spot-check is what anchors the labels to a human; the number to watch there is his agreement rate.
 
 Structural gaps in the stand-ins, all because notices carry less than posts do: no `created_at`, `parent_id`, publisher id or verified flag, so `thread` passes any thread-kind notice, `publisher` and `verified` are not enforced, and a missing start time counts as "posted today".
 

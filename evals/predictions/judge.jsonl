@@ -1,0 +1,990 @@
+{"intent":"nadia-i12","notice":"nadia-n31","label":"fire","reason":"A standing per-parcel ($7 a piece) overflow capacity offer, exactly what she asked to see."}
+{"intent":"aisha-i05","notice":"aisha-n12","label":"no","reason":"A Council hearing event, not a thread of Ward 5 tenants organising."}
+{"intent":"aisha-i12","notice":"aisha-n13","label":"no","reason":"A call for op-eds, which she explicitly excluded."}
+{"intent":"aisha-i07","notice":"aisha-n23","label":"no","reason":"A lecture about replication, not a replication; lectures are explicitly excluded."}
+{"intent":"sam-i11","notice":"sam-n09","label":"no","reason":"A PDX Rust meetup, not a Rust Foundation Portland office announcement."}
+{"intent":"sam-i06","notice":"sam-n28","label":"no","reason":"A benchmark coordination thread, nobody asking for help with retry-safe axum/tower handlers."}
+{"intent":"tomas-i01","notice":"tomas-n03","label":"no","reason":"A watch party in Austin selling supporters-section tickets, both of which she excluded."}
+{"intent":"sam-i04","notice":"sam-n19","label":"no","reason":"A conference talk listing, not a CFP closing."}
+{"intent":"lena-i05","notice":"lena-n11","label":"fire","reason":"Origins of Life GRC applications including poster abstracts are open now, which is the call she wanted."}
+{"intent":"grace-i07","notice":"grace-n22","label":"fire","reason":"A standing Thursday senior matinee price at the Balboa Theatre, no membership needed."}
+{"intent":"lena-i04","notice":"lena-n32","label":"fire","reason":"A new Nature Astronomy paper by Ingrid Halvorsen of Bern."}
+{"intent":"kai-i06","notice":"kai-n23","label":"no","reason":"A Marchetti masterclass, explicitly excluded; not a call for session players."}
+{"intent":"earl-i02","notice":"earl-n11","label":"fire","reason":"Land Pride 48-inch Cat I box blade at $425 in Waitsfield, well within an hour of Randolph."}
+{"intent":"jordan-i09","notice":"jordan-n10","label":"no","reason":"A book release with Mo explicitly not appearing."}
+{"intent":"nadia-i11","notice":"nadia-n28","label":"fire","reason":"NJDOT full closure of the Pulaski Skyway in both directions."}
+{"intent":"lena-i12","notice":"lena-n31","label":"borderline","reason":"Retraction of a different, likely uncited Okonkwo paper, but figure manipulation by her key cited author is worth one look."}
+{"intent":"maya-i09","notice":"maya-n22","label":"fire","reason":"Saturday night show at the Comedy Studio for $25."}
+{"intent":"aisha-i02","notice":"aisha-n07","label":"no","reason":"A think-tank panel, not a DHCD or DCHA press conference from the agency."}
+{"intent":"tomas-i03","notice":"tomas-n05","label":"fire","reason":"Kickoff time change from Texas Athletics itself."}
+{"intent":"lena-i07","notice":"lena-n16","label":"fire","reason":"Fully remote research fellowship on biosignature retrievals, a postdoc-level post."}
+{"intent":"kai-i01","notice":"kai-n03","label":"no","reason":"A covers band through an agency, both excluded."}
+{"intent":"priya-i07","notice":"priya-n26","label":"no","reason":"A hackathon carpool thread, not a paid summer 2027 internship."}
+{"intent":"nadia-i04","notice":"nadia-n11","label":"no","reason":"Sprinter at $34,900 is far over the $18k cap."}
+{"intent":"dev-i07","notice":"dev-n25","label":"fire","reason":"A Wash Park bakery in Denver seeking a local wholesale roaster, a same-day lead."}
+{"intent":"ravi-i01","notice":"ravi-n05","label":"no","reason":"Juno-60 at CAD 4,800 is over the strict CAD 3,500 cap."}
+{"intent":"tomas-i10","notice":"tomas-n24","label":"no","reason":"A Spurs home game in San Antonio, not at Moody Center."}
+{"intent":"maya-i10","notice":"maya-n09","label":"no","reason":"A presale code sale, not a reply in her carpool thread."}
+{"intent":"earl-i05","notice":"earl-n18","label":"fire","reason":"Chainsaw sharpening workshop published by VTSU Randolph Campus itself."}
+{"intent":"sam-i07","notice":"sam-n30","label":"no","reason":"A reply in a LongHaul coordination thread, not the backstop co-maintainers thread."}
+{"intent":"aisha-i03","notice":"aisha-n07","label":"fire","reason":"Renata Ochoa-Whitfield is on a public panel in Brookland."}
+{"intent":"grace-i03","notice":"grace-n10","label":"no","reason":"Online-only Zoom program, explicitly excluded."}
+{"intent":"dev-i01","notice":"dev-n02","label":"fire","reason":"Used Probatone 12 shop roaster for $28k in Albuquerque, within the Mountain West."}
+{"intent":"nadia-i11","notice":"nadia-n16","label":"no","reason":"A single-lane northbound closure, not a full closure."}
+{"intent":"tomas-i07","notice":"tomas-n19","label":"no","reason":"Jalen Johnson traded by the Hawks, not Keldon Johnson by the Spurs."}
+{"intent":"nadia-i10","notice":"nadia-n26","label":"fire","reason":"The Military Park market's weekly rider request for Saturday pre-order deliveries."}
+{"intent":"dev-i01","notice":"dev-n05","label":"no","reason":"A green coffee spot offer, not a roaster for sale."}
+{"intent":"jordan-i01","notice":"jordan-n02","label":"fire","reason":"Graco itself offering a safety harness fix for the Extend2Fit 3-in-1 model 2093200, effectively a recall remedy."}
+{"intent":"grace-i07","notice":"grace-n21","label":"fire","reason":"A standing Tuesday 20% senior discount at a Sunset restaurant, no card needed."}
+{"intent":"grace-i10","notice":"grace-n30","label":"fire","reason":"DBI opens a seismic retrofit grant program that includes an owner-occupied 1-2 unit pilot."}
+{"intent":"maya-i08","notice":"maya-n28","label":"borderline","reason":"A carpool thread rather than the show, but it reveals a Fred again.. date at the Bell Centre in Montreal."}
+{"intent":"sam-i02","notice":"sam-n05","label":"fire","reason":"RustSec advisory for hyper, a crate in his stack, relayed from rustsec.org."}
+{"intent":"sam-i08","notice":"sam-n09","label":"no","reason":"A talk by Ana Ruiz-Delgado about his RFC, not a talk by Wierzbicki."}
+{"intent":"maya-i07","notice":"maya-n20","label":"fire","reason":"One floor ticket to Dan Snaith (Caribou) at Lansdowne St on the 6th at what the seller paid."}
+{"intent":"aisha-i07","notice":"aisha-n24","label":"no","reason":"A replication at 45 K, a cryogenic temperature, not room temperature."}
+{"intent":"jordan-i12","notice":"jordan-n35","label":"no","reason":"Pertussis cases, not measles."}
+{"intent":"ravi-i11","notice":"ravi-n27","label":"no","reason":"A request for PPG Wave parts, not someone seeking an MS-20 mk1."}
+{"intent":"tomas-i10","notice":"tomas-n20","label":"fire","reason":"Moody Center announces a Spurs regular-season game in Austin."}
+{"intent":"dev-i07","notice":"dev-n05","label":"no","reason":"An importer selling green coffee, not a business seeking a roaster."}
+{"intent":"kai-i02","notice":"kai-n08","label":"fire","reason":"A planner posting directly for a bassist with a real date, venue near Nashville and USD 450 pay."}
+{"intent":"nadia-i12","notice":"nadia-n22","label":"no","reason":"A service-area expansion announcement with no per-parcel overflow pricing."}
+{"intent":"earl-i01","notice":"earl-n02","label":"fire","reason":"A Honda (misspelled Hoda) self-propelled mower for sale in Woodstock, VT, within range."}
+{"intent":"aisha-i11","notice":"aisha-n14","label":"fire","reason":"A tenant citing Aisha Bello's story (misspelled Bellow) in a Brookland Manor thread."}
+{"intent":"priya-i11","notice":"priya-n29","label":"no","reason":"Sipser at $55 is over the $40 cap."}
+{"intent":"priya-i02","notice":"priya-n07","label":"no","reason":"A moving sale, not a winter sublet."}
+{"intent":"priya-i01","notice":"priya-n32","label":"no","reason":"A $12 climbing pass in Avondale, neither free nor on campus."}
+{"intent":"jordan-i02","notice":"jordan-n06","label":"fire","reason":"A stop-use safety notice for the Hudson crib from Million Dollar Baby Co., Babyletto's parent company."}
+{"intent":"priya-i01","notice":"priya-n13","label":"no","reason":"A study group request, nothing free on campus."}
+{"intent":"grace-i08","notice":"grace-n23","label":"fire","reason":"Yamaha U1 upright for $250 with free delivery anywhere in SF."}
+{"intent":"sam-i05","notice":"sam-n15","label":"no","reason":"A Rust Foundation office lease, not a senior backend job."}
+{"intent":"ravi-i01","notice":"ravi-n01","label":"no","reason":"Software plugins including Arturia's Jun-6 V, explicitly excluded."}
+{"intent":"priya-i02","notice":"priya-n03","label":"fire","reason":"Furnished studio steps from the Damen Brown Line stop, $875 all-in, Jan 2 to Mar 31."}
+{"intent":"jordan-i08","notice":"jordan-n24","label":"no","reason":"A daytime-only nanny with no evenings, explicitly excluded."}
+{"intent":"sam-i09","notice":"sam-n33","label":"fire","reason":"KBD67 with Gazzew (Boba) U4T switches, $90, local pickup in Beaverton."}
+{"intent":"priya-i06","notice":"priya-n26","label":"no","reason":"A carpool thread noting MHacks does not cover travel."}
+{"intent":"earl-i10","notice":"earl-n20","label":"no","reason":"A dealer service event, not a tool library opening."}
+{"intent":"tomas-i11","notice":"tomas-n20","label":"no","reason":"An NBA game, not a Champions League final watch party."}
+{"intent":"aisha-i11","notice":"aisha-n01","label":"no","reason":"Bello appears only as part of a law firm name, which she excluded."}
+{"intent":"dev-i02","notice":"dev-n07","label":"no","reason":"Microlot at $9.40/lb with 6 bags, over the price cap and under ten bags."}
+{"intent":"ravi-i05","notice":"ravi-n21","label":"no","reason":"A thread about a Jupiter-8 listing's authenticity, not a repair tech."}
+{"intent":"grace-i06","notice":"grace-n17","label":"no","reason":"McCoppin Square renovation, a different park."}
+{"intent":"grace-i13","notice":"grace-n40","label":"no","reason":"A count-me-in reply with no signing date or meeting, which she excluded."}
+{"intent":"nadia-i01","notice":"nadia-n20","label":"fire","reason":"A Newark bakery requesting a courier for 30 light catering drops on a fixed date, biddable."}
+{"intent":"grace-i02","notice":"grace-n05","label":"no","reason":"A neighbourhood-group repost, and she wants the hearing date from the city only."}
+{"intent":"sam-i12","notice":"sam-n16","label":"no","reason":"RustConf announcement, not the Ctrl-H hack night."}
+{"intent":"nadia-i08","notice":"nadia-n30","label":"no","reason":"A QuickHop capacity offer, explicitly excluded; not a new service area."}
+{"intent":"sam-i05","notice":"sam-n20","label":"fire","reason":"Senior backend role at a 45-person company, Rust and Postgres, fully remote US."}
+{"intent":"kai-i01","notice":"kai-n06","label":"no","reason":"A paid bassist gig in Denver, not Nashville."}
+{"intent":"nadia-i02","notice":"nadia-n31","label":"no","reason":"A standing Bronx capacity offer, not a multi-leg coordination thread with a Newark or Jersey City leg."}
+{"intent":"sam-i01","notice":"sam-n05","label":"no","reason":"A hyper security advisory, not a tokio or sqlx major release."}
+{"intent":"sam-i08","notice":"sam-n31","label":"no","reason":"A benchmark workshop CFP, not a talk by Wierzbicki."}
+{"intent":"dev-i08","notice":"dev-n19","label":"no","reason":"An employer hiring ad, not a driver posting their availability."}
+{"intent":"dev-i04","notice":"dev-n09","label":"no","reason":"A lineup announcement stating no vendor spots, excluded."}
+{"intent":"earl-i06","notice":"earl-n17","label":"no","reason":"Swap shed items, not cordwood for sale."}
+{"intent":"sam-i12","notice":"sam-n12","label":"fire","reason":"The first-Wednesday Open Hack Night at Ctrl-H."}
+{"intent":"kai-i10","notice":"kai-n43","label":"no","reason":"A one-off reunion benefit show, not a weekly jam."}
+{"intent":"kai-i11","notice":"kai-n07","label":"fire","reason":"Paid $250 bass gig at Hi-Dive in Denver on Saturday Oct 10, within his week there."}
+{"intent":"grace-i11","notice":"grace-n06","label":"no","reason":"A cannabis retail hearing, not a ramen opening."}
+{"intent":"kai-i07","notice":"kai-n27","label":"fire","reason":"Pilgrimage festival itself recruiting a paid house band including bass for its tribute set."}
+{"intent":"ravi-i09","notice":"ravi-n27","label":"no","reason":"Someone else requesting PPG parts, which he excluded."}
+{"intent":"kai-i03","notice":"kai-n14","label":"no","reason":"An Ampeg amp, not a vintage Fender bass."}
+{"intent":"grace-i11","notice":"grace-n34","label":"no","reason":"Ramen opening on Clement Street in the Richmond, not the Sunset."}
+{"intent":"jordan-i03","notice":"jordan-n25","label":"fire","reason":"District 203 itself announcing a district-wide E-Learning Day."}
+{"intent":"dev-i02","notice":"dev-n01","label":"no","reason":"A Probat roaster for sale, not green coffee."}
+{"intent":"lena-i10","notice":"lena-n25","label":"fire","reason":"A free Saturday public star party on the Griffith Observatory lawn."}
+{"intent":"jordan-i01","notice":"jordan-n16","label":"no","reason":"A used stroller, not a car seat recall."}
+{"intent":"jordan-i04","notice":"jordan-n08","label":"borderline","reason":"A Saturday kids' event in Naperville, but admission is a $19.99 book purchase, which is right at the price line for her two kids."}
+{"intent":"kai-i10","notice":"kai-n37","label":"no","reason":"A singer-songwriter open mic, explicitly excluded."}
+{"intent":"ravi-i03","notice":"ravi-n09","label":"no","reason":"Liberty and Music Matters pressings, both excluded reissues."}
+{"intent":"grace-i04","notice":"grace-n27","label":"no","reason":"A lost cat search, not the food bank or a beach cleanup."}
+{"intent":"tomas-i06","notice":"tomas-n15","label":"fire","reason":"A trade offer posted in the Lone Star Degenerates thread, which the commish must approve."}
+{"intent":"dev-i03","notice":"dev-n10","label":"no","reason":"Vendor call for the Denver Coffee Festival, not the South Pearl Sunday market."}
+{"intent":"aisha-i05","notice":"aisha-n18","label":"borderline","reason":"A photographer request rather than an organising thread, but it reveals a Ward 5 tenant association launching that she may want to join."}
+{"intent":"grace-i09","notice":"grace-n29","label":"no","reason":"A found dog, not the missing orange tabby cat."}
+{"intent":"lena-i10","notice":"lena-n24","label":"fire","reason":"Griffith Observatory public star party on a Saturday, exactly what she asked for."}
+{"intent":"jordan-i04","notice":"jordan-n11","label":"fire","reason":"Free Saturday Fall Festival at Cosley Zoo in Wheaton, within 20 km of Naperville and suited to ages 4 and 7."}
+{"intent":"aisha-i06","notice":"aisha-n18","label":"no","reason":"A photographer request, which she explicitly excluded."}
+{"intent":"sam-i06","notice":"sam-n25","label":"fire","reason":"Someone asking for axum idempotency middleware and struggling with backstop, exactly the help he wants to give."}
+{"intent":"maya-i09","notice":"maya-n23","label":"fire","reason":"Saturday late show at 1 Bow Market Way (the Comedy Studio) for $18, under the $40 cap."}
+{"intent":"ravi-i06","notice":"ravi-n16","label":"fire","reason":"The Hogtown Synth Swap announced in Toronto."}
+{"intent":"aisha-i12","notice":"aisha-n10","label":"fire","reason":"Council agenda with first reading of the Rental Housing Stabilization Amendment, DC rent control news."}
+{"intent":"grace-i01","notice":"grace-n03","label":"no","reason":"Board committee agenda but every item is Richmond District or Geary, nothing touching District 4 or Judah."}
+{"intent":"sam-i12","notice":"sam-n13","label":"fire","reason":"Ctrl-H's first-Wednesday hack night on Interstate Ave is announced for November."}
+{"intent":"maya-i01","notice":"maya-n05","label":"borderline","reason":"A ticket resale, not a show listing, but it implies Skrillex is playing Fenway Nov 13."}
+{"intent":"aisha-i10","notice":"aisha-n12","label":"no","reason":"A hearing notice, which she excluded; not the Tuesday legislative meeting agenda."}
+{"intent":"grace-i10","notice":"grace-n10","label":"no","reason":"A preparedness class, explicitly excluded, with no grant."}
+{"intent":"dev-i04","notice":"dev-n29","label":"no","reason":"A best-roasters list, not a vendor application call."}
+{"intent":"ravi-i09","notice":"ravi-n01","label":"no","reason":"The Waldorf PPG Wave 3.V plugin licence, explicitly excluded, not hardware parts."}
+{"intent":"priya-i09","notice":"priya-n21","label":"no","reason":"A found AirPods case, unrelated to the Ann Arbor rideshare thread."}
+{"intent":"sam-i02","notice":"sam-n04","label":"no","reason":"A tokio release candidate, not a security advisory."}
+{"intent":"nadia-i09","notice":"nadia-n25","label":"fire","reason":"FAA ground stop at Newark Airport, exactly the disruption she asked about."}
+{"intent":"lena-i01","notice":"lena-n08","label":"borderline","reason":"Press coverage of Enceladus rather than an exoplanet biosignature paper, but confirmed extraterrestrial life is something this researcher would want shown once."}
+{"intent":"lena-i07","notice":"lena-n32","label":"no","reason":"The only postdoc mentioned is on-site in Bern, Switzerland, not California or remote."}
+{"intent":"nadia-i12","notice":"nadia-n27","label":"no","reason":"A request for a courier paid per box, not a standing offer of per-parcel overflow capacity."}
+{"intent":"dev-i09","notice":"dev-n19","label":"no","reason":"A hiring post, not a retail lease."}
+{"intent":"maya-i02","notice":"maya-n19","label":"borderline","reason":"A face-value ticket resale rather than a presale, but it reveals a Caribou show at HOB Boston she may not know about."}
+{"intent":"priya-i11","notice":"priya-n07","label":"fire","reason":"Sipser Theory of Computation 3rd ed for $20 at a moving sale, under her $40 cap."}
+{"intent":"tomas-i07","notice":"tomas-n14","label":"no","reason":"A fantasy football trade, not a real Spurs trade of Keldon Johnson."}
+{"intent":"lena-i12","notice":"lena-n30","label":"fire","reason":"Expression of concern on Beaulieu & Tran 2024 in Nature Astronomy, one of the papers she named."}
+{"intent":"aisha-i05","notice":"aisha-n16","label":"fire","reason":"Residents' group forming at Edgewood Commons NE (Ward 5) with a reply thread, tenants organising."}
+{"intent":"maya-i06","notice":"maya-n17","label":"fire","reason":"Four Tet b2b Floating Points at Knockdown Center in New York, a US date."}
+{"intent":"sam-i06","notice":"sam-n27","label":"no","reason":"Client-side retry with backoff for reqwest, explicitly excluded."}
+{"intent":"sam-i01","notice":"sam-n07","label":"no","reason":"A RustSec advisory for tokio-postgres, not a tokio or sqlx major release."}
+{"intent":"maya-i10","notice":"maya-n27","label":"fire","reason":"A reply in the Jamie xx Portland carpool thread she is following."}
+{"intent":"grace-i01","notice":"grace-n07","label":"no","reason":"Planning Commission hearing, another body's agenda she explicitly excluded even for her district."}
+{"intent":"ravi-i03","notice":"ravi-n08","label":"fire","reason":"Original 1960 Blue Note 4031 with 47 W 63rd labels, deep groove, ear and RVG at CAD 3,100 from a verified dealer."}
+{"intent":"earl-i08","notice":"earl-n28","label":"no","reason":"A well pump for sale, not a reply to his well pump post."}
+{"intent":"ravi-i01","notice":"ravi-n21","label":"no","reason":"A Jupiter-8 authenticity thread, not a Juno-60 for sale."}
+{"intent":"earl-i12","notice":"earl-n35","label":"no","reason":"A Stihl chainsaw thread, nothing to do with Ford 8N rebuilds."}
+{"intent":"ravi-i03","notice":"ravi-n07","label":"fire","reason":"Original Mobley 4031 with all the first-pressing markers at CAD 2,400 shipped in Canada."}
+{"intent":"tomas-i09","notice":"tomas-n28","label":"fire","reason":"Trek Domane road bike in Mueller, Austin for $580, under $600."}
+{"intent":"tomas-i02","notice":"tomas-n04","label":"no","reason":"Tickets to a home match at Q2, which he excluded."}
+{"intent":"maya-i08","notice":"maya-n01","label":"fire","reason":"Skrillex at MGM Music Hall in Boston, within the northeast."}
+{"intent":"sam-i03","notice":"sam-n11","label":"fire","reason":"Informal Rust hang at Lucky Lab on Hawthorne in Portland doing rustlings exercises."}
+{"intent":"grace-i08","notice":"grace-n25","label":"no","reason":"$1,200 piano with buyer arranging movers, far over budget and no delivery."}
+{"intent":"aisha-i08","notice":"aisha-n13","label":"no","reason":"An op-ed call, which she explicitly excluded, not a reporting grant."}
+{"intent":"priya-i04","notice":"priya-n12","label":"borderline","reason":"Not a talk or office-hours change, but it reveals Doc Ramos regularly stops by the Thursday problem sessions for questions."}
+{"intent":"sam-i08","notice":"sam-n19","label":"fire","reason":"Tomasz Wierzbicki giving a talk at EuroRust, recorded."}
+{"intent":"tomas-i12","notice":"tomas-n17","label":"no","reason":"A Spurs trade, not Austin getting an NBA team."}
+{"intent":"tomas-i04","notice":"tomas-n27","label":"no","reason":"A road bike for sale, not Sunday pickup soccer."}
+{"intent":"aisha-i09","notice":"aisha-n20","label":"no","reason":"A condo open house, not a Sony a7 III."}
+{"intent":"kai-i02","notice":"kai-n01","label":"fire","reason":"Band directly posting bassist needed at the Basement East, real date and USD 250 stated pay."}
+{"intent":"lena-i03","notice":"lena-n05","label":"no","reason":"A tentative reanalysis paper, not a confirmed discovery of life."}
+{"intent":"priya-i06","notice":"priya-n17","label":"no","reason":"DemonHacks explicitly offers no travel support."}
+{"intent":"ravi-i01","notice":"ravi-n03","label":"fire","reason":"Serviced Roland Juno-60 at CAD 3,300 from a Toronto dealer, under the CAD 3,500 cap."}
+{"intent":"lena-i04","notice":"lena-n05","label":"fire","reason":"arXiv paper with I. Halvorsen as an author."}
+{"intent":"dev-i07","notice":"dev-n19","label":"no","reason":"A roaster hiring baristas, not a business seeking a wholesale roaster."}
+{"intent":"maya-i08","notice":"maya-n03","label":"no","reason":"A Skrillex tribute night, explicitly excluded."}
+{"intent":"nadia-i04","notice":"nadia-n30","label":"no","reason":"An overflow delivery capacity offer, not a cargo van or e-cargo bike for sale."}
+{"intent":"sam-i03","notice":"sam-n14","label":"no","reason":"Rust Foundation opening an office is news, not a meetup."}
+{"intent":"ravi-i07","notice":"ravi-n30","label":"no","reason":"A repress launch and talk at Sonic Boom, not the Junction Record Fair."}
+{"intent":"grace-i10","notice":"grace-n09","label":"borderline","reason":"A library how-to session rather than the city or state announcing the grant, but it states Brace + Bolt registration opens Oct 1 with amounts, which she would want to know."}
+{"intent":"earl-i12","notice":"earl-n34","label":"no","reason":"An 8N for sale, explicitly excluded; not a rebuild thread."}
+{"intent":"priya-i10","notice":"priya-n27","label":"borderline","reason":"Return-direction-only ride, which she excluded, but a $25 Ann Arbor to Chicago seat on Oct 18 covers the 'back too' part of her trip."}
+{"intent":"jordan-i04","notice":"jordan-n07","label":"fire","reason":"Free Saturday library Pigeon Party in Naperville for ages 3-8."}
+{"intent":"jordan-i07","notice":"jordan-n13","label":"no","reason":"Fall Family Fest and gymnastics registration, not swim lesson registration."}
+{"intent":"lena-i09","notice":"lena-n23","label":"no","reason":"Coordination thread for AST-2026-0418, not manuscript AST-2026-0412."}
+{"intent":"grace-i05","notice":"grace-n03","label":"no","reason":"Agenda concerns Geary Boulevard and the 38, not the N Judah or L Taraval."}
+{"intent":"tomas-i10","notice":"tomas-n31","label":"no","reason":"A Champions League watch party, not a Spurs game at Moody Center."}
+{"intent":"earl-i01","notice":"earl-n13","label":"no","reason":"Free fill dirt, not a Honda lawnmower."}
+{"intent":"earl-i03","notice":"earl-n14","label":"fire","reason":"Randolph Highway Department giving free fill to residents, self-load and haul."}
+{"intent":"maya-i01","notice":"maya-n04","label":"no","reason":"Skrillex in Brooklyn, not near Boston."}
+{"intent":"grace-i12","notice":"grace-n36","label":"fire","reason":"News that Great Highway vehicle lanes between Lincoln and Sloat are restored."}
+{"intent":"tomas-i08","notice":"tomas-n09","label":"no","reason":"A pickup soccer post that mentions the marathon only in passing."}
+{"intent":"tomas-i06","notice":"tomas-n08","label":"no","reason":"Schedule banter and waiver talk with no trade offer."}
+{"intent":"earl-i07","notice":"earl-n27","label":"no","reason":"Someone selling eggs and syrup, not seeking them in trade."}
+{"intent":"ravi-i10","notice":"ravi-n28","label":"fire","reason":"Label reports the original L'Amour master reels were recovered."}
+{"intent":"dev-i07","notice":"dev-n26","label":"fire","reason":"A Highland cafe at 32nd & Lowell in Denver asking for a new wholesale roaster, a lead."}
+{"intent":"ravi-i05","notice":"ravi-n14","label":"no","reason":"Tech does amps, Moog and Buchla only and explicitly refuses Japanese synths."}
+{"intent":"jordan-i10","notice":"jordan-n36","label":"fire","reason":"Found beagle-type dog at Cress Creek, Naperville, matching his worry about Waffles."}
+{"intent":"tomas-i03","notice":"tomas-n14","label":"no","reason":"A fantasy football trade, not a UT football schedule change."}
+{"intent":"priya-i06","notice":"priya-n19","label":"no","reason":"A data co-op, not a hackathon with travel money."}
+{"intent":"nadia-i08","notice":"nadia-n22","label":"fire","reason":"QuickHop announcing a new same-day service area in Staten Island and Bayonne."}
+{"intent":"dev-i03","notice":"dev-n08","label":"fire","reason":"South Pearl market posts open vendor spots including beverage slots this week."}
+{"intent":"lena-i08","notice":"lena-n20","label":"no","reason":"10-inch LX200 at $1,900, far over the $800 cap."}
+{"intent":"maya-i06","notice":"maya-n09","label":"no","reason":"Presale codes for sale, explicitly excluded."}
+{"intent":"lena-i12","notice":"lena-n29","label":"fire","reason":"Retraction of Okonkwo, Beaulieu & Tran 2023 in ApJL, one of the papers she named."}
+{"intent":"aisha-i03","notice":"aisha-n12","label":"fire","reason":"The Deputy Mayor for Planning and Economic Development is a witness at a public hearing, a public speaking appearance."}
+{"intent":"kai-i03","notice":"kai-n11","label":"no","reason":"A Vintera II reissue made in Mexico, not a real vintage Fender."}
+{"intent":"grace-i09","notice":"grace-n40","label":"fire","reason":"A reply reporting an orange tabby with a green collar seen on 45th near Kirkham, a sighting of Mochi."}
+{"intent":"sam-i07","notice":"sam-n24","label":"fire","reason":"A reply in Sam's backstop co-maintainers thread."}
+{"intent":"sam-i10","notice":"sam-n29","label":"fire","reason":"A coordination thread on the LongHaul-24 flaky-ci-triage task (LH24 fct)."}
+{"intent":"priya-i09","notice":"priya-n17","label":"no","reason":"A hackathon post, not a reply in the Ann Arbor rideshare thread."}
+{"intent":"earl-i04","notice":"earl-n16","label":"fire","reason":"Free Vermont Castings woodstove needing work in Chelsea, near Randolph."}
+{"intent":"kai-i09","notice":"kai-n32","label":"no","reason":"This is Kai's own root post, not a reply with a route."}
+{"intent":"maya-i11","notice":"maya-n30","label":"fire","reason":"A personal contact offering a free extra seat at Fenway, not a broker."}
+{"intent":"lena-i01","notice":"lena-n29","label":"no","reason":"A retraction notice, explicitly excluded, not a research paper."}
+{"intent":"dev-i04","notice":"dev-n11","label":"no","reason":"Boulder market, explicitly excluded."}
+{"intent":"lena-i13","notice":"lena-n08","label":"fire","reason":"Major Enceladus news, squarely what she asked for."}
+{"intent":"aisha-i12","notice":"aisha-n11","label":"no","reason":"Rent stabilization item is on a Montgomery County, MD agenda, and other jurisdictions' rent control is excluded."}
+{"intent":"priya-i02","notice":"priya-n02","label":"fire","reason":"Private room, $850 all-in, Jan 3 to Mar 21, two minutes from Southport Brown Line, which sits between Fullerton and Western."}
+{"intent":"tomas-i07","notice":"tomas-n17","label":"fire","reason":"Team-announced, completed trade of Keldon Johnson, exactly the confirmed deal asked for."}
+{"intent":"kai-i01","notice":"kai-n08","label":"borderline","reason":"Paid bassist gig near Nashville with a stated fee, but a wedding reception band playing soul and yacht rock is effectively covers work the person said to skip."}
+{"intent":"grace-i06","notice":"grace-n29","label":"no","reason":"A found dog at the park, explicitly excluded, not a renovation update."}
+{"intent":"grace-i03","notice":"grace-n16","label":"no","reason":"A park construction update with a volunteer planting day, not a free class."}
+{"intent":"sam-i12","notice":"sam-n10","label":"no","reason":"A Seattle Rust hack night, not the Ctrl-H first-Wednesday hack night in Portland."}
+{"intent":"nadia-i03","notice":"nadia-n06","label":"no","reason":"This reply is in thread post_4hd21q, not the capacity thread post_9k2m7w."}
+{"intent":"earl-i11","notice":"earl-n19","label":"no","reason":"A college saw clinic, not anything from Stihl about the MS 261."}
+{"intent":"aisha-i09","notice":"aisha-n32","label":"no","reason":"Right body and place, but $1,150 firm is well over the strict $900 cap."}
+{"intent":"lena-i07","notice":"lena-n15","label":"fire","reason":"Postdoc on exoplanet atmospheres and biosignature frameworks at UC Santa Cruz, in California."}
+{"intent":"tomas-i07","notice":"tomas-n16","label":"no","reason":"A fantasy-league thread repeating a podcast rumour, both explicitly excluded."}
+{"intent":"nadia-i01","notice":"nadia-n02","label":"no","reason":"Same-day courier request, but Philadelphia to King of Prussia is far outside north Jersey or NYC."}
+{"intent":"ravi-i09","notice":"ravi-n16","label":"no","reason":"A general synth swap event, not anyone selling PPG Wave parts."}
+{"intent":"nadia-i06","notice":"nadia-n17","label":"no","reason":"Route 21 closure hearsay from a traffic blog, and the person wants official sources only."}
+{"intent":"grace-i09","notice":"grace-n28","label":"fire","reason":"Found orange cat with a green collar at Kirkham and 43rd, a couple of blocks from where Mochi went missing."}
+{"intent":"aisha-i10","notice":"aisha-n09","label":"fire","reason":"The DC Council's legislative meeting agenda for Tuesday, posted by the civic agent."}
+{"intent":"earl-i07","notice":"earl-n03","label":"fire","reason":"Seller explicitly wants maple syrup or eggs in trade rather than cash, nearby in Tunbridge."}
+{"intent":"ravi-i02","notice":"ravi-n05","label":"no","reason":"The Prophet-5 is the excluded Rev4 and the original Model D is CAD 15,900, over the strict 12,000 cap."}
+{"intent":"nadia-i01","notice":"nadia-n14","label":"no","reason":"A driver hiring ad, not a delivery request to bid on."}
+{"intent":"earl-i02","notice":"earl-n07","label":"fire","reason":"48 in Cat I box blade for $300 at a Williston moving sale, about an hour from Randolph."}
+{"intent":"ravi-i06","notice":"ravi-n15","label":"no","reason":"Montreal synth meet, which the person explicitly ruled out."}
+{"intent":"earl-i05","notice":"earl-n20","label":"no","reason":"A dealer's free sharpening promo in Barre, not a class from the college in Randolph Center."}
+{"intent":"sam-i11","notice":"sam-n15","label":"fire","reason":"Rust Foundation announcing keys to a floor at NW 11th and Couch in Portland's Pearl District is the Portland office."}
+{"intent":"ravi-i06","notice":"ravi-n17","label":"fire","reason":"A monthly in-person meetup for old-keyboard people at Tallboys on Bloor West in Toronto."}
+{"intent":"nadia-i06","notice":"nadia-n29","label":"fire","reason":"Full Skyway closure Sunday morning announced by the City of Jersey City, an accepted official source."}
+{"intent":"tomas-i02","notice":"tomas-n31","label":"no","reason":"A Champions League final watch party, not an Austin FC away match."}
+{"intent":"jordan-i07","notice":"jordan-n07","label":"no","reason":"A library storytime, not park district swim lesson registration."}
+{"intent":"ravi-i01","notice":"ravi-n04","label":"fire","reason":"JU-60 with MIDI kit and new sliders for CAD 3,000, pickup in Scarborough."}
+{"intent":"nadia-i07","notice":"nadia-n21","label":"no","reason":"The market organiser mentions Ferreira Bakery; it is not the bakery's own agent posting."}
+{"intent":"kai-i05","notice":"kai-n20","label":"no","reason":"A monthly lockout with no hourly option, exactly what was excluded."}
+{"intent":"sam-i02","notice":"sam-n07","label":"no","reason":"Advisory is for tokio-postgres, which the person explicitly excluded as a similarly named crate."}
+{"intent":"kai-i02","notice":"kai-n09","label":"fire","reason":"Coordinator posting directly, real date, USD 500 flat, Chattanooga is within a day's drive."}
+{"intent":"nadia-i05","notice":"nadia-n10","label":"no","reason":"A cargo bike for sale, not a person offering to drive or ride for deliveries."}
+{"intent":"maya-i09","notice":"maya-n12","label":"no","reason":"A Wet Leg concert in Cambridge, not comedy at the Comedy Studio."}
+{"intent":"earl-i01","notice":"earl-n04","label":"no","reason":"A Honda Civic, and Honda cars are explicitly excluded."}
+{"intent":"ravi-i11","notice":"ravi-n03","label":"no","reason":"A dealer's inventory post with a generic buy-list, not a collector looking to buy an MS-20 mk1."}
+{"intent":"sam-i01","notice":"sam-n04","label":"no","reason":"A release candidate, which the person explicitly excluded."}
+{"intent":"nadia-i06","notice":"nadia-n16","label":"fire","reason":"NJDOT/511NJ lane closure on the Pulaski Skyway between Kearny and Jersey City."}
+{"intent":"jordan-i04","notice":"jordan-n09","label":"borderline","reason":"Free Sunday kids' event ideal for ages 4 and 7, but downtown Chicago is roughly 45 km from Naperville, past the strict 20 km bound."}
+{"intent":"lena-i02","notice":"lena-n01","label":"fire","reason":"An arXiv astro-ph.EP paper on biosignature retrieval in sub-Neptune atmospheres, via a relay."}
+{"intent":"kai-i07","notice":"kai-n25","label":"fire","reason":"AmericanaFest's own open call for house band backing musicians including bass."}
+{"intent":"priya-i06","notice":"priya-n24","label":"no","reason":"A carpool to a football game, not a hackathon with travel funding."}
+{"intent":"aisha-i08","notice":"aisha-n17","label":"no","reason":"A nonprofit seeking a reporter, not a Harkness-Tully grant or fellowship deadline."}
+{"intent":"ravi-i07","notice":"ravi-n17","label":"no","reason":"A synth meetup at a bar, not the Junction Record Fair."}
+{"intent":"nadia-i05","notice":"nadia-n12","label":"fire","reason":"An individual courier in Harrison, next to Newark, with own e-bike offering weekday shifts."}
+{"intent":"nadia-i08","notice":"nadia-n14","label":"no","reason":"A QuickHop hiring ad, explicitly excluded."}
+{"intent":"earl-i01","notice":"earl-n01","label":"fire","reason":"Honda HRR216 mower for sale in Brookfield, minutes from Randolph."}
+{"intent":"sam-i07","notice":"sam-n25","label":"no","reason":"A separate question mentioning backstop, not a reply in the co-maintainers thread."}
+{"intent":"earl-i01","notice":"earl-n03","label":"fire","reason":"Honda HRX217 mower offered in Tunbridge, near Randolph; wanting trades rather than cash still makes it a sale."}
+{"intent":"priya-i01","notice":"priya-n17","label":"fire","reason":"Free hackathon on the Lincoln Park campus that feeds participants the whole time."}
+{"intent":"nadia-i01","notice":"nadia-n07","label":"fire","reason":"Three sub-10 kg parcels Kearny to Chelsea on a fixed day this week, asking for a quote."}
+{"intent":"lena-i08","notice":"lena-n25","label":"no","reason":"A public observing event, not a used telescope for sale."}
+{"intent":"lena-i03","notice":"lena-n06","label":"no","reason":"A first-contact novel launch; fiction is excluded."}
+{"intent":"priya-i12","notice":"priya-n01","label":"no","reason":"A CS colloquium in Evanston, nothing about the Ray Meyer climbing wall."}
+{"intent":"dev-i08","notice":"dev-n04","label":"no","reason":"A wanted ad for a coffee roaster, not a driver offering availability."}
+{"intent":"ravi-i10","notice":"ravi-n29","label":"fire","reason":"A first-hand claim reported by CBC that the 1983 'lamour' session reels exist is exactly the tapes-turning-up news wanted, even pending verification."}
+{"intent":"kai-i07","notice":"kai-n40","label":"no","reason":"A band reunion tour announcement, not a festival open call for musicians."}
+{"intent":"jordan-i10","notice":"jordan-n22","label":"no","reason":"A babysitter offer, not a found dog."}
+{"intent":"tomas-i11","notice":"tomas-n03","label":"no","reason":"An Austin FC away-match watch party, not the Champions League final."}
+{"intent":"earl-i10","notice":"earl-n44","label":"borderline","reason":"Not an opening, but it reveals an existing tool library in Burlington about an hour away that the person would want to know about."}
+{"intent":"earl-i09","notice":"earl-n40","label":"no","reason":"Bethel's transfer station, not Randolph's."}
+{"intent":"tomas-i01","notice":"tomas-n01","label":"fire","reason":"Pair for Austin FC at Houston on 9/27, lower bowl not the away end, $55 each."}
+{"intent":"nadia-i05","notice":"nadia-n14","label":"no","reason":"An employer hiring drivers, explicitly excluded."}
+{"intent":"jordan-i02","notice":"jordan-n03","label":"no","reason":"A Graco infant car seat recall, not a Babyletto crib."}
+{"intent":"earl-i06","notice":"earl-n23","label":"fire","reason":"Mixed hardwood at $275 a cord delivered within half an hour of Chelsea, gone by end of September."}
+{"intent":"lena-i03","notice":"lena-n09","label":"fire","reason":"Two labs independently replicating metabolic-activity signals with abiotic alternatives ruled out is the confirmed discovery the person asked for."}
+{"intent":"maya-i01","notice":"maya-n13","label":"fire","reason":"Sonny Moore is Skrillex, on a festival poster in Allston, Boston."}
+{"intent":"grace-i06","notice":"grace-n20","label":"no","reason":"A Muni bus reroute, nothing to do with the playground renovation."}
+{"intent":"lena-i01","notice":"lena-n32","label":"no","reason":"A paper on Enceladus plume organics, not biosignature detection in exoplanet atmospheres."}
+{"intent":"lena-i10","notice":"lena-n03","label":"no","reason":"A Caltech lecture, not a Griffith Observatory star party."}
+{"intent":"ravi-i04","notice":"ravi-n11","label":"fire","reason":"Scarborough contents sale full of keyboards, amps, a reel-to-reel and records."}
+{"intent":"priya-i03","notice":"priya-n06","label":"fire","reason":"Working hybrid for $140 in Lincoln Square, pickup at the Western Brown Line."}
+{"intent":"tomas-i05","notice":"tomas-n12","label":"fire","reason":"An Austin goalkeeper looking for a Sunday league team."}
+{"intent":"jordan-i05","notice":"jordan-n30","label":"no","reason":"Another parent also wanting to buy a City Mini GT2 double, a request rather than an offer."}
+{"intent":"maya-i04","notice":"maya-n10","label":"no","reason":"Governors Ball lineup, not Boston Calling."}
+{"intent":"lena-i07","notice":"lena-n10","label":"no","reason":"A conference abstract call in Denver, not a postdoc opening."}
+{"intent":"lena-i13","notice":"lena-n32","label":"fire","reason":"The E-ring source moon, Saturn II, is Enceladus, and this is a new paper on its plume organics."}
+{"intent":"lena-i04","notice":"lena-n03","label":"no","reason":"A talk by Halvorsen, and talks she gives are excluded."}
+{"intent":"lena-i01","notice":"lena-n03","label":"no","reason":"A lecture, not a research paper."}
+{"intent":"dev-i10","notice":"dev-n24","label":"no","reason":"Mentions Ridgeline Bagel Co., which is explicitly excluded, not Ridgeline Roasters."}
+{"intent":"maya-i03","notice":"maya-n22","label":"no","reason":"A show at the Comedy Studio in Somerville, not the Sinclair."}
+{"intent":"ravi-i05","notice":"ravi-n13","label":"fire","reason":"Leslieville tech with 25 years' experience doing Juno and Jupiter recaps and calibration, no amps or Eurorack."}
+{"intent":"grace-i12","notice":"grace-n02","label":"borderline","reason":"An ordinance on first reading is not yet the reopening, but it shows weekday car access on the Upper Great Highway is actually moving through the Board."}
+{"intent":"nadia-i01","notice":"nadia-n30","label":"no","reason":"QuickHop offering capacity, not a delivery request to bid on."}
+{"intent":"earl-i02","notice":"earl-n32","label":"no","reason":"A tractor engine rebuild diary, not a box blade for sale."}
+{"intent":"aisha-i11","notice":"aisha-n19","label":"no","reason":"A tipster seeking any DC housing writer; Aisha Bello's byline is not mentioned."}
+{"intent":"ravi-i08","notice":"ravi-n21","label":"no","reason":"This is the thread's root post the person already knows about, with no serial photos or verdict yet."}
+{"intent":"jordan-i07","notice":"jordan-n14","label":"fire","reason":"Naperville Park District announcing Fall II swim lesson registration opening Sept 29."}
+{"intent":"jordan-i01","notice":"jordan-n04","label":"no","reason":"The right seat and model, but it is a blog repost and the person wants only Graco, NHTSA or CPSC."}
+{"intent":"kai-i08","notice":"kai-n29","label":"fire","reason":"2020 Transit 350 high roof, 61k miles, USD 31,900, an hour from Nashville in Bowling Green."}
+{"intent":"dev-i03","notice":"dev-n11","label":"no","reason":"Boulder market vendor applications, not South Pearl open spots."}
+{"intent":"priya-i10","notice":"priya-n26","label":"no","reason":"A group with no car asking Priya to drive, and people asking for a driver are excluded."}
+{"intent":"nadia-i08","notice":"nadia-n23","label":"fire","reason":"QH Same-Day announcing a new Westchester service area."}
+{"intent":"dev-i11","notice":"dev-n25","label":"no","reason":"A bakery seeking a roaster, not a reply in the POS thread."}
+{"intent":"priya-i08","notice":"priya-n22","label":"fire","reason":"Public Safety logged a white earbud case with a purple sticker found at the Richardson Library that week."}
+{"intent":"kai-i12","notice":"kai-n25","label":"no","reason":"A festival house band call, nothing about Bishop's Crossing reuniting."}
+{"intent":"jordan-i02","notice":"jordan-n04","label":"fire","reason":"Reports a CPSC recall of the Babyletto Hudson crib, and no source restriction was set for the crib."}
+{"intent":"lena-i09","notice":"lena-n30","label":"no","reason":"An editorial notice about a different published paper, not the AST-2026-0412 reviewer thread."}
+{"intent":"aisha-i04","notice":"aisha-n35","label":"fire","reason":"The Department of Buildings itself is announcing its own FOIA records disclosure."}
+{"intent":"kai-i06","notice":"kai-n25","label":"no","reason":"AmericanaFest house-band open call has nothing to do with Teddy Marchetti's sessions."}
+{"intent":"priya-i05","notice":"priya-n13","label":"no","reason":"Student-organised Discord study group, not one run by the CS department."}
+{"intent":"dev-i03","notice":"dev-n29","label":"no","reason":"A roaster ranking list, not the South Pearl market posting open vendor spots."}
+{"intent":"earl-i12","notice":"earl-n32","label":"fire","reason":"A thread documenting a '51 Ford 8N engine rebuild is exactly what he likes to read."}
+{"intent":"lena-i08","notice":"lena-n19","label":"fire","reason":"Used NexStar 6SE (a decent SCT) at $700 in Glendale, well within 50 km of Pasadena."}
+{"intent":"nadia-i03","notice":"nadia-n20","label":"no","reason":"A fresh catering-courier request, not a reply to her capacity post post_9k2m7w."}
+{"intent":"sam-i02","notice":"sam-n06","label":"fire","reason":"sqlx maintainers themselves announcing a security fix in a crate in his stack."}
+{"intent":"aisha-i12","notice":"aisha-n03","label":"no","reason":"HPTF award press conference is housing news but not about rent control or stabilization."}
+{"intent":"priya-i09","notice":"priya-n13","label":"no","reason":"A study-group post, not a reply inside the Ann Arbor rideshare thread."}
+{"intent":"tomas-i05","notice":"tomas-n13","label":"fire","reason":"'Between the sticks, free Sundays, east side' is a goalkeeper offering himself for Sunday play, matching the ask in jargon."}
+{"intent":"aisha-i10","notice":"aisha-n11","label":"no","reason":"Montgomery County Council agenda, not the DC Council's."}
+{"intent":"kai-i12","notice":"kai-n43","label":"no","reason":"A one-off benefit reunion set, which he explicitly said does not count."}
+{"intent":"jordan-i02","notice":"jordan-n16","label":"no","reason":"A stroller for sale, not a Babyletto crib recall."}
+{"intent":"tomas-i03","notice":"tomas-n06","label":"fire","reason":"Confirmed by the SEC office and relayed by a news feed: the Texas-A&M game moved to Saturday."}
+{"intent":"nadia-i12","notice":"nadia-n30","label":"fire","reason":"A standing overflow capacity offer priced per parcel, exactly what she wants to see."}
+{"intent":"kai-i12","notice":"kai-n27","label":"no","reason":"A tribute-set band call, not Bishop's Crossing reuniting for a tour."}
+{"intent":"grace-i12","notice":"grace-n37","label":"no","reason":"A Muni stop petition, unrelated to reopening the Great Highway to cars."}
+{"intent":"nadia-i01","notice":"nadia-n03","label":"no","reason":"A 600 kg pallet needing a liftgate is the freight she excluded."}
+{"intent":"aisha-i12","notice":"aisha-n07","label":"fire","reason":"A panel on DC rent stabilization and the bill before the Council is interesting rent-control content, not an op-ed."}
+{"intent":"maya-i05","notice":"maya-n16","label":"no","reason":"Verified resale for the sold-out Nov 20 date, which she excluded; no second night announced."}
+{"intent":"priya-i08","notice":"priya-n13","label":"no","reason":"Someone else's lost black AirPods case, not her white one with the bear sticker."}
+{"intent":"jordan-i03","notice":"jordan-n35","label":"borderline","reason":"Not from District 203, but a county health notice of pertussis in Naperville schools is something a parent would want once."}
+{"intent":"ravi-i03","notice":"ravi-n30","label":"no","reason":"A Light in the Attic repress launch, not a Soul Station first pressing."}
+{"intent":"jordan-i05","notice":"jordan-n16","label":"fire","reason":"Used City Mini GT2 Double at $260 with pickup in Naperville, under budget and in range."}
+{"intent":"dev-i05","notice":"dev-n13","label":"fire","reason":"DDPHE itself adopting food-establishment rule changes that explicitly cover limited-menu beverage shops."}
+{"intent":"jordan-i08","notice":"jordan-n19","label":"no","reason":"A pediatric dentist announcement, not a babysitter."}
+{"intent":"aisha-i04","notice":"aisha-n04","label":"no","reason":"A news story built on FOIA'd DOB records, not a disclosure posted by DOB."}
+{"intent":"sam-i11","notice":"sam-n10","label":"no","reason":"A hack night at the Rust Foundation's Seattle space, not a Portland office."}
+{"intent":"nadia-i02","notice":"nadia-n05","label":"no","reason":"A multi-leg relay in Chicago, not the New York area."}
+{"intent":"maya-i08","notice":"maya-n04","label":"fire","reason":"Skrillex at Brooklyn Mirage, a New York date she said she would travel for."}
+{"intent":"kai-i12","notice":"kai-n41","label":"no","reason":"A tribute act's reunion, explicitly excluded."}
+{"intent":"aisha-i10","notice":"aisha-n01","label":"no","reason":"A zoning commission hearing notice, not the DC Council legislative meeting agenda."}
+{"intent":"grace-i06","notice":"grace-n11","label":"no","reason":"A tai chi class at the rec center, not a playground renovation update."}
+{"intent":"sam-i06","notice":"sam-n23","label":"no","reason":"A co-maintainer offer for backstop, not someone asking how to make handlers retry-safe."}
+{"intent":"lena-i03","notice":"lena-n32","label":"no","reason":"Organics in Enceladus plume grains is chemistry, not a confirmed discovery of life."}
+{"intent":"maya-i05","notice":"maya-n10","label":"no","reason":"Jungle on a New York festival lineup, not a second Boston night."}
+{"intent":"tomas-i09","notice":"tomas-n01","label":"no","reason":"Soccer tickets, not a road bike."}
+{"intent":"aisha-i02","notice":"aisha-n05","label":"no","reason":"Maryland's DHCD in Baltimore, not the DC agency."}
+{"intent":"maya-i01","notice":"maya-n14","label":"no","reason":"A Jungle show, not Skrillex."}
+{"intent":"ravi-i05","notice":"ravi-n15","label":"no","reason":"The Roland repair clinic is in Montreal, well outside the GTA she requires."}
+{"intent":"jordan-i03","notice":"jordan-n14","label":"no","reason":"Park District swim registration, not a District 203 announcement."}
+{"intent":"priya-i12","notice":"priya-n17","label":"no","reason":"A hackathon post noting the wall is still closed; not a reopening."}
+{"intent":"maya-i03","notice":"maya-n03","label":"no","reason":"At the Middle East Downstairs, not the Sinclair."}
+{"intent":"kai-i10","notice":"kai-n36","label":"fire","reason":"A weekly Monday funk jam in East Nashville with bass sit-ins, not an open mic."}
+{"intent":"maya-i05","notice":"maya-n15","label":"fire","reason":"'Jungle: Saturday added' at the same Lansdowne St room is the second MGM night she wanted."}
+{"intent":"grace-i13","notice":"grace-n37","label":"no","reason":"This is the root petition post she already follows; no signing date or meeting has been posted yet."}
+{"intent":"kai-i11","notice":"kai-n44","label":"no","reason":"Paid Denver bass gig, but on Oct 25, outside her Oct 5-11 window."}
+{"intent":"dev-i07","notice":"dev-n28","label":"no","reason":"A thread complaining about cafe service, not a business seeking a wholesale roaster."}
+{"intent":"jordan-i06","notice":"jordan-n19","label":"fire","reason":"Naperville pediatric dental practice accepting new patients and in-network with Delta Dental PPO."}
+{"intent":"dev-i06","notice":"dev-n22","label":"no","reason":"A vacant retail lease in RiNo, no Blackbird Roasting opening."}
+{"intent":"tomas-i10","notice":"tomas-n23","label":"no","reason":"Austin Spurs G League game in Cedar Park, explicitly excluded."}
+{"intent":"maya-i02","notice":"maya-n09","label":"no","reason":"A code reseller, which she explicitly said does not count as the real presale."}
+{"intent":"lena-i07","notice":"lena-n17","label":"no","reason":"A galaxy-evolution postdoc, not biosignatures or exoplanet atmospheres."}
+{"intent":"ravi-i05","notice":"ravi-n03","label":"fire","reason":"A Toronto verified dealer whose in-house bench does Roland recaps and calibration, whether or not you bought there."}
+{"intent":"maya-i12","notice":"maya-n11","label":"no","reason":"A standard doors/show listing, not set times posted in advance."}
+{"intent":"nadia-i11","notice":"nadia-n32","label":"no","reason":"A McCarter Highway parade closure, not the Pulaski Skyway."}
+{"intent":"maya-i05","notice":"maya-n14","label":"fire","reason":"Jungle second show added Nov 21 at MGM Music Hall, exactly the ask."}
+{"intent":"earl-i01","notice":"earl-n08","label":"no","reason":"A wanted post for a Honda mower, not a seller."}
+{"intent":"lena-i05","notice":"lena-n07","label":"no","reason":"Call for abstracts for a different astrobiology conference, not AbSciCon or the Gordon conference."}
+{"intent":"lena-i08","notice":"lena-n18","label":"fire","reason":"Orion XT8 8-inch Dob at $550 in Altadena, next door to Pasadena."}
+{"intent":"tomas-i08","notice":"tomas-n27","label":"no","reason":"A bike listing that mentions the marathon in passing."}
+{"intent":"tomas-i01","notice":"tomas-n07","label":"no","reason":"A Longhorns watch party, not Austin FC away tickets."}
+{"intent":"dev-i03","notice":"dev-n12","label":"fire","reason":"The market organiser posting one open beverage vendor slot for this Sunday at South Pearl."}
+{"intent":"tomas-i08","notice":"tomas-n25","label":"fire","reason":"Full marathon registration for the 2027 Austin Marathon opens Oct 1, from the organiser."}
+{"intent":"lena-i05","notice":"lena-n10","label":"fire","reason":"AbSciCon 2027 abstract submission is open."}
+{"intent":"aisha-i06","notice":"aisha-n19","label":"fire","reason":"Someone seeking a writer who covers DC housing to hear a story, not PR or an op-ed call."}
+{"intent":"aisha-i01","notice":"aisha-n12","label":"no","reason":"A rent stabilization hearing with no mention of Halcyon Ridge Partners or Parkside Gateway."}
+{"intent":"jordan-i11","notice":"jordan-n23","label":"fire","reason":"A new reply in the Prairie Elementary PTA thread, which she asked to follow."}
+{"intent":"dev-i11","notice":"dev-n29","label":"no","reason":"A roaster ranking, not a reply in her POS thread."}
+{"intent":"lena-i11","notice":"lena-n10","label":"no","reason":"A conference abstract call, not a NASA ROSES deadline."}
+{"intent":"tomas-i09","notice":"tomas-n25","label":"no","reason":"Marathon registration, not a road bike."}
+{"intent":"priya-i04","notice":"priya-n11","label":"no","reason":"A student reading group about her paper that she is not attending, not her talk or office hours."}
+{"intent":"ravi-i02","notice":"ravi-n03","label":"fire","reason":"Verified dealer listing an original Prophet-5 Rev 3.3 at CAD 11,800 and a 1976 Model D at CAD 10,900, both under cap."}
+{"intent":"priya-i05","notice":"priya-n11","label":"no","reason":"A student-run reading group not affiliated with the department, and not a 347 study session."}
+{"intent":"aisha-i07","notice":"aisha-n25","label":"fire","reason":"Three independent labs reproducing a room-temperature, ambient-pressure result, reported by Reuters, is the replication."}
+{"intent":"ravi-i06","notice":"ravi-n19","label":"no","reason":"A record fair, which he explicitly excluded, not a synth meetup."}
+{"intent":"lena-i06","notice":"lena-n04","label":"no","reason":"A new habitable-zone planet discovery, not the Rocky Worlds DDT data release."}
+{"intent":"lena-i01","notice":"lena-n01","label":"fire","reason":"An arXiv paper on biosignature retrieval in exoplanet atmospheres."}
+{"intent":"priya-i12","notice":"priya-n32","label":"no","reason":"A different climbing gym's college night, not the Ray Meyer wall reopening."}
+{"intent":"kai-i11","notice":"kai-n06","label":"fire","reason":"Paid bassist gig at Globe Hall in Denver on Oct 9, inside his week there."}
+{"intent":"tomas-i04","notice":"tomas-n10","label":"fire","reason":"Sunday-morning pickup soccer behind the Pan Am rec center off E 3rd, a short walk from East Cesar Chavez and Chicon."}
+{"intent":"priya-i11","notice":"priya-n28","label":"fire","reason":"Sipser 3rd edition for $30, under budget, with shipping offered."}
+{"intent":"grace-i07","notice":"grace-n12","label":"no","reason":"A senior rate on one paid class, which she excluded."}
+{"intent":"ravi-i07","notice":"ravi-n19","label":"fire","reason":"The Junction Record Fair's October date at the Polish Combatants Hall."}
+{"intent":"sam-i01","notice":"sam-n06","label":"no","reason":"sqlx 0.8.7 is a patch release, not a new major."}
+{"intent":"jordan-i06","notice":"jordan-n20","label":"fire","reason":"A pediatric dentist in Lisle, within 15 km of Naperville, taking Delta PPO and opening first visits again."}
+{"intent":"nadia-i02","notice":"nadia-n08","label":"no","reason":"A bakery reply in her own capacity thread about holding slots, not a multi-leg relay thread."}
+{"intent":"nadia-i02","notice":"nadia-n26","label":"no","reason":"A single-rider weekly delivery job, not a multi-leg relay."}
+{"intent":"grace-i08","notice":"grace-n26","label":"no","reason":"Free upright but you-haul, and she explicitly cannot haul a piano."}
+{"intent":"ravi-i10","notice":"ravi-n07","label":"no","reason":"A Mobley LP for sale, nothing about the L'Amour master tapes."}
+{"intent":"lena-i04","notice":"lena-n01","label":"no","reason":"Authors are Achterberg, Nwosu and Castellanos; no Halvorsen."}
+{"intent":"earl-i02","notice":"earl-n12","label":"no","reason":"An 84-inch Cat II box blade at $650, wrong category, wrong size and over budget."}
+{"intent":"kai-i05","notice":"kai-n21","label":"fire","reason":"An hourly rehearsal room in Five Points at $20/hour, not a monthly lockout."}
+{"intent":"lena-i08","notice":"lena-n06","label":"no","reason":"A book launch at Vroman's, not a telescope."}
+{"intent":"maya-i03","notice":"maya-n31","label":"fire","reason":"Set times for the Yaeji show at the Sinclair, which is anything-at-the-Sinclair territory."}
+{"intent":"ravi-i10","notice":"ravi-n08","label":"no","reason":"A Soul Station original for sale, nothing about the L'Amour master tapes."}
+{"intent":"earl-i05","notice":"earl-n21","label":"no","reason":"A chainsaw course at the Vermont Woodworking School in Fairfax, not the college in Randolph Center."}
+{"intent":"tomas-i08","notice":"tomas-n26","label":"fire","reason":"A running shop announcing full-marathon (26.2) registration opens Thursday; source is irrelevant to him."}
+{"intent":"lena-i07","notice":"lena-n26","label":"no","reason":"A NASA funding solicitation reminder is not a postdoc opening."}
+{"intent":"sam-i08","notice":"sam-n17","label":"fire","reason":"The CFP announces Wierzbicki keynoting an online conference, which is a talk by him and online counts."}
+{"intent":"dev-i04","notice":"dev-n18","label":"no","reason":"A cafe soft opening is not a market or festival taking vendor applications."}
+{"intent":"nadia-i12","notice":"nadia-n03","label":"no","reason":"A one-off pallet freight request is neither a standing offer nor per-parcel pricing."}
+{"intent":"kai-i08","notice":"kai-n31","label":"no","reason":"It is a Transit Connect, which the person explicitly excluded."}
+{"intent":"tomas-i02","notice":"tomas-n02","label":"fire","reason":"An East Austin bar hosting a watch party for the Austin FC away match at Houston is exactly the ask."}
+{"intent":"maya-i08","notice":"maya-n10","label":"fire","reason":"Fred again.. headlines Governors Ball in Queens, well within the northeast range she will travel."}
+{"intent":"earl-i03","notice":"earl-n13","label":"fire","reason":"Forty yards of free clean fill in Brookfield, a few miles from Randolph, with loading offered."}
+{"intent":"nadia-i03","notice":"nadia-n08","label":"fire","reason":"It is a reply in thread post_9k2m7w, the exact thread she asked to follow."}
+{"intent":"maya-i08","notice":"maya-n06","label":"no","reason":"Flume is neither Skrillex nor Fred again.."}
+{"intent":"dev-i02","notice":"dev-n06","label":"fire","reason":"Twelve full bags of Ethiopian at $4.10/lb spot meets origin, price and quantity, and the source rule is loose."}
+{"intent":"nadia-i04","notice":"nadia-n09","label":"fire","reason":"A Transit 250 cargo van at $16,500 in Linden is under budget and well within 50 km of Newark."}
+{"intent":"aisha-i08","notice":"aisha-n27","label":"no","reason":"This is the photojournalism fellowship she explicitly told me to skip."}
+{"intent":"sam-i09","notice":"sam-n35","label":"no","reason":"Right switches and pickup in Portland, but $140 firm is well over the strict $100 cap."}
+{"intent":"dev-i11","notice":"dev-n31","label":"fire","reason":"It is a substantive reply inside her multi-location cafe POS thread."}
+{"intent":"sam-i03","notice":"sam-n12","label":"no","reason":"A general hackerspace hack night in Portland is not a Rust meetup."}
+{"intent":"earl-i11","notice":"earl-n36","label":"fire","reason":"A STIHL Inc. service bulletin on the MS 261 C-M is exactly the manufacturer notice he wants."}
+{"intent":"grace-i01","notice":"grace-n18","label":"no","reason":"An SFMTA service alert is not a Board of Supervisors agenda item, and other bodies were excluded."}
+{"intent":"maya-i10","notice":"maya-n25","label":"no","reason":"This is the carpool root post she already read, not a reply."}
+{"intent":"earl-i08","notice":"earl-n35","label":"no","reason":"A chainsaw thread has nothing to do with his well pump post."}
+{"intent":"kai-i01","notice":"kai-n09","label":"no","reason":"A paid bass gig, but in Chattanooga, well outside the strict Nashville radius."}
+{"intent":"earl-i07","notice":"earl-n43","label":"no","reason":"A hardware store tool sale offers no barter for eggs or syrup."}
+{"intent":"dev-i05","notice":"dev-n10","label":"no","reason":"A festival vendor call from an org that merely mentions a DDPHE permit is not a city rule change."}
+{"intent":"lena-i05","notice":"lena-n03","label":"no","reason":"A public lecture is not a call for abstracts for AbSciCon or the Gordon conference."}
+{"intent":"ravi-i01","notice":"ravi-n02","label":"no","reason":"A want-to-buy post for a Juno-60 is a request, not a sale."}
+{"intent":"maya-i07","notice":"maya-n21","label":"no","reason":"Mezzanine seats are explicitly excluded; she wants floor only."}
+{"intent":"maya-i02","notice":"maya-n12","label":"no","reason":"Wet Leg is not one of the four artists she is watching for."}
+{"intent":"dev-i10","notice":"dev-n28","label":"fire","reason":"A complaint about Ridgeline on Broadway (and a mention of the Welton shop) is exactly the chatter she wants."}
+{"intent":"maya-i03","notice":"maya-n11","label":"fire","reason":"Yaeji at The Sinclair is an interesting show at the one venue she asked about."}
+{"intent":"priya-i07","notice":"priya-n15","label":"no","reason":"A hackathon in Cambridge is not a paid summer 2027 internship."}
+{"intent":"lena-i03","notice":"lena-n03","label":"no","reason":"A lecture asking whether we are alone is explicitly excluded; no discovery here."}
+{"intent":"sam-i05","notice":"sam-n14","label":"no","reason":"News of a Rust Foundation office opening is not a remote senior backend job posting."}
+{"intent":"aisha-i04","notice":"aisha-n33","label":"fire","reason":"DOB itself posting FOIA responses to its reading room is precisely the ask."}
+{"intent":"priya-i09","notice":"priya-n27","label":"fire","reason":"A reply in the Ann Arbor game rideshare thread offering seats back to Chicago is what she asked to be told about."}
+{"intent":"priya-i01","notice":"priya-n12","label":"fire","reason":"Free pizza at a weekly problem session on the Lincoln Park campus is free food on campus."}
+{"intent":"priya-i11","notice":"priya-n22","label":"no","reason":"A lost-and-found log listing a Discrete Math textbook is not a Sipser copy for sale."}
+{"intent":"nadia-i11","notice":"nadia-n24","label":"no","reason":"A Port Newark gate closure is not a full closure of the Pulaski Skyway."}
+{"intent":"nadia-i01","notice":"nadia-n27","label":"fire","reason":"A paid Manhattan courier request for small boxes by bike or van, no freight, is a job she can bid on."}
+{"intent":"jordan-i02","notice":"jordan-n01","label":"no","reason":"A Graco car seat recall is not a Babyletto crib recall."}
+{"intent":"aisha-i03","notice":"aisha-n08","label":"no","reason":"A cancelled appearance is exactly what she excluded."}
+{"intent":"grace-i05","notice":"grace-n19","label":"fire","reason":"An SFMTA schedule change on the L Taraval is a service change on one of her two lines."}
+{"intent":"maya-i04","notice":"maya-n01","label":"no","reason":"A standalone Skrillex show is not the Boston Calling lineup drop."}
+{"intent":"lena-i13","notice":"lena-n09","label":"borderline","reason":"It is Europa, not Enceladus, but an independently confirmed metabolic signal in an ocean-world plume is something an Enceladus researcher would want to see once."}
+{"intent":"lena-i02","notice":"lena-n05","label":"fire","reason":"An arXiv relay of a K2-18 b DMS retrieval paper is a biosignature-detection paper from arXiv."}
+{"intent":"jordan-i04","notice":"jordan-n14","label":"no","reason":"Paid swim lesson registration is not a free or cheap weekend outing."}
+{"intent":"jordan-i03","notice":"jordan-n28","label":"no","reason":"A PTA fun run post is not a district-wide announcement from Naperville 203."}
+{"intent":"ravi-i07","notice":"ravi-n10","label":"no","reason":"An Etobicoke estate sale is not the Junction Record Fair date."}
+{"intent":"ravi-i04","notice":"ravi-n19","label":"borderline","reason":"Not an estate sale, but a Toronto record fair with Blue Note originals serves the same hunt and is worth showing once."}
+{"intent":"lena-i03","notice":"lena-n07","label":"no","reason":"A conference call for abstracts is explicitly excluded and reports no discovery."}
+{"intent":"grace-i06","notice":"grace-n01","label":"fire","reason":"The committee agenda carries a $1.2M appropriation for Sunset Playground Renovation Phase 2, a funding item she said counts."}
+{"intent":"maya-i11","notice":"maya-n21","label":"no","reason":"Caribou concert tickets are not a Red Sox ticket at Fenway."}
+{"intent":"aisha-i12","notice":"aisha-n08","label":"no","reason":"A cancelled housing-finance keynote says nothing about rent control."}
+{"intent":"lena-i11","notice":"lena-n14","label":"no","reason":"A JWST call from STScI is not a NASA ROSES Exobiology or Habitable Worlds deadline and STScI was excluded."}
+{"intent":"sam-i01","notice":"sam-n20","label":"no","reason":"A job ad that lists tokio and sqlx in its stack is not a major release of either."}
+{"intent":"dev-i01","notice":"dev-n04","label":"no","reason":"A want-to-buy post for the same roasters is a competing buyer, not a seller."}
+{"intent":"maya-i07","notice":"maya-n07","label":"borderline","reason":"Not a resale offer, but the venue presale is the direct route to $49.50 floor tickets at face and worth showing once."}
+{"intent":"priya-i03","notice":"priya-n02","label":"no","reason":"A room sublet is not a used bike."}
+{"intent":"earl-i05","notice":"earl-n36","label":"no","reason":"A STIHL service bulletin is not a sharpening class from the college."}
+{"intent":"lena-i01","notice":"lena-n04","label":"no","reason":"A press release about a habitable-zone planet detection is not a biosignature paper."}
+{"intent":"lena-i02","notice":"lena-n04","label":"no","reason":"A news-feed press release is neither an arXiv paper nor about biosignature detection."}
+{"intent":"dev-i05","notice":"dev-n11","label":"no","reason":"A Boulder farmers market vendor call is not a Denver permit or health code change."}
+{"intent":"kai-i09","notice":"kai-n33","label":"fire","reason":"A reply in his Oct 12 routing thread giving actual Chicago-Milwaukee-Minneapolis dates."}
+{"intent":"jordan-i07","notice":"jordan-n15","label":"fire","reason":"Fall II swim sign-ups at Fort Hill going live Tuesday is the park district registration opening she wants the moment it happens."}
+{"intent":"earl-i08","notice":"earl-n29","label":"no","reason":"This is a root question about a well pump, not a reply to his post."}
+{"intent":"kai-i11","notice":"kai-n01","label":"no","reason":"Right week and paid, but the gig is in Nashville, not Denver."}
+{"intent":"earl-i06","notice":"earl-n25","label":"no","reason":"Pine and hemlock slab wood is exactly the softwood he excluded."}
+{"intent":"dev-i09","notice":"dev-n24","label":"no","reason":"A corner storefront, but in Capitol Hill, which she ruled out by name."}
+{"intent":"priya-i08","notice":"priya-n32","label":"no","reason":"A climbing gym college night has nothing to do with her lost AirPods case."}
+{"intent":"dev-i02","notice":"dev-n03","label":"no","reason":"A home roaster bundled with one-pound hobby bags is exactly what she excluded."}
+{"intent":"earl-i06","notice":"earl-n22","label":"fire","reason":"Seasoned hardwood at $285 a cord delivered within 20 miles of Bethel covers Randolph and is under his cap, bookable now."}
+{"intent":"grace-i13","notice":"grace-n20","label":"no","reason":"A 28 bus reroute alert is not a post in the 29 Sunset stop petition thread."}
+{"intent":"nadia-i09","notice":"nadia-n16","label":"no","reason":"A Pulaski Skyway lane closure is not a disruption at the port terminals or the airport."}
+{"intent":"jordan-i03","notice":"jordan-n29","label":"no","reason":"A parent's PTA thread reminder and lost dog is not an announcement from District 203 itself."}
+{"intent":"kai-i04","notice":"kai-n15","label":"no","reason":"An SVT cabinet, and he said head only."}
+{"intent":"nadia-i08","notice":"nadia-n27","label":"no","reason":"A greenmarket courier request says nothing about QuickHop's service area."}
+{"intent":"kai-i07","notice":"kai-n26","label":"no","reason":"A festival vendor and food truck call is exactly the vendor call he excluded."}
+{"intent":"kai-i06","notice":"kai-n22","label":"fire","reason":"Teddy Marchetti announcing November tracking sessions and needing bass players is the exact event."}
+{"intent":"aisha-i08","notice":"aisha-n26","label":"fire","reason":"A Harkness-Tully written-journalism fellowship with a Nov 15 deadline, not photojournalism."}
+{"intent":"dev-i07","notice":"dev-n04","label":"no","reason":"Someone buying a roasting machine is explicitly not a wholesale coffee lead."}
+{"intent":"jordan-i04","notice":"jordan-n12","label":"no","reason":"Free, Saturday, right ages, but Schaumburg is about 30 km from Naperville, outside the strict 20 km bound."}
+{"intent":"aisha-i06","notice":"aisha-n17","label":"fire","reason":"A Ward 8 nonprofit seeking a journalist to look at voucher denials is a DC housing story request."}
+{"intent":"grace-i09","notice":"grace-n26","label":"no","reason":"A free piano has nothing to do with Mochi the cat."}
+{"intent":"priya-i05","notice":"priya-n10","label":"no","reason":"A CS colloquium talk is not a CSC 347 study group or review session."}
+{"intent":"jordan-i10","notice":"jordan-n31","label":"fire","reason":"A found beagle mix near Prairie Elementary, a few km from Cress Creek, is exactly the found-dog post she fears needing."}
+{"intent":"dev-i10","notice":"dev-n25","label":"no","reason":"The bakery request never mentions Ridgeline."}
+{"intent":"grace-i03","notice":"grace-n11","label":"fire","reason":"Free drop-in tai chi at Sunset Rec Center is a free in-person class within walking distance."}
+{"intent":"priya-i03","notice":"priya-n08","label":"no","reason":"Right bike and price, but pickup is in Evanston, which she excluded."}
+{"intent":"jordan-i03","notice":"jordan-n27","label":"no","reason":"A parent rumor thread about a possible closure is exactly the guessing she excluded."}
+{"intent":"aisha-i02","notice":"aisha-n04","label":"no","reason":"A news outlet's write-up of a DHCD press conference, not the agency's own notice."}
+{"intent":"lena-i04","notice":"lena-n17","label":"no","reason":"A postdoc ad naming Kjell Halvorsen at UCLA is a different Halvorsen and a job ad."}
+{"intent":"kai-i04","notice":"kai-n14","label":"fire","reason":"An SVT-CL head at $1,400 for local pickup in Berry Hill, Nashville."}
+{"intent":"lena-i03","notice":"lena-n08","label":"fire","reason":"NASA and ESA confirming microbial life in Enceladus samples, independently analysed by three labs, is the discovery."}
+{"intent":"priya-i01","notice":"priya-n30","label":"no","reason":"A climbing wall reopening for fitness center members is not a free campus event or food."}
+{"intent":"tomas-i02","notice":"tomas-n11","label":"no","reason":"Pickup basketball is not an Austin FC away watch party."}
+{"intent":"aisha-i09","notice":"aisha-n29","label":"fire","reason":"An a7 III body only at $850 with pickup in Silver Spring, inside the DC metro."}
+{"intent":"priya-i10","notice":"priya-n08","label":"no","reason":"A bike for sale is not a ride to Ann Arbor."}
+{"intent":"dev-i08","notice":"dev-n27","label":"no","reason":"A production roaster seeking a full-time job is not a delivery driver offering morning availability."}
+{"intent":"grace-i02","notice":"grace-n02","label":"no","reason":"The Board of Supervisors agenda has no item on 2800 Irving or Irving Street Lofts."}
+{"intent":"earl-i07","notice":"earl-n06","label":"fire","reason":"A neighbour in Braintree explicitly wants dark maple syrup instead of cash for a mower or a cord of maple."}
+{"intent":"priya-i10","notice":"priya-n24","label":"fire","reason":"Offered seats Chicago to Ann Arbor Oct 16 with a return Oct 18 at about $30 each way, exactly the ride she asked for."}
+{"intent":"grace-i04","notice":"grace-n15","label":"fire","reason":"A volunteer beach cleanup at Ocean Beach, her preferred spot."}
+{"intent":"sam-i10","notice":"sam-n28","label":"fire","reason":"A coordination thread opened by another agent for exactly the LongHaul-24 flaky-ci-triage task."}
+{"intent":"earl-i07","notice":"earl-n28","label":"fire","reason":"Seller explicitly will trade the pump for maple syrup, which Earl has plenty of."}
+{"intent":"aisha-i02","notice":"aisha-n12","label":"no","reason":"A DC Council committee hearing, not a press conference by DHCD or DCHA."}
+{"intent":"maya-i03","notice":"maya-n08","label":"no","reason":"Four Tet dates at Royale Boston and elsewhere, nothing at the Sinclair."}
+{"intent":"earl-i09","notice":"earl-n38","label":"fire","reason":"The town announcing the Randolph Transfer Station's winter hours change."}
+{"intent":"priya-i12","notice":"priya-n30","label":"fire","reason":"Campus Rec announcing the Ray Meyer climbing wall reopening date."}
+{"intent":"maya-i11","notice":"maya-n16","label":"no","reason":"Verified resale from a seller-agent, which she explicitly excluded."}
+{"intent":"dev-i01","notice":"dev-n27","label":"no","reason":"A roaster seeking a job who mentions a P12, not a P12 for sale."}
+{"intent":"kai-i06","notice":"kai-n04","label":"no","reason":"A tracking day run by Sam Ruiz, not Teddy Marchetti."}
+{"intent":"jordan-i11","notice":"jordan-n30","label":"fire","reason":"A new reply in the Prairie Elementary PTA thread, which is what she asked to follow even when not about the fundraiser."}
+{"intent":"priya-i04","notice":"priya-n13","label":"no","reason":"A student seeking a study group for Ramos's class, not a talk or office-hours change by Ramos."}
+{"intent":"lena-i01","notice":"lena-n12","label":"no","reason":"A data release, which she explicitly excluded in favour of papers."}
+{"intent":"lena-i06","notice":"lena-n13","label":"fire","reason":"JWST DD program 6219 is the Rocky Worlds DDT, and LHS 1140 b data just went public in MAST."}
+{"intent":"nadia-i07","notice":"nadia-n08","label":"fire","reason":"Posted by the Ferreira Bakery agent itself, and she wants everything it posts."}
+{"intent":"tomas-i08","notice":"tomas-n11","label":"no","reason":"Pickup basketball has nothing to do with Austin Marathon registration."}
+{"intent":"priya-i02","notice":"priya-n04","label":"no","reason":"Spring quarter sublet when she strictly needs winter quarter."}
+{"intent":"lena-i13","notice":"lena-n07","label":"borderline","reason":"Does not mention Enceladus but a call for abstracts covering ocean worlds is something an Enceladus researcher would want to see once."}
+{"intent":"grace-i13","notice":"grace-n41","label":"no","reason":"A signing date in a different petition thread, the Great Highway one, which she excluded."}
+{"intent":"dev-i10","notice":"dev-n29","label":"fire","reason":"A published Denver roaster list naming Ridgeline Roasters with a review quote."}
+{"intent":"priya-i07","notice":"priya-n13","label":"no","reason":"Another student asking for internship leads, not an internship offer."}
+{"intent":"kai-i01","notice":"kai-n07","label":"no","reason":"A paid bass gig, but in Denver rather than Nashville."}
+{"intent":"priya-i09","notice":"priya-n26","label":"no","reason":"A mention of her in a different thread, which she explicitly said not to surface."}
+{"intent":"kai-i08","notice":"kai-n15","label":"no","reason":"A bass cabinet for sale, not a Transit van."}
+{"intent":"dev-i10","notice":"dev-n26","label":"fire","reason":"A Denver cafe saying they are on Ridgeline and want to switch, a mention and mild complaint he wants to see."}
+{"intent":"sam-i10","notice":"sam-n30","label":"no","reason":"A coordination thread for the secret-rotation task, not flaky-ci-triage."}
+{"intent":"priya-i03","notice":"priya-n32","label":"no","reason":"A climbing gym discount, not a used bike."}
+{"intent":"priya-i07","notice":"priya-n19","label":"fire","reason":"Paid summer 2027 data co-op in Chicago at $30/hr, open to juniors."}
+{"intent":"dev-i10","notice":"dev-n17","label":"no","reason":"Blackbird's new cafe, no mention of Ridgeline."}
+{"intent":"dev-i01","notice":"dev-n01","label":"fire","reason":"Used Probat P12 shop roaster in Fort Collins at $31,500, under her cap and in the Mountain West."}
+{"intent":"maya-i06","notice":"maya-n18","label":"no","reason":"Album news with UK launch shows only; US dates are not announced."}
+{"intent":"kai-i01","notice":"kai-n05","label":"no","reason":"Unpaid and in Denver, failing both his strict place and price."}
+{"intent":"maya-i12","notice":"maya-n15","label":"no","reason":"An added show date and on-sale time, not set times."}
+{"intent":"aisha-i01","notice":"aisha-n03","label":"no","reason":"A DHCD press conference that does not mention Halcyon Ridge Partners or Parkside Gateway."}
+{"intent":"earl-i02","notice":"earl-n09","label":"no","reason":"The box blade is marked sold, which he excluded."}
+{"intent":"tomas-i01","notice":"tomas-n04","label":"no","reason":"A home match at Q2, and he only wants away tickets at Dallas or Houston."}
+{"intent":"ravi-i08","notice":"ravi-n24","label":"no","reason":"A serial plate photo in a different thread about a Juno-60 in Buffalo, not the Jupiter-8 thread."}
+{"intent":"tomas-i01","notice":"tomas-n02","label":"fire","reason":"A $55 lower-bowl ticket for Austin FC at Houston, not the away end, sold with a bus seat."}
+{"intent":"nadia-i03","notice":"nadia-n04","label":"no","reason":"A new root post in a different thread, not a reply to post_9k2m7w."}
+{"intent":"sam-i01","notice":"sam-n01","label":"fire","reason":"tokio v2.0.0 is a final new major release."}
+{"intent":"priya-i01","notice":"priya-n14","label":"fire","reason":"Free drop-in CS tutoring on the Lincoln Park campus, and she asked for anything free there."}
+{"intent":"sam-i03","notice":"sam-n09","label":"fire","reason":"The monthly PDX Rust meetup downtown Portland."}
+{"intent":"tomas-i03","notice":"tomas-n08","label":"no","reason":"A message-board rumour about a kickoff change, which he explicitly excluded."}
+{"intent":"ravi-i11","notice":"ravi-n32","label":"fire","reason":"A buyer describing the original MS-20 by its features and asking for the first version, in Ontario, willing to pay properly."}
+{"intent":"priya-i06","notice":"priya-n15","label":"fire","reason":"HackMIT offers travel reimbursement up to $500 and applications are open."}
+{"intent":"nadia-i04","notice":"nadia-n14","label":"no","reason":"A driver hiring post, not a van or cargo bike for sale."}
+{"intent":"earl-i05","notice":"earl-n42","label":"no","reason":"Grange equipment lending, not a chainsaw sharpening class from the college."}
+{"intent":"nadia-i01","notice":"nadia-n04","label":"fire","reason":"An open 12 kg same-day Newark-to-JFK leg paying $120 that she could bid on."}
+{"intent":"nadia-i06","notice":"nadia-n19","label":"no","reason":"An NWS advisory for Sussex, Warren and Morris counties, not the Newark-area roads she watches."}
+{"intent":"kai-i01","notice":"kai-n22","label":"fire","reason":"Nashville tracking sessions needing upright and electric bass at scale plus, an original-music paid gig."}
+{"intent":"tomas-i01","notice":"tomas-n31","label":"no","reason":"A Champions League watch party, not Austin FC away tickets."}
+{"intent":"dev-i04","notice":"dev-n08","label":"fire","reason":"A Denver farmers market with open prepared food and beverage vendor slots at a $65 booth fee."}
+{"intent":"sam-i12","notice":"sam-n09","label":"no","reason":"The PDX Rust meetup, not the Ctrl-H hack night."}
+{"intent":"grace-i07","notice":"grace-n26","label":"no","reason":"A free piano giveaway, not a senior discount."}
+{"intent":"kai-i10","notice":"kai-n39","label":"no","reason":"A Thursday jam in Franklin, which he excluded by both day and place."}
+{"intent":"nadia-i02","notice":"nadia-n04","label":"fire","reason":"A multi-leg relay thread with the Newark leg still open."}
+{"intent":"earl-i01","notice":"earl-n05","label":"no","reason":"A Honda generator, which he explicitly excluded, not a mower."}
+{"intent":"nadia-i12","notice":"nadia-n09","label":"no","reason":"A cargo van for sale, not a per-parcel overflow capacity offer."}
+{"intent":"jordan-i05","notice":"jordan-n18","label":"no","reason":"The single-seat GT2, which she explicitly excluded."}
+{"intent":"dev-i06","notice":"dev-n26","label":"no","reason":"A cafe shopping for a roaster; no Blackbird opening mentioned."}
+{"intent":"tomas-i07","notice":"tomas-n18","label":"fire","reason":"The Spurs organization confirming Keldon Johnson has been traded to Brooklyn."}
+{"intent":"priya-i07","notice":"priya-n20","label":"no","reason":"Unpaid, credit-only marketing internship, failing her strict paid requirement."}
+{"intent":"grace-i08","notice":"grace-n12","label":"no","reason":"A ceramics class, not a piano."}
+{"intent":"earl-i04","notice":"earl-n17","label":"fire","reason":"A free Jotul wood stove at the Randolph swap shed, minutes from him."}
+{"intent":"nadia-i06","notice":"nadia-n25","label":"no","reason":"An airport ground stop from the FAA, not a closure or warning on Route 1&9 or Route 21."}
+{"intent":"ravi-i04","notice":"ravi-n16","label":"borderline","reason":"Not an estate sale, but a Toronto synth swap with vintage gear is close enough to what he is hunting that he would want it once."}
+{"intent":"maya-i07","notice":"maya-n09","label":"no","reason":"Presale codes for sale, which she explicitly excluded, not face-value floor tickets."}
+{"intent":"grace-i05","notice":"grace-n18","label":"fire","reason":"An SFMTA service alert for N Judah bus substitution."}
+{"intent":"maya-i06","notice":"maya-n10","label":"no","reason":"Governors Ball lineup does not include Four Tet."}
+{"intent":"tomas-i03","notice":"tomas-n23","label":"no","reason":"A G League basketball game, nothing to do with the Longhorns schedule."}
+{"intent":"aisha-i09","notice":"aisha-n30","label":"fire","reason":"ILCE-7M3 is the a7 III, body only, $780, in Arlington for local pickup."}
+{"intent":"aisha-i11","notice":"aisha-n17","label":"no","reason":"A nonprofit seeking any reporter; her byline is not mentioned."}
+{"intent":"grace-i13","notice":"grace-n39","label":"fire","reason":"A reply in the 29 Sunset petition thread announcing the next meeting."}
+{"intent":"grace-i04","notice":"grace-n16","label":"no","reason":"A playground planting day, neither the food bank nor a beach cleanup."}
+{"intent":"priya-i01","notice":"priya-n23","label":"no","reason":"A lost-and-found post at the Loop campus, not something free on Lincoln Park campus."}
+{"intent":"priya-i09","notice":"priya-n25","label":"fire","reason":"A reply in the Ann Arbor ride thread confirming her seat."}
+{"intent":"kai-i03","notice":"kai-n13","label":"no","reason":"A genuine 1972 Precision but at $5,200, well over his strict $3,500 cap."}
+{"intent":"maya-i11","notice":"maya-n29","label":"fire","reason":"A personal agent offering a spare Fenway seat at the ticket price, not a broker or resale listing."}
+{"intent":"tomas-i06","notice":"tomas-n06","label":"no","reason":"A Longhorns schedule change, not a trade offer in the league thread."}
+{"intent":"grace-i13","notice":"grace-n38","label":"fire","reason":"A reply in the petition thread with a confirmed signing date."}
+{"intent":"ravi-i06","notice":"ravi-n18","label":"no","reason":"A stamp and coin fair, which he explicitly excluded."}
+{"intent":"earl-i01","notice":"earl-n09","label":"no","reason":"The Honda mower is already marked sold."}
+{"intent":"jordan-i06","notice":"jordan-n22","label":"no","reason":"A babysitter offer, not a pediatric dentist."}
+{"intent":"tomas-i11","notice":"tomas-n02","label":"no","reason":"An Austin FC away day, not a Champions League final watch party."}
+{"intent":"tomas-i03","notice":"tomas-n07","label":"no","reason":"A watch party, which he excluded, with no schedule change."}
+{"intent":"dev-i06","notice":"dev-n19","label":"no","reason":"A Blackbird hiring post, which he said does not count."}
+{"intent":"earl-i10","notice":"earl-n43","label":"no","reason":"A hardware store tool sale, not a tool library opening."}
+{"intent":"kai-i05","notice":"kai-n18","label":"fire","reason":"Hourly rehearsal room on Gallatin Ave in East Nashville at $20/hr."}
+{"intent":"priya-i09","notice":"priya-n24","label":"no","reason":"The root post of the thread, which she excluded; she only wants replies."}
+{"intent":"kai-i08","notice":"kai-n30","label":"no","reason":"Right van but 142k miles, far over his strict 90k limit."}
+{"intent":"earl-i12","notice":"earl-n31","label":"no","reason":"A well pump troubleshooting thread, not an 8N rebuild."}
+{"intent":"kai-i05","notice":"kai-n19","label":"no","reason":"Hourly room but in Franklin, which he excluded."}
+{"intent":"dev-i02","notice":"dev-n05","label":"fire","reason":"An importer's spot offer of Colombian Huila at $3.85/lb with 42 full bags available."}
+{"intent":"jordan-i07","notice":"jordan-n11","label":"no","reason":"Wheaton Park District swim registration, and she only wants Naperville's."}
+{"intent":"sam-i06","notice":"sam-n26","label":"fire","reason":"Someone asking how to make an axum webhook handler safe to run twice, exactly the question he wants to help with."}
+{"intent":"tomas-i11","notice":"tomas-n07","label":"no","reason":"A college football watch party, not the Champions League final."}
+{"intent":"grace-i02","notice":"grace-n06","label":"no","reason":"A hearing for a different application at 2650 Irving, not 2800 Irving."}
+{"intent":"jordan-i12","notice":"jordan-n33","label":"fire","reason":"Rubeola is measles, and county health officials reported an exposure at Edward Hospital in Naperville, DuPage County."}
+{"intent":"jordan-i12","notice":"jordan-n26","label":"no","reason":"An immunization clinic is explicitly excluded; it is not a reported measles case."}
+{"intent":"earl-i09","notice":"earl-n39","label":"fire","reason":"The town's waste drop-off in Randolph is closing for a holiday, which is exactly the closure notice he asked for."}
+{"intent":"sam-i03","notice":"sam-n22","label":"no","reason":"A Rust job posting is not a Rust meetup."}
+{"intent":"jordan-i12","notice":"jordan-n32","label":"fire","reason":"The DuPage County Health Department confirming a measles case in a county resident is precisely the ask."}
+{"intent":"sam-i02","notice":"sam-n01","label":"no","reason":"A major release from the maintainers is not a security advisory."}
+{"intent":"grace-i02","notice":"grace-n08","label":"no","reason":"A carpool to the hearing is chatter explicitly excluded, not the city scheduling the hearing."}
+{"intent":"ravi-i02","notice":"ravi-n14","label":"no","reason":"A repair service is not a Prophet-5 or Minimoog for sale."}
+{"intent":"earl-i10","notice":"earl-n41","label":"fire","reason":"A tool library opening day in Montpelier, about 40 km from Randolph, is exactly what he asked for."}
+{"intent":"aisha-i02","notice":"aisha-n06","label":"fire","reason":"A DCHA media availability with Q&A posted by the agency itself is a press event from the agency."}
+{"intent":"grace-i10","notice":"grace-n32","label":"no","reason":"A contractor ad mentioning the rebate is explicitly excluded; it is not a grant opening."}
+{"intent":"maya-i03","notice":"maya-n07","label":"no","reason":"Caribou is at House of Blues, not the Sinclair, and place is strict."}
+{"intent":"aisha-i05","notice":"aisha-n20","label":"no","reason":"A condo listing in Bowie using the word tenants is not Ward 5 tenants organising."}
+{"intent":"priya-i10","notice":"priya-n17","label":"no","reason":"A hackathon in Chicago is not a ride to Ann Arbor."}
+{"intent":"ravi-i09","notice":"ravi-n06","label":"no","reason":"A Minimoog for sale is not PPG Wave parts."}
+{"intent":"earl-i02","notice":"earl-n03","label":"no","reason":"A rear blade is explicitly excluded; he wants a box blade."}
+{"intent":"grace-i04","notice":"grace-n13","label":"fire","reason":"A volunteer call from the SF-Marin Food Bank at its own warehouse is exactly the ask."}
+{"intent":"sam-i05","notice":"sam-n01","label":"no","reason":"A tokio release is not a remote senior backend job."}
+{"intent":"nadia-i06","notice":"nadia-n24","label":"no","reason":"A port terminal gate closure is not a closure or weather warning on the Skyway or McCarter Highway."}
+{"intent":"nadia-i03","notice":"nadia-n07","label":"fire","reason":"This is a reply in thread post_9k2m7w addressed to her, which she asked to see."}
+{"intent":"jordan-i09","notice":"jordan-n09","label":"fire","reason":"The Elephant & Piggie creator is Mo Willems, and this is a live appearance and signing in Chicago."}
+{"intent":"ravi-i11","notice":"ravi-n25","label":"no","reason":"An offer of PPG parts is not someone looking to buy an MS-20 mk1."}
+{"intent":"lena-i01","notice":"lena-n05","label":"fire","reason":"An arXiv paper on DMS detection in K2-18 b is a research paper on biosignature detection in exoplanet atmospheres."}
+{"intent":"ravi-i02","notice":"ravi-n06","label":"fire","reason":"An original 1974 Minimoog Model D from a verified dealer at CAD 9,400 meets every condition."}
+{"intent":"jordan-i11","notice":"jordan-n25","label":"no","reason":"A district-wide e-learning notice is not a post in the Prairie Elementary PTA thread."}
+{"intent":"jordan-i11","notice":"jordan-n31","label":"fire","reason":"It is a new post in the Prairie Elementary PTA thread, which is what she asked to be told about."}
+{"intent":"nadia-i02","notice":"nadia-n07","label":"no","reason":"This is a single job addressed to her own agent, not a thread stitching together a multi-leg delivery."}
+{"intent":"ravi-i08","notice":"ravi-n16","label":"no","reason":"A synth swap event is not a post in the Jupiter-8 thread."}
+{"intent":"dev-i09","notice":"dev-n22","label":"fire","reason":"A 1,650 sf hard-corner retail lease in RiNo at $38 NNN available January matches the ask."}
+{"intent":"aisha-i01","notice":"aisha-n09","label":"fire","reason":"The DC Council legislative meeting agenda includes the Parkside Gateway resolution naming Halcyon Ridge Partners."}
+{"intent":"aisha-i06","notice":"aisha-n26","label":"no","reason":"A journalism fellowship call is explicitly excluded and is not someone seeking a reporter to cover a story."}
+{"intent":"aisha-i04","notice":"aisha-n03","label":"no","reason":"A DHCD press conference is not a FOIA response from the Department of Buildings."}
+{"intent":"earl-i07","notice":"earl-n26","label":"fire","reason":"A mechanic who will take syrup and farm goods instead of cash is someone offering to trade for what he has."}
+{"intent":"lena-i13","notice":"lena-n06","label":"no","reason":"A novel borrowing the Enceladus name is explicitly excluded fiction."}
+{"intent":"dev-i11","notice":"dev-n32","label":"fire","reason":"It is a reply inside her multi-location cafe POS thread, which is exactly what she asked for."}
+{"intent":"nadia-i07","notice":"nadia-n01","label":"borderline","reason":"The post comes from a personal agent, not the bakery's own agent, but a courier job picking up at Ferreira Bakery is worth showing once."}
+{"intent":"ravi-i10","notice":"ravi-n09","label":"no","reason":"A copy of the LP for sale is explicitly excluded; it is not the master tapes turning up."}
+{"intent":"ravi-i09","notice":"ravi-n25","label":"fire","reason":"A PPG Wave 2.3 voice board and panel PCB for sale is exactly the parts he has been waiting for."}
+{"intent":"kai-i05","notice":"kai-n36","label":"no","reason":"A weekly jam night is not hourly rehearsal space."}
+{"intent":"tomas-i04","notice":"tomas-n09","label":"fire","reason":"Weekly Sunday 9am pickup at Govalle Park, within about 3 km of East Cesar Chavez and Chicon, is the ask."}
+{"intent":"tomas-i09","notice":"tomas-n30","label":"no","reason":"Someone looking to buy a road bike is a request, not an offer."}
+{"intent":"priya-i02","notice":"priya-n05","label":"no","reason":"A shared bedroom is explicitly excluded; she wants a private bedroom."}
+{"intent":"priya-i12","notice":"priya-n21","label":"no","reason":"A found AirPods case has nothing to do with the climbing wall reopening."}
+{"intent":"priya-i03","notice":"priya-n09","label":"no","reason":"Someone else's ISO post for a bike is a request, not a bike for sale."}
+{"intent":"lena-i06","notice":"lena-n12","label":"fire","reason":"Rocky Worlds DDT TRAPPIST-1 e data going public in MAST is exactly the moment she asked to be pinged about."}
+{"intent":"priya-i01","notice":"priya-n06","label":"no","reason":"A bike for sale in Lincoln Square is not a free campus event."}
+{"intent":"maya-i12","notice":"maya-n13","label":"no","reason":"A festival hype thread has no set times posted the day before a show."}
+{"intent":"sam-i04","notice":"sam-n31","label":"no","reason":"A workshop CFP on agent evaluation is an unrelated topic, not a databases or distributed systems conference."}
+{"intent":"priya-i04","notice":"priya-n10","label":"fire","reason":"Prof. Elena Ramos-Whitfield giving a colloquium talk on the Lincoln Park campus is Doc Ramos giving a talk."}
+{"intent":"kai-i03","notice":"kai-n15","label":"no","reason":"An Ampeg cabinet is not a vintage Fender bass."}
+{"intent":"nadia-i06","notice":"nadia-n18","label":"fire","reason":"An NWS flood watch that names Route 21 and Route 1&9 underpasses is an official weather warning hitting her roads."}
+{"intent":"earl-i06","notice":"earl-n06","label":"fire","reason":"A cord of seasoned maple delivered near Randolph for two gallons of syrup he has plenty of is hardwood delivered well under $300."}
+{"intent":"earl-i08","notice":"earl-n33","label":"no","reason":"A question about his pump in someone else's tractor thread is not an answer in his well pump post."}
+{"intent":"lena-i08","notice":"lena-n24","label":"no","reason":"A public star party is not a used telescope for sale."}
+{"intent":"aisha-i06","notice":"aisha-n02","label":"no","reason":"A developer's job ad is not a call for a journalist to cover a story."}
+{"intent":"grace-i11","notice":"grace-n21","label":"fire","reason":"Noodle Tomo is a new ramen shop opening on Noriega in the Outer Sunset."}
+{"intent":"grace-i04","notice":"grace-n14","label":"no","reason":"Alameda County Community Food Bank is another food bank, explicitly excluded."}
+{"intent":"sam-i12","notice":"sam-n14","label":"no","reason":"A Rust Foundation office opening is not the Ctrl-H hack night."}
+{"intent":"sam-i04","notice":"sam-n18","label":"fire","reason":"Data Council is a databases and infra conference with a CFP closing Oct 31, more than two weeks out."}
+{"intent":"nadia-i09","notice":"nadia-n28","label":"no","reason":"A Pulaski Skyway road closure is not a disruption at the port, marine terminal or airport."}
+{"intent":"earl-i01","notice":"earl-n43","label":"fire","reason":"A Randolph hardware store advertising Honda HRN and HRX mowers at end-of-season pricing is someone selling Honda lawnmowers in his area."}
+{"intent":"kai-i04","notice":"kai-n17","label":"no","reason":"The SVT-CL is in Atlanta, local only, not Nashville."}
+{"intent":"priya-i05","notice":"priya-n28","label":"no","reason":"A textbook for sale is not a CS-department review session for CSC 347."}
+{"intent":"aisha-i01","notice":"aisha-n06","label":"no","reason":"Harbor Ridge Partners at Barry Farm is a different company and project, and a media-only event besides."}
+{"intent":"priya-i12","notice":"priya-n31","label":"borderline","reason":"Belay classes resuming at the wall with posted wall hours strongly implies the wall is open, though it is not a reopening announcement."}
+{"intent":"kai-i02","notice":"kai-n03","label":"no","reason":"This is an agency listing with an agency-set rate, explicitly excluded."}
+{"intent":"ravi-i02","notice":"ravi-n04","label":"no","reason":"A private seller is explicitly excluded; he wants a verified dealer only."}
+{"intent":"tomas-i04","notice":"tomas-n13","label":"no","reason":"A goalkeeper looking for a pitch is a person seeking a game, not a Sunday pickup game."}
+{"intent":"lena-i03","notice":"lena-n01","label":"no","reason":"A detectability study of biosignature gases is not a confirmed discovery of life."}
+{"intent":"kai-i06","notice":"kai-n27","label":"no","reason":"A festival tribute band call is not Teddy Marchetti tracking and needing players."}
+{"intent":"maya-i05","notice":"maya-n32","label":"no","reason":"Set times for the sold-out show are not a second night being added."}
+{"intent":"earl-i09","notice":"earl-n17","label":"no","reason":"Swap shed items are explicitly excluded; this is not a change in hours or a closure."}
+{"intent":"earl-i11","notice":"earl-n20","label":"no","reason":"A dealer promo event is explicitly excluded; it is not from Stihl about the MS 261."}
+{"intent":"tomas-i10","notice":"tomas-n21","label":"borderline","reason":"A news report of the ownership group saying its first event will be a Spurs exhibition at Moody is not an announcement from the club or Moody, but she would want to know."}
+{"intent":"kai-i04","notice":"kai-n13","label":"no","reason":"A Fender bass in Los Angeles is not an SVT head in Nashville."}
+{"intent":"nadia-i08","notice":"nadia-n13","label":"no","reason":"A job seeker who used to work at QuickHop is not QuickHop announcing a service area."}
+{"intent":"nadia-i06","notice":"nadia-n28","label":"fire","reason":"NJDOT announcing a full closure of the Pulaski Skyway is exactly the ask."}
+{"intent":"maya-i07","notice":"maya-n19","label":"fire","reason":"One GA floor ticket for Caribou at HOB Boston Nov 6 at face value meets every condition."}
+{"intent":"ravi-i04","notice":"ravi-n12","label":"no","reason":"This estate sale lists only china, crystal, furniture, art and clothing, with no electronics, hi-fi, keyboards or records."}
+{"intent":"aisha-i12","notice":"aisha-n12","label":"fire","reason":"A Council hearing on the Rental Housing Stabilization Amendment Act is DC rent control news."}
+{"intent":"sam-i03","notice":"sam-n10","label":"no","reason":"A Seattle hack night is explicitly excluded; she wants Portland."}
+{"intent":"dev-i05","notice":"dev-n16","label":"no","reason":"The rule is scoped to full-service restaurants and explicitly exempts beverage establishments, so it does not hit coffee shops."}
+{"intent":"nadia-i09","notice":"nadia-n22","label":"no","reason":"QuickHop expanding its service area is not a disruption at the port or airport."}
+{"intent":"kai-i12","notice":"kai-n42","label":"fire","reason":"Band members confirming a 14-city run under the original name to a real outlet is a proper tour, not a one-off."}
+{"intent":"jordan-i04","notice":"jordan-n13","label":"fire","reason":"A free Saturday family fest at a Naperville nature center suits kids aged 4 and 7."}
+{"intent":"earl-i06","notice":"earl-n24","label":"no","reason":"$325 per cord is over his strict $300 limit."}
+{"intent":"maya-i01","notice":"maya-n03","label":"no","reason":"A Skrillex tribute night is explicitly excluded."}
+{"intent":"jordan-i08","notice":"jordan-n22","label":"fire","reason":"A CPR-certified sitter in Naperville available Monday to Thursday evenings is exactly the ask."}
+{"intent":"jordan-i10","notice":"jordan-n29","label":"no","reason":"A lost-dog request is explicitly excluded; she wants found dogs."}
+{"intent":"kai-i10","notice":"kai-n05","label":"no","reason":"A Denver band seeking a bassist is not a weekly jam in Nashville."}
+{"intent":"lena-i09","notice":"lena-n21","label":"fire","reason":"This is the AST-2026-0412 review coordination thread itself, the first thing to land in it."}
+{"intent":"ravi-i10","notice":"ravi-n30","label":"no","reason":"A repress launch and a talk about the mystery are both explicitly excluded."}
+{"intent":"jordan-i08","notice":"jordan-n23","label":"fire","reason":"A Red Cross certified sitter in Cress Creek looking for families and available weekday evenings is exactly the ask."}
+{"intent":"tomas-i12","notice":"tomas-n21","label":"fire","reason":"The Board of Governors voting to award a franchise with home games at Moody Center is a league decision giving Austin an NBA team."}
+{"intent":"lena-i11","notice":"lena-n28","label":"fire","reason":"Amendment 31 from NASA SMD delays the due date for E.3, the Exobiology program element."}
+{"intent":"nadia-i01","notice":"nadia-n21","label":"fire","reason":"A paid request for a rider to do 20 small drop-offs in downtown Newark on a fixed date this week is a delivery job they could bid on."}
+{"intent":"tomas-i06","notice":"tomas-n16","label":"no","reason":"A trade offer in the Bat City Ballers thread is another league's thread, explicitly excluded."}
+{"intent":"aisha-i12","notice":"aisha-n14","label":"no","reason":"A tenant thread about relocation notices at Brookland Manor is not about rent control or stabilization."}
+{"intent":"kai-i11","notice":"kai-n02","label":"no","reason":"A guitarist gig in Nashville on Oct 17 is the wrong instrument, city and week."}
+{"intent":"grace-i05","notice":"grace-n37","label":"no","reason":"A petition about a 29 bus stop is explicitly excluded; it is not an N Judah or L Taraval service change."}
+{"intent":"maya-i01","notice":"maya-n02","label":"fire","reason":"Sonny Moore is Skrillex, headlining a festival in Allston, Boston."}
+{"intent":"dev-i04","notice":"dev-n10","label":"fire","reason":"Denver festival taking food and drink vendor applications; booth fee is loosely acceptable."}
+{"intent":"aisha-i07","notice":"aisha-n28","label":"no","reason":"A journalism grant call, not a superconductor replication."}
+{"intent":"earl-i01","notice":"earl-n07","label":"fire","reason":"Honda HRX217 mower for sale in Williston, about an hour from Randolph and within his area."}
+{"intent":"kai-i01","notice":"kai-n36","label":"no","reason":"A no-cover jam with sit-ins, not a paid bassist gig."}
+{"intent":"jordan-i01","notice":"jordan-n06","label":"no","reason":"A crib bracket notice, not a Graco car seat recall."}
+{"intent":"tomas-i12","notice":"tomas-n20","label":"no","reason":"A Spurs regular-season game in Austin, explicitly excluded."}
+{"intent":"lena-i06","notice":"lena-n14","label":"no","reason":"A JWST proposal call, explicitly excluded, not a data release."}
+{"intent":"sam-i11","notice":"sam-n16","label":"no","reason":"RustConf host city news, explicitly excluded, not an office."}
+{"intent":"nadia-i01","notice":"nadia-n01","label":"fire","reason":"Same-day 40 kg delivery request from Newark to Jersey City."}
+{"intent":"ravi-i07","notice":"ravi-n16","label":"no","reason":"A synth swap at the Tranzac, not the Junction Record Fair."}
+{"intent":"aisha-i09","notice":"aisha-n31","label":"no","reason":"A lens for sale, not an a7 III body."}
+{"intent":"jordan-i02","notice":"jordan-n05","label":"fire","reason":"CPSC recall of Babyletto Hudson cribs."}
+{"intent":"tomas-i07","notice":"tomas-n20","label":"no","reason":"A Spurs game listing, not a confirmed Keldon Johnson trade."}
+{"intent":"aisha-i01","notice":"aisha-n02","label":"no","reason":"A job ad, explicitly excluded, not a public meeting."}
+{"intent":"maya-i02","notice":"maya-n07","label":"fire","reason":"Venue-run artist presale for Caribou."}
+{"intent":"sam-i10","notice":"sam-n23","label":"no","reason":"A backstop co-maintainer thread, not LongHaul-24 flaky-ci-triage."}
+{"intent":"priya-i01","notice":"priya-n01","label":"no","reason":"Free lunch but at Northwestern in Evanston, not the Lincoln Park campus."}
+{"intent":"aisha-i06","notice":"aisha-n13","label":"no","reason":"An op-ed call, explicitly excluded."}
+{"intent":"nadia-i11","notice":"nadia-n18","label":"no","reason":"A flood watch, not a full closure of the Pulaski Skyway."}
+{"intent":"dev-i02","notice":"dev-n04","label":"no","reason":"A want-to-buy roaster post, not an importer offering green coffee."}
+{"intent":"lena-i05","notice":"lena-n14","label":"no","reason":"A JWST proposal call, not an AbSciCon or Gordon abstract call."}
+{"intent":"ravi-i01","notice":"ravi-n11","label":"no","reason":"A Juno-6 at a contents sale, explicitly excluded."}
+{"intent":"dev-i09","notice":"dev-n17","label":"no","reason":"A cafe opening announcement, not a corner retail unit for lease."}
+{"intent":"nadia-i09","notice":"nadia-n24","label":"fire","reason":"Port Authority notice of a Port Newark gate closure due to an ILA work stoppage."}
+{"intent":"sam-i04","notice":"sam-n16","label":"no","reason":"RustConf is not a database or distributed-systems conference and this is a CFP opening, not a closing."}
+{"intent":"nadia-i02","notice":"nadia-n06","label":"fire","reason":"Multi-leg relay thread asking for someone to take the last leg into Jersey City."}
+{"intent":"dev-i08","notice":"dev-n17","label":"no","reason":"A cafe opening, not a driver saying they are available."}
+{"intent":"lena-i03","notice":"lena-n04","label":"no","reason":"A habitable-zone planet discovery, explicitly excluded, not a detection of life."}
+{"intent":"ravi-i06","notice":"ravi-n13","label":"no","reason":"A repair bench offer, not a synth meetup."}
+{"intent":"aisha-i03","notice":"aisha-n03","label":"fire","reason":"The Deputy Mayor for PED is giving remarks at a livestreamed press conference."}
+{"intent":"sam-i09","notice":"sam-n34","label":"no","reason":"Gateron Yellows, not Boba U4T switches."}
+{"intent":"jordan-i02","notice":"jordan-n02","label":"no","reason":"A Graco car seat kit, not a Babyletto crib recall."}
+{"intent":"ravi-i11","notice":"ravi-n04","label":"no","reason":"Someone selling an MS-20 mk1, not someone looking to buy one."}
+{"intent":"grace-i01","notice":"grace-n01","label":"fire","reason":"Board of Supervisors committee agenda from the Clerk with a Judah St streetscape item and a Sunset item."}
+{"intent":"tomas-i09","notice":"tomas-n27","label":"fire","reason":"Road bike for $450 in East Austin."}
+{"intent":"grace-i03","notice":"grace-n22","label":"no","reason":"A discounted cinema matinee in the Richmond, not a free class."}
+{"intent":"priya-i06","notice":"priya-n16","label":"fire","reason":"Cal Hacks flies out-of-state admits out."}
+{"intent":"priya-i03","notice":"priya-n07","label":"fire","reason":"Working Schwinn commuter for $60 at a Bucktown moving sale on the north side."}
+{"intent":"dev-i06","notice":"dev-n27","label":"no","reason":"A job-seeker mentioning Blackbird, explicitly excluded."}
+{"intent":"tomas-i02","notice":"tomas-n03","label":"fire","reason":"Verde away-match watch party at a north Austin bar."}
+{"intent":"aisha-i05","notice":"aisha-n17","label":"no","reason":"A Ward 8 reporter request, not Ward 5 tenants organising."}
+{"intent":"jordan-i10","notice":"jordan-n37","label":"no","reason":"A found cat, explicitly excluded."}
+{"intent":"maya-i06","notice":"maya-n08","label":"fire","reason":"Kieran Hebden is Four Tet, announcing four US dates."}
+{"intent":"maya-i02","notice":"maya-n18","label":"no","reason":"An album pre-order, explicitly excluded, not a presale."}
+{"intent":"grace-i12","notice":"grace-n41","label":"no","reason":"A petition signature drive, explicitly excluded, not the reopening."}
+{"intent":"maya-i12","notice":"maya-n31","label":"fire","reason":"Venue posted set times the day before the show."}
+{"intent":"priya-i11","notice":"priya-n09","label":"no","reason":"A request for the book, explicitly excluded."}
+{"intent":"maya-i12","notice":"maya-n32","label":"fire","reason":"Set times posted the day before the show, per the box office."}
+{"intent":"maya-i04","notice":"maya-n02","label":"fire","reason":"Boston Calling lineup announcement with headliners."}
+{"intent":"dev-i08","notice":"dev-n21","label":"fire","reason":"A Denver driver with own hatchback available weekday mornings for part-time routes."}
+{"intent":"sam-i05","notice":"sam-n21","label":"fire","reason":"Sixty-person fully remote company hiring a senior backend engineer on Rust and Postgres."}
+{"intent":"dev-i10","notice":"dev-n19","label":"no","reason":"A Blackbird hiring post with no mention of Ridgeline."}
+{"intent":"ravi-i03","notice":"ravi-n19","label":"borderline","reason":"Not a Soul Station listing, but a Toronto record fair advertising Blue Note originals dealers is worth one look."}
+{"intent":"grace-i12","notice":"grace-n35","label":"fire","reason":"SFMTA announces the Upper Great Highway reopens to weekday vehicle traffic."}
+{"intent":"grace-i01","notice":"grace-n02","label":"fire","reason":"Board of Supervisors agenda with the Upper Great Highway ordinance and Outer Sunset Streetscape on Judah."}
+{"intent":"sam-i11","notice":"sam-n22","label":"no","reason":"A Rust job in Portland, not a Rust Foundation office."}
+{"intent":"lena-i10","notice":"lena-n06","label":"no","reason":"A book launch in Pasadena, not a Griffith star party."}
+{"intent":"kai-i04","notice":"kai-n16","label":"fire","reason":"1972 blue-line SVT head for $1,800 in Madison, within Nashville metro."}
+{"intent":"earl-i07","notice":"earl-n05","label":"no","reason":"Generator seller wants a woodstove trade, not eggs or syrup."}
+{"intent":"lena-i01","notice":"lena-n02","label":"fire","reason":"A peer-reviewed paper on remote biosignature indicators in an exoplanet atmosphere."}
+{"intent":"priya-i10","notice":"priya-n15","label":"no","reason":"A hackathon in Cambridge MA, not a ride to Ann Arbor."}
+{"intent":"priya-i11","notice":"priya-n14","label":"no","reason":"Tutoring sessions, not a Sipser textbook for sale."}
+{"intent":"maya-i05","notice":"maya-n01","label":"no","reason":"Skrillex at MGM, not a second Jungle night."}
+{"intent":"ravi-i04","notice":"ravi-n20","label":"no","reason":"A record fair, not an estate sale."}
+{"intent":"tomas-i06","notice":"tomas-n14","label":"fire","reason":"Trade offer posted in the Lone Star Degenerates league thread for commish approval."}
+{"intent":"aisha-i05","notice":"aisha-n14","label":"fire","reason":"Brookland Manor tenants in Ward 5 organising against relocation notices."}
+{"intent":"earl-i04","notice":"earl-n24","label":"no","reason":"Firewood for sale, not a free woodstove."}
+{"intent":"dev-i01","notice":"dev-n06","label":"no","reason":"Green coffee offer, not a Probat or Diedrich roaster."}
+{"intent":"tomas-i05","notice":"tomas-n11","label":"no","reason":"Pickup basketball, not a goalkeeper looking for a team."}
+{"intent":"aisha-i07","notice":"aisha-n22","label":"no","reason":"A single-lab first claim, explicitly excluded, not an independent replication."}
+{"intent":"ravi-i11","notice":"ravi-n31","label":"fire","reason":"Toronto player looking to buy an original MS-20 mk1 with cash."}
+{"intent":"priya-i03","notice":"priya-n29","label":"no","reason":"Textbooks for sale, not a bike."}
+{"intent":"jordan-i09","notice":"jordan-n07","label":"no","reason":"Librarian-led Pigeon storytime without Mo Willems, explicitly excluded."}
+{"intent":"sam-i09","notice":"sam-n36","label":"no","reason":"Right switches but pickup in Seattle, not Portland."}
+{"intent":"nadia-i06","notice":"nadia-n32","label":"fire","reason":"City of Newark notice of a McCarter Highway closure."}
+{"intent":"jordan-i09","notice":"jordan-n08","label":"fire","reason":"Mo Willems reading and signing at Anderson's in Naperville."}
+{"intent":"jordan-i12","notice":"jordan-n25","label":"no","reason":"A school e-learning day, not a measles case."}
+{"intent":"jordan-i11","notice":"jordan-n28","label":"fire","reason":"New post in the Prairie Elementary PTA thread about the fall fundraiser."}
+{"intent":"earl-i03","notice":"earl-n08","label":"no","reason":"Someone asking for free fill, explicitly excluded."}
+{"intent":"ravi-i04","notice":"ravi-n10","label":"fire","reason":"Etobicoke estate sale listing a Marantz receiver, reel-to-reel, turntable and 400 LPs."}
+{"intent":"priya-i04","notice":"priya-n14","label":"no","reason":"Tutoring sessions, not a Doc Ramos talk or office-hours change."}
+{"intent":"grace-i11","notice":"grace-n14","label":"no","reason":"Food bank volunteer call in Oakland, not a ramen opening in the Sunset."}
+{"intent":"grace-i03","notice":"grace-n12","label":"no","reason":"A $45 ceramics class, not free."}
+{"intent":"jordan-i01","notice":"jordan-n01","label":"fire","reason":"NHTSA recall of the Extend2Fit convertible model 2087590, relayed from the official campaign."}
+{"intent":"grace-i07","notice":"grace-n32","label":"no","reason":"A contractor ad with a senior discount, explicitly excluded."}
+{"intent":"dev-i06","notice":"dev-n17","label":"fire","reason":"Blackbird opening a third cafe within the City of Denver."}
+{"intent":"grace-i05","notice":"grace-n01","label":"no","reason":"A committee agenda about a Judah St streetscape, not an N Judah or L Taraval service change."}
+{"intent":"aisha-i10","notice":"aisha-n10","label":"fire","reason":"DC Council draft agenda for the Committee of the Whole and Legislative Meeting."}
+{"intent":"nadia-i10","notice":"nadia-n21","label":"fire","reason":"The Military Park market listing includes this week's ask for a pre-order delivery rider."}
+{"intent":"nadia-i01","notice":"nadia-n26","label":"fire","reason":"Fixed-date light-parcel delivery request in Newark, well under 50 kg."}
+{"intent":"maya-i09","notice":"maya-n11","label":"no","reason":"A concert at the Sinclair, not comedy at the Comedy Studio."}
+{"intent":"nadia-i05","notice":"nadia-n15","label":"fire","reason":"A retired letter carrier in Bloomfield, near Newark, offering to run deliveries in the mornings."}
+{"intent":"tomas-i02","notice":"tomas-n07","label":"no","reason":"A Longhorns football watch party, not Austin FC."}
+{"intent":"jordan-i05","notice":"jordan-n17","label":"fire","reason":"City Mini GT2 Double for $225 with pickup in Lisle, next to Naperville."}
+{"intent":"aisha-i04","notice":"aisha-n34","label":"no","reason":"A DLCP FOIA log, explicitly excluded, not DOB."}
+{"intent":"priya-i05","notice":"priya-n12","label":"fire","reason":"School of Computing-run CSC 347 problem sessions on the Lincoln Park campus."}
+{"intent":"sam-i07","notice":"sam-n23","label":"fire","reason":"A reply in the backstop co-maintainers thread."}
+{"intent":"priya-i07","notice":"priya-n18","label":"fire","reason":"Paid, fully remote software internship for summer 2027."}
+{"intent":"lena-i11","notice":"lena-n26","label":"fire","reason":"NASA SMD itself posting the ROSES E.4 Exobiology NOI deadline is exactly the ask."}
+{"intent":"kai-i03","notice":"kai-n12","label":"fire","reason":"Genuine 1966 Jazz Bass at USD 3,100 shipped, a refinish not a reissue, meets every bound."}
+{"intent":"sam-i09","notice":"sam-n32","label":"fire","reason":"Used keyboard with Boba U4T switches, USD 85, local pickup in Portland with no shipping."}
+{"intent":"dev-i09","notice":"dev-n23","label":"fire","reason":"End-cap retail unit at 44th & Tejon is in Sunnyside, about 1,400 sf, vacating in December."}
+{"intent":"maya-i03","notice":"maya-n12","label":"fire","reason":"52 Church St, Cambridge is the Sinclair, and a just-added Wet Leg show is interesting."}
+{"intent":"aisha-i10","notice":"aisha-n03","label":"no","reason":"A DHCD press conference is not the Council legislative meeting agenda."}
+{"intent":"jordan-i03","notice":"jordan-n26","label":"fire","reason":"A district-wide announcement from District 203 itself, which is what she asked for."}
+{"intent":"lena-i09","notice":"lena-n22","label":"fire","reason":"New reviewer post inside the AST-2026-0412 coordination thread."}
+{"intent":"nadia-i03","notice":"nadia-n05","label":"no","reason":"A separate relay thread, not a reply to her capacity post post_9k2m7w."}
+{"intent":"earl-i08","notice":"earl-n31","label":"fire","reason":"A substantive reply in the well pump short-cycling thread, answering his question."}
+{"intent":"ravi-i02","notice":"ravi-n01","label":"no","reason":"Plugin licences are explicitly excluded; not an original Prophet-5 or Model D."}
+{"intent":"grace-i01","notice":"grace-n04","label":"no","reason":"Planning Commission agenda, and she excluded other bodies' agendas even when the item is in District 4."}
+{"intent":"tomas-i06","notice":"tomas-n17","label":"no","reason":"An NBA trade, not a trade offer in the fantasy league thread."}
+{"intent":"kai-i10","notice":"kai-n38","label":"fire","reason":"Weekly Wednesday jam at Rudy's where the rhythm section can sit in; the Gulch is fine with place loose."}
+{"intent":"priya-i08","notice":"priya-n07","label":"no","reason":"A random AirPods case with no sticker at a Bucktown moving sale, not hers."}
+{"intent":"tomas-i05","notice":"tomas-n10","label":"no","reason":"A casual kickabout with no keepers, not a goalkeeper looking for a team."}
+{"intent":"lena-i11","notice":"lena-n27","label":"no","reason":"A GrantScope digest repost, the third-party reminder she excluded."}
+{"intent":"tomas-i10","notice":"tomas-n17","label":"no","reason":"A player trade, not a Spurs game at Moody Center."}
+{"intent":"maya-i12","notice":"maya-n06","label":"no","reason":"A listing with doors time only, exactly what she said she does not want."}
+{"intent":"priya-i04","notice":"priya-n01","label":"borderline","reason":"Doc Ramos is giving a talk, but in Evanston rather than Chicago, so a strict reading fails on place."}
+{"intent":"dev-i11","notice":"dev-n30","label":"no","reason":"This is her own root post, not a reply in the thread."}
+{"intent":"grace-i02","notice":"grace-n07","label":"fire","reason":"SF Planning Department notice scheduling the 2800 Irving hearing for Oct 22."}
+{"intent":"jordan-i11","notice":"jordan-n29","label":"no","reason":"Elmwood Elementary PTA thread, not Prairie."}
+{"intent":"aisha-i12","notice":"aisha-n15","label":"no","reason":"Tenant association organizing over elevators and TOPA, not rent control or the RSP."}
+{"intent":"lena-i06","notice":"lena-n02","label":"no","reason":"A paper about TRAPPIST-1 e, not the Rocky Worlds DDT data release."}
+{"intent":"jordan-i11","notice":"jordan-n27","label":"no","reason":"A parent rumor post about District 203, not a post in the Prairie PTA thread."}
+{"intent":"kai-i08","notice":"kai-n28","label":"fire","reason":"2019 Transit 350 high roof, 78k miles, USD 29,500, in Murfreesboro near Nashville."}
+{"intent":"nadia-i10","notice":"nadia-n20","label":"no","reason":"Ferreira Bakery catering request, not the Military Park market's Saturday pre-order ask."}
+{"intent":"sam-i08","notice":"sam-n10","label":"no","reason":"Lightning talk is by Tomasz Nowak, not Tomasz Wierzbicki."}
+{"intent":"maya-i01","notice":"maya-n01","label":"fire","reason":"Skrillex at MGM Music Hall at Fenway in Boston."}
+{"intent":"priya-i08","notice":"priya-n21","label":"fire","reason":"Found white AirPods Pro case with a purple bear sticker at the Student Center on Wednesday; it is hers."}
+{"intent":"lena-i10","notice":"lena-n18","label":"no","reason":"A telescope for sale, not a Griffith star party."}
+{"intent":"nadia-i04","notice":"nadia-n12","label":"no","reason":"A courier offering labor, not a cargo van or e-cargo bike for sale."}
+{"intent":"earl-i04","notice":"earl-n08","label":"no","reason":"A wanted post, and a used woodstove being sought rather than given away."}
+{"intent":"maya-i02","notice":"maya-n08","label":"fire","reason":"KH is Kieran Hebden, Four Tet, and this is the artist's own mailing-list presale announcement."}
+{"intent":"ravi-i08","notice":"ravi-n13","label":"no","reason":"A repair bench offer, not a reply in the Jupiter-8 thread."}
+{"intent":"nadia-i04","notice":"nadia-n10","label":"fire","reason":"Urban Arrow e-cargo bike at USD 3,200 with Greenpoint pickup, well within 50 km of Newark."}
+{"intent":"nadia-i09","notice":"nadia-n05","label":"no","reason":"Ground stop is at ORD in Chicago, not Newark Airport or the port."}
+{"intent":"lena-i02","notice":"lena-n02","label":"no","reason":"A journal-published paper, not one coming through arXiv."}
+{"intent":"grace-i02","notice":"grace-n04","label":"fire","reason":"The Planning Commission's own agenda scheduling the Irving Street Lofts hearing for Oct 22."}
+{"intent":"kai-i01","notice":"kai-n01","label":"fire","reason":"Paid USD 250 bassist gig for an original band at The Basement East in Nashville."}
+{"intent":"jordan-i12","notice":"jordan-n34","label":"borderline","reason":"A confirmed measles case in neighbouring Cook County, not DuPage, but close enough to want to see once."}
+{"intent":"ravi-i02","notice":"ravi-n21","label":"no","reason":"A Jupiter-8 authenticity thread, not a dealer offer of a Prophet-5 or Model D."}
+{"intent":"earl-i03","notice":"earl-n15","label":"no","reason":"Topsoil for sale, not free fill."}
+{"intent":"nadia-i07","notice":"nadia-n26","label":"no","reason":"Posted by the farmers' market, not the Ferreira Bakery agent."}
+{"intent":"tomas-i08","notice":"tomas-n30","label":"no","reason":"A used bike wanted post, nothing to do with marathon registration."}
+{"intent":"kai-i01","notice":"kai-n02","label":"no","reason":"They want a guitarist, not a bassist."}
+{"intent":"priya-i01","notice":"priya-n10","label":"fire","reason":"Free colloquium on the Lincoln Park campus with refreshments after, open to all."}
+{"intent":"grace-i12","notice":"grace-n15","label":"no","reason":"A litter sweep held on the closed road, explicitly excluded; not a reopening."}
+{"intent":"grace-i01","notice":"grace-n05","label":"no","reason":"A neighbourhood group post about a Planning hearing, not the Board of Supervisors agenda from the Clerk."}
+{"intent":"priya-i05","notice":"priya-n17","label":"no","reason":"A hackathon, not a CS-department review session for CSC 347."}
+{"intent":"priya-i10","notice":"priya-n25","label":"fire","reason":"A reply confirming Priya's seat on a Friday Oct 16 ride from Chicago to Ann Arbor for USD 30."}
+{"intent":"sam-i06","notice":"sam-n24","label":"no","reason":"A reply about PR review and maintainer roles, not someone asking how to make handlers retry-safe."}
+{"intent":"earl-i01","notice":"earl-n06","label":"no","reason":"A Toro mower with a Briggs engine, not a Honda."}
+{"intent":"nadia-i12","notice":"nadia-n04","label":"no","reason":"A one-off relay leg at a flat fee, not a standing per-parcel overflow offer."}
+{"intent":"maya-i08","notice":"maya-n13","label":"fire","reason":"Sonny Moore is Skrillex, on the lineup of a Memorial Day festival in Allston, Boston."}
+{"intent":"maya-i10","notice":"maya-n28","label":"no","reason":"A reply in the Fred again Montreal carpool thread, not the Jamie xx Portland one."}
+{"intent":"earl-i09","notice":"earl-n14","label":"no","reason":"Highway Department surplus material, not transfer station hours or closures."}
+{"intent":"tomas-i12","notice":"tomas-n22","label":"fire","reason":"The NBA Board of Governors approved an Austin expansion franchise, a league decision."}
+{"intent":"earl-i10","notice":"earl-n18","label":"no","reason":"A chainsaw workshop, not a tool library opening."}
+{"intent":"dev-i09","notice":"dev-n18","label":"no","reason":"A cafe soft opening, not a retail unit for lease."}
+{"intent":"dev-i02","notice":"dev-n25","label":"no","reason":"A bakery seeking a roaster, a request rather than an importer's green coffee offer."}
+{"intent":"sam-i11","notice":"sam-n14","label":"fire","reason":"The Rust Foundation opened a Portland office."}
+{"intent":"sam-i01","notice":"sam-n02","label":"fire","reason":"sqlx v1.0.0 is a new major, the actual release."}
+{"intent":"grace-i06","notice":"grace-n16","label":"fire","reason":"Rec and Park construction update on the Sunset Playground renovation at Lawton St."}
+{"intent":"ravi-i03","notice":"ravi-n20","label":"no","reason":"A generic record fair, not a listing of the Soul Station first pressing."}
+{"intent":"grace-i05","notice":"grace-n20","label":"no","reason":"A 28 line reroute, which she explicitly excluded; N and L service unchanged."}
+{"intent":"sam-i04","notice":"sam-n17","label":"fire","reason":"Databases and distributed systems CFP closing Nov 15, well over two weeks out."}
+{"intent":"kai-i09","notice":"kai-n06","label":"no","reason":"A Denver gig request, not a reply in his Midwest routing thread."}
+{"intent":"ravi-i08","notice":"ravi-n23","label":"fire","reason":"A first-hand verdict in the Jupiter-8 thread: someone went and found it is a fake."}
+{"intent":"jordan-i05","notice":"jordan-n24","label":"no","reason":"A nanny offering services, not a City Mini GT2 Double for sale."}
+{"intent":"maya-i07","notice":"maya-n05","label":"no","reason":"Skrillex tickets, not Caribou at House of Blues."}
+{"intent":"maya-i10","notice":"maya-n26","label":"fire","reason":"A reply in the Jamie xx Portland carpool thread offering Maya a seat."}
+{"intent":"tomas-i01","notice":"tomas-n29","label":"no","reason":"A road bike for sale, not Austin FC away tickets."}
+{"intent":"jordan-i08","notice":"jordan-n30","label":"no","reason":"Another family asking for a sitter, which she excluded, not a sitter offering."}
+{"intent":"sam-i03","notice":"sam-n16","label":"borderline","reason":"Not a meetup but RustConf coming to Portland, and she said conferences are a maybe."}
+{"intent":"aisha-i07","notice":"aisha-n21","label":"fire","reason":"Independent three-lab replication of ambient-pressure superconductivity above 290 K, not the first claim."}
+{"intent":"nadia-i05","notice":"nadia-n13","label":"no","reason":"A dispatcher seeking an office role and explicitly not driving."}
+{"intent":"kai-i02","notice":"kai-n02","label":"no","reason":"The planner wants a guitarist, not a bassist."}
+{"intent":"earl-i08","notice":"earl-n30","label":"fire","reason":"A reply in the well pump short-cycling thread answering his question."}
+{"intent":"ravi-i06","notice":"ravi-n20","label":"no","reason":"A record fair, explicitly excluded, not a synth meetup."}
+{"intent":"earl-i02","notice":"earl-n10","label":"fire","reason":"54-inch box blade for a Kubota-class tractor at USD 375 in Williamstown, an easy drive from Randolph."}
+{"intent":"sam-i07","notice":"sam-n28","label":"no","reason":"An unrelated benchmark coordination thread, not the backstop co-maintainers thread."}
+{"intent":"jordan-i01","notice":"jordan-n05","label":"no","reason":"A crib recall, not the Graco Extend2Fit."}
+{"intent":"dev-i05","notice":"dev-n15","label":"no","reason":"A consultant's webinar summarising the rules, exactly the third-party source she excluded."}
+{"intent":"jordan-i04","notice":"jordan-n10","label":"no","reason":"A book release, not a weekend kids' activity."}
+{"intent":"lena-i02","notice":"lena-n29","label":"no","reason":"A retraction notice, which she excluded, and not an arXiv paper."}
+{"intent":"kai-i01","notice":"kai-n04","label":"fire","reason":"Paid USD 400 session day for an upright and electric bassist at Sound Emporium in Nashville."}
+{"intent":"maya-i08","notice":"maya-n17","label":"no","reason":"Four Tet and Floating Points, not Skrillex or Fred again."}
+{"intent":"ravi-i02","notice":"ravi-n02","label":"no","reason":"A wanted post for a Juno-60, not a dealer offer of a Prophet-5 or Model D."}
+{"intent":"tomas-i10","notice":"tomas-n22","label":"no","reason":"An expansion franchise for Austin, not a Spurs game at Moody Center."}
+{"intent":"dev-i08","notice":"dev-n20","label":"fire","reason":"A driver with their own van available weekday mornings in Denver, exactly the post he wanted."}
+{"intent":"earl-i04","notice":"earl-n05","label":"no","reason":"A generator for sale seeking a woodstove in trade, not a free woodstove."}
+{"intent":"aisha-i11","notice":"aisha-n04","label":"fire","reason":"A news post carrying her byline, Aisha Bello."}
+{"intent":"grace-i04","notice":"grace-n11","label":"no","reason":"Tai chi at a rec center, not a food bank call or beach cleanup."}
+{"intent":"aisha-i02","notice":"aisha-n09","label":"no","reason":"A Council legislative agenda, not a DHCD or DCHA press conference."}
+{"intent":"ravi-i08","notice":"ravi-n05","label":"no","reason":"A dealer inventory list, not a reply in the Jupiter-8 thread."}
+{"intent":"ravi-i05","notice":"ravi-n16","label":"no","reason":"A synth swap event, not a repair tech."}
+{"intent":"lena-i12","notice":"lena-n05","label":"no","reason":"A reanalysis paper, not a retraction or expression of concern on the cited work."}
+{"intent":"nadia-i11","notice":"nadia-n17","label":"no","reason":"Rumoured Route 21 closure, not the Pulaski Skyway, and rumours are excluded."}
+{"intent":"aisha-i08","notice":"aisha-n28","label":"fire","reason":"Harkness-Tully reporting grant cycle open with a deadline, not photojournalism."}
+{"intent":"nadia-i10","notice":"nadia-n01","label":"no","reason":"A bakery's one-off tray delivery, not the Military Park market's pre-order ask."}
+{"intent":"lena-i05","notice":"lena-n26","label":"no","reason":"A NASA proposal call, which is explicitly excluded, not an abstract call for AbSciCon or the GRC."}
+{"intent":"nadia-i10","notice":"nadia-n27","label":"no","reason":"Union Square Greenmarket in Manhattan is another market, which is excluded."}
+{"intent":"sam-i01","notice":"sam-n03","label":"no","reason":"tokio 1.48.0 is a minor release, not a new major."}
+{"intent":"dev-i08","notice":"dev-n25","label":"no","reason":"A bakery seeking a coffee roaster, not a driver offering availability."}
+{"intent":"earl-i04","notice":"earl-n07","label":"borderline","reason":"A Jotul woodstove is effectively available for a $100 purchase in Williston, slightly over an hour away, so not strictly free but worth one look."}
+{"intent":"grace-i10","notice":"grace-n31","label":"no","reason":"Commercial-building seismic grant, excluded; residential owners are not eligible."}
+{"intent":"sam-i05","notice":"sam-n22","label":"no","reason":"Hybrid Portland role, and hybrid is explicitly ruled out."}
+{"intent":"aisha-i02","notice":"aisha-n03","label":"fire","reason":"A DHCD press conference posted by the agency itself in DC."}
+{"intent":"ravi-i09","notice":"ravi-n26","label":"fire","reason":"A PPG Wave 2.3 sold for parts, with boards, panel and contact strip present, is exactly the parts source he wants."}
+{"intent":"priya-i08","notice":"priya-n23","label":"no","reason":"Found on the Loop campus, no sticker, and before she lost hers."}
+{"intent":"ravi-i07","notice":"ravi-n18","label":"no","reason":"A stamp and coin fair in the same hall, which is explicitly excluded."}
+{"intent":"nadia-i07","notice":"nadia-n20","label":"fire","reason":"Posted by the Ferreira Bakery agent itself, and she wants everything it posts."}
+{"intent":"lena-i12","notice":"lena-n01","label":"no","reason":"A new arXiv paper, not a retraction or expression of concern for a cited paper."}
+{"intent":"tomas-i11","notice":"tomas-n31","label":"fire","reason":"Champions League final watch party at a downtown Austin pub."}
+{"intent":"ravi-i03","notice":"ravi-n10","label":"borderline","reason":"Not a Soul Station listing, but an estate sale with 400 LPs including 1960s Blue Note in Toronto is where a first pressing might turn up."}
+{"intent":"earl-i10","notice":"earl-n42","label":"fire","reason":"A members' equipment-lending shed opening in Bethel, minutes from Randolph, is a tool library in all but name."}
+{"intent":"grace-i03","notice":"grace-n09","label":"fire","reason":"Free in-person session at the Ortega Branch Library in the Outer Sunset."}
+{"intent":"maya-i02","notice":"maya-n25","label":"borderline","reason":"A carpool request, not a presale, but it reveals a Jamie xx date in Portland she may not know about."}
+{"intent":"nadia-i05","notice":"nadia-n30","label":"no","reason":"A logistics company offering capacity in the Bronx, not an individual driver around Newark."}
+{"intent":"jordan-i01","notice":"jordan-n03","label":"no","reason":"Recall is for the SnugRide infant seat, which he explicitly excluded."}
+{"intent":"grace-i08","notice":"grace-n24","label":"fire","reason":"Free spinet piano and the seller will deliver anywhere in the city."}
+{"intent":"earl-i11","notice":"earl-n18","label":"no","reason":"A college chainsaw workshop, nothing from Stihl about the MS 261."}
+{"intent":"dev-i06","notice":"dev-n29","label":"no","reason":"Blackbird appears in a top-ten list, which is excluded, with no new location."}
+{"intent":"tomas-i05","notice":"tomas-n30","label":"no","reason":"Someone wanting a road bike, not a goalkeeper seeking a team."}
+{"intent":"maya-i09","notice":"maya-n24","label":"no","reason":"Thursday show at $48 fails both the weekend and under-$40 conditions."}
+{"intent":"sam-i01","notice":"sam-n08","label":"no","reason":"Newsletter chatter about a tokio 2.0 RC and an unnamed sqlx release, not an actual major release."}
+{"intent":"kai-i09","notice":"kai-n34","label":"no","reason":"Reply in the week-of-Oct-19 thread, a different week's thread."}
+{"intent":"lena-i13","notice":"lena-n02","label":"no","reason":"A TRAPPIST-1 e paper with no Enceladus connection."}
+{"intent":"earl-i11","notice":"earl-n35","label":"no","reason":"An owner's forum thread, which he explicitly does not want."}
+{"intent":"ravi-i11","notice":"ravi-n02","label":"no","reason":"Buyer wants a Juno-60 or an MS-20 mini, and the mini is excluded."}
+{"intent":"earl-i02","notice":"earl-n34","label":"no","reason":"A whole tractor with a scrape blade, not a Cat I box blade."}
+{"intent":"tomas-i12","notice":"tomas-n23","label":"no","reason":"A G League Austin Spurs game, explicitly excluded."}
+{"intent":"kai-i02","notice":"kai-n06","label":"borderline","reason":"A direct bassist-needed post with real date and pay, but Denver is well beyond a day's drive of Nashville."}
+{"intent":"aisha-i11","notice":"aisha-n20","label":"no","reason":"A realtor who shares the name, not the journalist's byline."}
+{"intent":"dev-i11","notice":"dev-n28","label":"no","reason":"A reply in a different thread about slipping cafes, not her POS thread."}
+{"intent":"ravi-i01","notice":"ravi-n24","label":"borderline","reason":"Another buyer's thread rather than a listing, but it reveals a Juno-60 in Buffalo at about USD 2,300 within his budget."}
+{"intent":"maya-i07","notice":"maya-n16","label":"no","reason":"Caribou floor tickets at $110 are well above face value."}
+{"intent":"kai-i09","notice":"kai-n35","label":"borderline","reason":"Not in his thread, but it is a concrete Midwest route for the week of Oct 12 that he would want to see."}
+{"intent":"kai-i12","notice":"kai-n40","label":"fire","reason":"Bishop's Crossing 12-date reunion tour with original lineup, announced by a news feed."}
+{"intent":"earl-i09","notice":"earl-n43","label":"no","reason":"A hardware store sale, nothing about the transfer station."}
+{"intent":"tomas-i04","notice":"tomas-n12","label":"no","reason":"A goalkeeper looking for a team, which he explicitly excluded."}
+{"intent":"maya-i11","notice":"maya-n19","label":"no","reason":"A Caribou ticket, not a Red Sox ticket at Fenway."}
+{"intent":"grace-i11","notice":"grace-n33","label":"fire","reason":"A new ramen counter soft-opening on Taraval in the Outer Sunset."}
+{"intent":"nadia-i11","notice":"nadia-n29","label":"fire","reason":"The Skyway closed to all traffic in both directions, posted by the city."}
+{"intent":"maya-i02","notice":"maya-n10","label":"no","reason":"A festival lineup with a general on-sale, not a presale from the venue or artist."}
+{"intent":"kai-i11","notice":"kai-n05","label":"no","reason":"Denver gig that week but unpaid, and paid is a hard requirement."}
+{"intent":"tomas-i05","notice":"tomas-n09","label":"no","reason":"A pickup game listing, not a goalkeeper seeking a team."}
+{"intent":"dev-i04","notice":"dev-n12","label":"fire","reason":"South Pearl market in Denver has an open beverage vendor slot for $65."}
+{"intent":"kai-i04","notice":"kai-n11","label":"no","reason":"A Fender bass for sale, not an Ampeg SVT head."}
+{"intent":"dev-i01","notice":"dev-n03","label":"no","reason":"A 1 kg home roaster, which is explicitly excluded."}
+{"intent":"ravi-i08","notice":"ravi-n22","label":"fire","reason":"A reply in the Jupiter-8 thread with serial plate and board photos."}
+{"intent":"sam-i04","notice":"sam-n21","label":"no","reason":"A job ad, not a CFP closing."}
+{"intent":"jordan-i06","notice":"jordan-n30","label":"no","reason":"Another parent asking for a dentist, a request rather than a dentist taking patients."}
+{"intent":"aisha-i12","notice":"aisha-n16","label":"borderline","reason":"Not rent control policy, but a DC building organising over a 9% rent hike is something a rent-control reporter would want to see once."}
+{"intent":"earl-i12","notice":"earl-n29","label":"no","reason":"A well pump troubleshooting thread, unrelated to an 8N rebuild."}
+{"intent":"dev-i07","notice":"dev-n27","label":"no","reason":"A roaster seeking a job, explicitly excluded, not a business seeking wholesale coffee."}
+{"intent":"maya-i01","notice":"maya-n06","label":"no","reason":"Flume with unnamed guests, no indication Skrillex is playing."}
+{"intent":"kai-i03","notice":"kai-n10","label":"fire","reason":"A real '73 Precision at $2,800 obo, shipped, under his cap."}
+{"intent":"dev-i03","notice":"dev-n09","label":"no","reason":"A lineup post that explicitly says no open vendor spots."}
+{"intent":"ravi-i01","notice":"ravi-n06","label":"no","reason":"A Minimoog, not a Juno-60."}
+{"intent":"lena-i02","notice":"lena-n31","label":"no","reason":"A journal retraction notice, which she excluded, not an arXiv paper."}
+{"intent":"dev-i10","notice":"dev-n09","label":"no","reason":"Mentions Ridgeline Brewing Co., which is explicitly excluded, not Ridgeline Roasters."}
+{"intent":"maya-i08","notice":"maya-n02","label":"fire","reason":"Sonny Moore is Skrillex, headlining Boston Calling in Boston."}
+{"intent":"ravi-i07","notice":"ravi-n20","label":"fire","reason":"A dealer announcing the next record fair Sunday at 206 Beverley, the same hall and dealers."}
+{"intent":"aisha-i03","notice":"aisha-n09","label":"no","reason":"A Council agenda with no mention of the Deputy Mayor speaking."}
+{"intent":"sam-i02","notice":"sam-n08","label":"no","reason":"A newsletter summary of the advisory, not RustSec or the maintainers."}
+{"intent":"maya-i04","notice":"maya-n06","label":"no","reason":"A Flume show, nothing to do with the Boston Calling lineup."}
+{"intent":"tomas-i11","notice":"tomas-n32","label":"fire","reason":"UCL final screening at an East Austin venue on final day."}
+{"intent":"tomas-i09","notice":"tomas-n29","label":"no","reason":"Road bike in Austin but $950, well over the strict $600 cap."}
+{"intent":"maya-i06","notice":"maya-n25","label":"no","reason":"A Jamie xx carpool, not a Four Tet date."}
+{"intent":"aisha-i03","notice":"aisha-n05","label":"no","reason":"Maryland officials in Baltimore, not the DC Deputy Mayor."}
+{"intent":"aisha-i03","notice":"aisha-n04","label":"no","reason":"Coverage quoting her at an event already over, which is excluded."}
+{"intent":"grace-i09","notice":"grace-n27","label":"no","reason":"This is Dolores's own missing post, not a sighting or found report."}
+{"intent":"tomas-i02","notice":"tomas-n01","label":"no","reason":"Ticket sales for the Houston away match, not a bar watch party."}
+{"intent":"earl-i03","notice":"earl-n07","label":"no","reason":"A moving sale with no fill dirt."}
+{"intent":"sam-i09","notice":"sam-n21","label":"no","reason":"A job ad, not a keyboard for sale."}
+{"intent":"tomas-i02","notice":"tomas-n32","label":"no","reason":"A UCL final screening, not a Verde away-match watch party."}
+{"intent":"maya-i04","notice":"maya-n13","label":"fire","reason":"The Boston Calling poster dropped this morning and the lineup is right there, same day."}
+{"intent":"kai-i07","notice":"kai-n22","label":"no","reason":"A producer's studio sessions, not a festival's call for backing musicians."}
+{"intent":"jordan-i06","notice":"jordan-n21","label":"no","reason":"Kidz Smile is not accepting new patients and its waitlist is closed."}
+{"intent":"kai-i06","notice":"kai-n24","label":"fire","reason":"Foxhollow Sound opening tracking sessions and asking for bass players is Teddy's studio calling for players."}
+{"intent":"sam-i12","notice":"sam-n11","label":"no","reason":"An ad hoc Rust meetup at Lucky Lab, not the Ctrl-H hack night."}
+{"intent":"earl-i11","notice":"earl-n37","label":"fire","reason":"A STIHL Inc. field notice for the 261 series, straight from the manufacturer."}
+{"intent":"sam-i10","notice":"sam-n31","label":"no","reason":"The benchmark's workshop CFP, not a coordination thread on the flaky-ci-triage task."}
+{"intent":"dev-i06","notice":"dev-n18","label":"fire","reason":"A new Blackbird cafe soft-opening in RiNo, Denver, close to Welton."}
+{"intent":"lena-i09","notice":"lena-n10","label":"no","reason":"An AbSciCon abstract call, not the AST-2026-0412 review thread."}
+{"intent":"priya-i05","notice":"priya-n14","label":"borderline","reason":"Department-run drop-in tutoring on automata and computability at Lincoln Park, but it does not name CSC 347."}
+{"intent":"priya-i02","notice":"priya-n09","label":"no","reason":"Someone seeking a bike and textbook, not a sublet."}
+{"intent":"aisha-i05","notice":"aisha-n15","label":"no","reason":"Tenants organising, but Marbury Plaza is in Ward 7 and other wards are excluded."}
+{"intent":"tomas-i04","notice":"tomas-n11","label":"no","reason":"Tuesday night basketball, not Sunday morning soccer."}
+{"intent":"earl-i05","notice":"earl-n19","label":"fire","reason":"VTSU Randolph Continuing Ed clinic on filing chains, published by the college."}
+{"intent":"jordan-i09","notice":"jordan-n13","label":"no","reason":"A park district family fest with no Mo Willems appearance."}
+{"intent":"earl-i12","notice":"earl-n33","label":"fire","reason":"A reply in a '51 8N engine-out rebuild thread."}
+{"intent":"tomas-i12","notice":"tomas-n24","label":"no","reason":"A Spurs home game in San Antonio, not Austin getting a team."}
+{"intent":"dev-i05","notice":"dev-n14","label":"fire","reason":"Denver Excise and Licenses changing renewal windows and fees for beverage retail food licenses, from the city itself."}
+{"intent":"aisha-i01","notice":"aisha-n01","label":"fire","reason":"A public zoning hearing where HRP Parkside LLC is the applicant."}

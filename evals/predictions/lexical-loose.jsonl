@@ -1,0 +1,990 @@
+{"intent":"aisha-i01","notice":"aisha-n01","label":"fire","score":0.2857142857142857,"reason":"terms present: parkside, hrp"}
+{"intent":"aisha-i01","notice":"aisha-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i01","notice":"aisha-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i01","notice":"aisha-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i01","notice":"aisha-n03","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"aisha-i01","notice":"aisha-n12","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"aisha-i02","notice":"aisha-n03","label":"fire","score":0.8,"reason":"terms present: dhcd, pres, conference, dc, department"}
+{"intent":"aisha-i02","notice":"aisha-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i02","notice":"aisha-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i02","notice":"aisha-n05","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"aisha-i02","notice":"aisha-n07","label":"fire","score":0.2,"reason":"terms present: dc, hous"}
+{"intent":"aisha-i02","notice":"aisha-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i02","notice":"aisha-n12","label":"fire","score":0.3,"reason":"terms present: dc, hous, development"}
+{"intent":"aisha-i03","notice":"aisha-n07","label":"fire","score":0.3333333333333333,"reason":"terms present: renata, ochoa, whitfield"}
+{"intent":"aisha-i03","notice":"aisha-n03","label":"fire","score":0.5555555555555556,"reason":"terms present: deputy, mayor, plann, economic, development"}
+{"intent":"aisha-i03","notice":"aisha-n12","label":"fire","score":0.5555555555555556,"reason":"terms present: deputy, mayor, plann, economic, development"}
+{"intent":"aisha-i03","notice":"aisha-n08","label":"fire","score":0.8888888888888888,"reason":"terms present: renata, ochoa, whitfield, deputy, mayor"}
+{"intent":"aisha-i03","notice":"aisha-n04","label":"fire","score":0.5555555555555556,"reason":"terms present: renata, ochoa, whitfield, deputy, mayor"}
+{"intent":"aisha-i03","notice":"aisha-n05","label":"fire","score":0.2222222222222222,"reason":"terms present: mayor, development"}
+{"intent":"aisha-i03","notice":"aisha-n09","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"aisha-i04","notice":"aisha-n33","label":"fire","score":1,"reason":"terms present: department, building, foia, dc, dob"}
+{"intent":"aisha-i04","notice":"aisha-n35","label":"fire","score":0.4,"reason":"terms present: department, building"}
+{"intent":"aisha-i04","notice":"aisha-n34","label":"fire","score":0.6,"reason":"terms present: department, foia, dc"}
+{"intent":"aisha-i04","notice":"aisha-n04","label":"fire","score":0.8,"reason":"terms present: department, building, foia, dc"}
+{"intent":"aisha-i04","notice":"aisha-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n14","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i05","notice":"aisha-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n15","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"aisha-i05","notice":"aisha-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n12","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i06","notice":"aisha-n17","label":"fire","score":0.42857142857142855,"reason":"terms present: look, journalist, reporter"}
+{"intent":"aisha-i06","notice":"aisha-n19","label":"fire","score":0.14285714285714285,"reason":"terms present: story"}
+{"intent":"aisha-i06","notice":"aisha-n18","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"aisha-i06","notice":"aisha-n13","label":"fire","score":0.14285714285714285,"reason":"terms present: look"}
+{"intent":"aisha-i06","notice":"aisha-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i06","notice":"aisha-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i07","notice":"aisha-n21","label":"fire","score":0.625,"reason":"terms present: independent, replication, ambient, pressure, superconductivity"}
+{"intent":"aisha-i07","notice":"aisha-n25","label":"fire","score":0.5,"reason":"terms present: room, temperature, superconductor, pressure"}
+{"intent":"aisha-i07","notice":"aisha-n22","label":"fire","score":0.625,"reason":"terms present: room, temperature, ambient, pressure, superconductivity"}
+{"intent":"aisha-i07","notice":"aisha-n23","label":"fire","score":0.625,"reason":"terms present: room, temperature, superconductor, independent, replication"}
+{"intent":"aisha-i07","notice":"aisha-n24","label":"fire","score":0.625,"reason":"terms present: room, temperature, ambient, pressure, superconductivity"}
+{"intent":"aisha-i07","notice":"aisha-n28","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"aisha-i08","notice":"aisha-n26","label":"fire","score":0.75,"reason":"terms present: hark, tully, foundation, fellowship, deadline"}
+{"intent":"aisha-i08","notice":"aisha-n28","label":"fire","score":0.375,"reason":"terms present: grant, htf, journalism"}
+{"intent":"aisha-i08","notice":"aisha-n27","label":"fire","score":0.5,"reason":"terms present: hark, tully, fellowship, deadline"}
+{"intent":"aisha-i08","notice":"aisha-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i08","notice":"aisha-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i09","notice":"aisha-n29","label":"fire","score":0.5,"reason":"terms present: sony, a7, iii, body, camera"}
+{"intent":"aisha-i09","notice":"aisha-n30","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i09","notice":"aisha-n31","label":"fire","score":0.5,"reason":"terms present: sony, a7, iii, camera, also"}
+{"intent":"aisha-i09","notice":"aisha-n32","label":"fire","score":0.5,"reason":"terms present: sony, a7, iii, body, camera"}
+{"intent":"aisha-i09","notice":"aisha-n20","label":"fire","score":0.1,"reason":"terms present: list"}
+{"intent":"aisha-i10","notice":"aisha-n09","label":"fire","score":1,"reason":"terms present: dc, council, legislative, meet, agenda"}
+{"intent":"aisha-i10","notice":"aisha-n10","label":"fire","score":0.42857142857142855,"reason":"terms present: legislative, meet, agenda"}
+{"intent":"aisha-i10","notice":"aisha-n11","label":"fire","score":0.2857142857142857,"reason":"terms present: council, agenda"}
+{"intent":"aisha-i10","notice":"aisha-n12","label":"fire","score":0.2857142857142857,"reason":"terms present: dc, council"}
+{"intent":"aisha-i10","notice":"aisha-n01","label":"fire","score":0.14285714285714285,"reason":"terms present: dc"}
+{"intent":"aisha-i10","notice":"aisha-n03","label":"fire","score":0.14285714285714285,"reason":"terms present: dc"}
+{"intent":"aisha-i11","notice":"aisha-n04","label":"fire","score":0.6666666666666666,"reason":"terms present: aisha, bello"}
+{"intent":"aisha-i11","notice":"aisha-n14","label":"fire","score":0.3333333333333333,"reason":"terms present: aisha"}
+{"intent":"aisha-i11","notice":"aisha-n20","label":"fire","score":0.6666666666666666,"reason":"terms present: aisha, bello"}
+{"intent":"aisha-i11","notice":"aisha-n01","label":"fire","score":0.3333333333333333,"reason":"terms present: bello"}
+{"intent":"aisha-i11","notice":"aisha-n17","label":"fire","score":0.3333333333333333,"reason":"terms present: journalist"}
+{"intent":"aisha-i11","notice":"aisha-n19","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"aisha-i12","notice":"aisha-n07","label":"fire","score":0.5454545454545454,"reason":"terms present: rent, stabilization, dc, rental, hous"}
+{"intent":"aisha-i12","notice":"aisha-n12","label":"fire","score":0.7272727272727273,"reason":"terms present: rent, stabilization, dc, rental, hous"}
+{"intent":"aisha-i12","notice":"aisha-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i12","notice":"aisha-n13","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i12","notice":"aisha-n11","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"aisha-i12","notice":"aisha-n16","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i12","notice":"aisha-n08","label":"fire","score":0.18181818181818182,"reason":"terms present: dc, hous"}
+{"intent":"aisha-i12","notice":"aisha-n15","label":"fire","score":0.09090909090909091,"reason":"terms present: dc"}
+{"intent":"aisha-i12","notice":"aisha-n03","label":"fire","score":0.18181818181818182,"reason":"terms present: dc, hous"}
+{"intent":"aisha-i12","notice":"aisha-n14","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i01","notice":"dev-n01","label":"fire","score":0.4444444444444444,"reason":"terms present: probat, p12, 12, roaster"}
+{"intent":"dev-i01","notice":"dev-n02","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i01","notice":"dev-n03","label":"fire","score":0.1111111111111111,"reason":"terms present: roaster"}
+{"intent":"dev-i01","notice":"dev-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i01","notice":"dev-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i01","notice":"dev-n05","label":"fire","score":0.1111111111111111,"reason":"terms present: roaster"}
+{"intent":"dev-i01","notice":"dev-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i02","notice":"dev-n05","label":"fire","score":0.5833333333333334,"reason":"terms present: green, coffee, colombia, importer, 70"}
+{"intent":"dev-i02","notice":"dev-n06","label":"fire","score":0.25,"reason":"terms present: 60, kg, bag"}
+{"intent":"dev-i02","notice":"dev-n03","label":"fire","score":0.5833333333333334,"reason":"terms present: green, coffee, ethiopia, colombia, lot"}
+{"intent":"dev-i02","notice":"dev-n07","label":"fire","score":0.4166666666666667,"reason":"terms present: green, coffee, colombia, kg, bag"}
+{"intent":"dev-i02","notice":"dev-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i02","notice":"dev-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i02","notice":"dev-n01","label":"fire","score":0.16666666666666666,"reason":"terms present: coffee, kg"}
+{"intent":"dev-i03","notice":"dev-n08","label":"fire","score":0.7777777777777778,"reason":"terms present: south, pearl, farmer, market, vendor"}
+{"intent":"dev-i03","notice":"dev-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i03","notice":"dev-n09","label":"fire","score":1,"reason":"terms present: south, pearl, farmer, market, vendor"}
+{"intent":"dev-i03","notice":"dev-n10","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"dev-i03","notice":"dev-n11","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"dev-i03","notice":"dev-n29","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"dev-i04","notice":"dev-n08","label":"fire","score":0.5833333333333334,"reason":"terms present: vendor, market, food, beverage, farmer"}
+{"intent":"dev-i04","notice":"dev-n10","label":"fire","score":0.5,"reason":"terms present: vendor, application, open, festival, food"}
+{"intent":"dev-i04","notice":"dev-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i04","notice":"dev-n09","label":"fire","score":0.4166666666666667,"reason":"terms present: vendor, market, farmer, street, denver"}
+{"intent":"dev-i04","notice":"dev-n11","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"dev-i04","notice":"dev-n18","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i04","notice":"dev-n29","label":"fire","score":0.08333333333333333,"reason":"terms present: denver"}
+{"intent":"dev-i05","notice":"dev-n13","label":"fire","score":0.46153846153846156,"reason":"terms present: denver, food, establishment, retail, rul"}
+{"intent":"dev-i05","notice":"dev-n14","label":"fire","score":0.38461538461538464,"reason":"terms present: denver, food, establishment, license, retail"}
+{"intent":"dev-i05","notice":"dev-n16","label":"fire","score":0.3076923076923077,"reason":"terms present: denver, establishment, rule, apply"}
+{"intent":"dev-i05","notice":"dev-n10","label":"fire","score":0.38461538461538464,"reason":"terms present: denver, food, permit, apply, coffee"}
+{"intent":"dev-i05","notice":"dev-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i05","notice":"dev-n11","label":"fire","score":0.07692307692307693,"reason":"terms present: food"}
+{"intent":"dev-i06","notice":"dev-n17","label":"fire","score":0.5555555555555556,"reason":"terms present: blackbird, roast, open, co, denver"}
+{"intent":"dev-i06","notice":"dev-n18","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i06","notice":"dev-n19","label":"fire","score":0.4444444444444444,"reason":"terms present: blackbird, roast, co, denver"}
+{"intent":"dev-i06","notice":"dev-n27","label":"fire","score":0.4444444444444444,"reason":"terms present: blackbird, roast, co, denver"}
+{"intent":"dev-i06","notice":"dev-n29","label":"fire","score":0.4444444444444444,"reason":"terms present: blackbird, roast, co, denver"}
+{"intent":"dev-i06","notice":"dev-n26","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i06","notice":"dev-n22","label":"fire","score":0.2222222222222222,"reason":"terms present: co, denver"}
+{"intent":"dev-i07","notice":"dev-n25","label":"fire","score":0.6,"reason":"terms present: look, local, coffee, roaster, wholesale"}
+{"intent":"dev-i07","notice":"dev-n26","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i07","notice":"dev-n04","label":"fire","score":0.4,"reason":"terms present: look, coffee, roaster, denver"}
+{"intent":"dev-i07","notice":"dev-n27","label":"fire","score":0.4,"reason":"terms present: look, coffee, roaster, denver"}
+{"intent":"dev-i07","notice":"dev-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i07","notice":"dev-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i07","notice":"dev-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i08","notice":"dev-n20","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i08","notice":"dev-n21","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i08","notice":"dev-n19","label":"fire","score":0.375,"reason":"terms present: delivery, driver, morning"}
+{"intent":"dev-i08","notice":"dev-n27","label":"fire","score":0.125,"reason":"terms present: time"}
+{"intent":"dev-i08","notice":"dev-n25","label":"fire","score":0.125,"reason":"terms present: delivery"}
+{"intent":"dev-i08","notice":"dev-n04","label":"fire","score":0.125,"reason":"terms present: own"}
+{"intent":"dev-i08","notice":"dev-n17","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"dev-i09","notice":"dev-n22","label":"fire","score":0.5,"reason":"terms present: corner, retail, lease, rino, ground"}
+{"intent":"dev-i09","notice":"dev-n23","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i09","notice":"dev-n24","label":"fire","score":0.21428571428571427,"reason":"terms present: corner, retail, lease"}
+{"intent":"dev-i09","notice":"dev-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i09","notice":"dev-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i09","notice":"dev-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i10","notice":"dev-n29","label":"fire","score":0.5,"reason":"terms present: ridgeline, roaster, denver, coffee"}
+{"intent":"dev-i10","notice":"dev-n28","label":"fire","score":0.625,"reason":"terms present: ridgeline, denver, broadway, welton, coffee"}
+{"intent":"dev-i10","notice":"dev-n26","label":"fire","score":0.5,"reason":"terms present: ridgeline, roaster, denver, coffee"}
+{"intent":"dev-i10","notice":"dev-n09","label":"fire","score":0.25,"reason":"terms present: ridgeline, denver"}
+{"intent":"dev-i10","notice":"dev-n24","label":"fire","score":0.25,"reason":"terms present: ridgeline, denver"}
+{"intent":"dev-i10","notice":"dev-n17","label":"fire","score":0.25,"reason":"terms present: denver, coffee"}
+{"intent":"dev-i10","notice":"dev-n25","label":"fire","score":0.375,"reason":"terms present: roaster, denver, coffee"}
+{"intent":"dev-i10","notice":"dev-n19","label":"fire","score":0.375,"reason":"terms present: denver, broadway, coffee"}
+{"intent":"dev-i11","notice":"dev-n31","label":"fire","score":0.75,"reason":"terms present: dev, own, thread, n30, multi"}
+{"intent":"dev-i11","notice":"dev-n32","label":"fire","score":0.75,"reason":"terms present: dev, s, thread, n30, multi"}
+{"intent":"dev-i11","notice":"dev-n30","label":"fire","score":0.5833333333333334,"reason":"terms present: multi, location, cafe, pos, square"}
+{"intent":"dev-i11","notice":"dev-n28","label":"fire","score":0.16666666666666666,"reason":"terms present: s, thread"}
+{"intent":"dev-i11","notice":"dev-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i11","notice":"dev-n29","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i01","notice":"earl-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i01","notice":"earl-n02","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"earl-i01","notice":"earl-n03","label":"fire","score":0.2,"reason":"terms present: honda, hrx"}
+{"intent":"earl-i01","notice":"earl-n04","label":"fire","score":0.1,"reason":"terms present: honda"}
+{"intent":"earl-i01","notice":"earl-n05","label":"fire","score":0.1,"reason":"terms present: honda"}
+{"intent":"earl-i01","notice":"earl-n06","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"earl-i01","notice":"earl-n07","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i01","notice":"earl-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i01","notice":"earl-n09","label":"fire","score":0.2,"reason":"terms present: honda, hrx"}
+{"intent":"earl-i01","notice":"earl-n43","label":"fire","score":0.3,"reason":"terms present: honda, hrx, hrn"}
+{"intent":"earl-i01","notice":"earl-n13","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"earl-i02","notice":"earl-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i02","notice":"earl-n11","label":"fire","score":0.5625,"reason":"terms present: box, blade, cat, category, 48"}
+{"intent":"earl-i02","notice":"earl-n03","label":"fire","score":0.1875,"reason":"terms present: blade, cat, little"}
+{"intent":"earl-i02","notice":"earl-n12","label":"fire","score":0.375,"reason":"terms present: box, blade, cat, category, inch"}
+{"intent":"earl-i02","notice":"earl-n07","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i02","notice":"earl-n09","label":"fire","score":0.1875,"reason":"terms present: box, blade, 48"}
+{"intent":"earl-i02","notice":"earl-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i02","notice":"earl-n34","label":"fire","score":0.125,"reason":"terms present: blade, tractor"}
+{"intent":"earl-i03","notice":"earl-n13","label":"fire","score":0.2857142857142857,"reason":"terms present: free, fill"}
+{"intent":"earl-i03","notice":"earl-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i03","notice":"earl-n15","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i03","notice":"earl-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i03","notice":"earl-n07","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i04","notice":"earl-n16","label":"fire","score":0.3076923076923077,"reason":"terms present: free, woodstove, vermont, casting"}
+{"intent":"earl-i04","notice":"earl-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i04","notice":"earl-n05","label":"fire","score":0.07692307692307693,"reason":"terms present: woodstove"}
+{"intent":"earl-i04","notice":"earl-n07","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i04","notice":"earl-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i04","notice":"earl-n24","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"earl-i05","notice":"earl-n18","label":"fire","score":0.8333333333333334,"reason":"terms present: chainsaw, sharpen, workshop, saw, maintenance"}
+{"intent":"earl-i05","notice":"earl-n19","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i05","notice":"earl-n20","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i05","notice":"earl-n21","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i05","notice":"earl-n36","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i05","notice":"earl-n42","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i06","notice":"earl-n22","label":"fire","score":0.7142857142857143,"reason":"terms present: firewood, cord, deliver, hardwood, season"}
+{"intent":"earl-i06","notice":"earl-n23","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i06","notice":"earl-n24","label":"fire","score":0.7142857142857143,"reason":"terms present: firewood, cord, deliver, hardwood, season"}
+{"intent":"earl-i06","notice":"earl-n25","label":"fire","score":0.5714285714285714,"reason":"terms present: firewood, cord, deliver, season"}
+{"intent":"earl-i06","notice":"earl-n06","label":"fire","score":0.5714285714285714,"reason":"terms present: firewood, cord, deliver, season"}
+{"intent":"earl-i06","notice":"earl-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i07","notice":"earl-n03","label":"fire","score":0.3,"reason":"terms present: egg, maple, syrup"}
+{"intent":"earl-i07","notice":"earl-n06","label":"fire","score":0.3,"reason":"terms present: maple, syrup, offer"}
+{"intent":"earl-i07","notice":"earl-n26","label":"fire","score":0.2,"reason":"terms present: syrup, good"}
+{"intent":"earl-i07","notice":"earl-n28","label":"fire","score":0.3,"reason":"terms present: trade, maple, syrup"}
+{"intent":"earl-i07","notice":"earl-n27","label":"fire","score":0.3,"reason":"terms present: egg, maple, syrup"}
+{"intent":"earl-i07","notice":"earl-n05","label":"fire","score":0.1,"reason":"terms present: trade"}
+{"intent":"earl-i07","notice":"earl-n43","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"earl-i08","notice":"earl-n30","label":"fire","score":0.5333333333333333,"reason":"terms present: submersible, pump, short, cycl, 40"}
+{"intent":"earl-i08","notice":"earl-n31","label":"fire","score":0.5333333333333333,"reason":"terms present: submersible, pump, short, cycl, 40"}
+{"intent":"earl-i08","notice":"earl-n29","label":"fire","score":0.5333333333333333,"reason":"terms present: submersible, pump, short, cycl, 40"}
+{"intent":"earl-i08","notice":"earl-n33","label":"fire","score":0.13333333333333333,"reason":"terms present: pump, short"}
+{"intent":"earl-i08","notice":"earl-n28","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"earl-i08","notice":"earl-n35","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"earl-i09","notice":"earl-n38","label":"fire","score":0.4166666666666667,"reason":"terms present: randolph, transfer, station, hour, vt"}
+{"intent":"earl-i09","notice":"earl-n39","label":"fire","score":0.3333333333333333,"reason":"terms present: randolph, recycl, drop, off"}
+{"intent":"earl-i09","notice":"earl-n40","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"earl-i09","notice":"earl-n14","label":"fire","score":0.08333333333333333,"reason":"terms present: randolph"}
+{"intent":"earl-i09","notice":"earl-n17","label":"fire","score":0.4166666666666667,"reason":"terms present: randolph, transfer, station, hour, vt"}
+{"intent":"earl-i09","notice":"earl-n43","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i10","notice":"earl-n41","label":"fire","score":0.2857142857142857,"reason":"terms present: tool, library"}
+{"intent":"earl-i10","notice":"earl-n42","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i10","notice":"earl-n43","label":"fire","score":0.14285714285714285,"reason":"terms present: tool"}
+{"intent":"earl-i10","notice":"earl-n44","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i10","notice":"earl-n18","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"earl-i10","notice":"earl-n20","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"earl-i11","notice":"earl-n36","label":"fire","score":0.8888888888888888,"reason":"terms present: stihl, ms, 261, service, bulletin"}
+{"intent":"earl-i11","notice":"earl-n37","label":"fire","score":0.4444444444444444,"reason":"terms present: stihl, 261, c, m"}
+{"intent":"earl-i11","notice":"earl-n35","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i11","notice":"earl-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i11","notice":"earl-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i11","notice":"earl-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i12","notice":"earl-n32","label":"fire","score":0.5,"reason":"terms present: ford, 8n, rebuild, tractor"}
+{"intent":"earl-i12","notice":"earl-n33","label":"fire","score":0.625,"reason":"terms present: ford, 8n, tractor, old, grey"}
+{"intent":"earl-i12","notice":"earl-n34","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i12","notice":"earl-n35","label":"fire","score":0.125,"reason":"terms present: old"}
+{"intent":"earl-i12","notice":"earl-n29","label":"fire","score":0.125,"reason":"terms present: old"}
+{"intent":"earl-i12","notice":"earl-n31","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"grace-i01","notice":"grace-n01","label":"fire","score":0.6923076923076923,"reason":"terms present: board, supervisor, agenda, sunset, 4"}
+{"intent":"grace-i01","notice":"grace-n02","label":"fire","score":0.46153846153846156,"reason":"terms present: board, supervisor, agenda, sunset, committee"}
+{"intent":"grace-i01","notice":"grace-n03","label":"fire","score":0.5384615384615384,"reason":"terms present: board, supervisor, agenda, district, committee"}
+{"intent":"grace-i01","notice":"grace-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i01","notice":"grace-n05","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"grace-i01","notice":"grace-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i01","notice":"grace-n18","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"grace-i02","notice":"grace-n07","label":"fire","score":0.6666666666666666,"reason":"terms present: 2800, irv, street, hear, conditional"}
+{"intent":"grace-i02","notice":"grace-n04","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i02","notice":"grace-n05","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i02","notice":"grace-n06","label":"fire","score":0.5555555555555556,"reason":"terms present: irv, street, hear, conditional, use"}
+{"intent":"grace-i02","notice":"grace-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i02","notice":"grace-n02","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i03","notice":"grace-n09","label":"fire","score":0.46153846153846156,"reason":"terms present: free, library, community, session, sfpl"}
+{"intent":"grace-i03","notice":"grace-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i03","notice":"grace-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i03","notice":"grace-n12","label":"fire","score":0.3076923076923077,"reason":"terms present: clas, center, session, rec"}
+{"intent":"grace-i03","notice":"grace-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i03","notice":"grace-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i04","notice":"grace-n13","label":"fire","score":0.5555555555555556,"reason":"terms present: volunteer, sf, marin, food, bank"}
+{"intent":"grace-i04","notice":"grace-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i04","notice":"grace-n14","label":"fire","score":0.3333333333333333,"reason":"terms present: volunteer, food, bank"}
+{"intent":"grace-i04","notice":"grace-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i04","notice":"grace-n27","label":"fire","score":0.1111111111111111,"reason":"terms present: volunteer"}
+{"intent":"grace-i04","notice":"grace-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i05","notice":"grace-n18","label":"fire","score":0.5,"reason":"terms present: n, judah, muni, service"}
+{"intent":"grace-i05","notice":"grace-n19","label":"fire","score":0.625,"reason":"terms present: l, taraval, muni, service, change"}
+{"intent":"grace-i05","notice":"grace-n01","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"grace-i05","notice":"grace-n03","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"grace-i05","notice":"grace-n20","label":"fire","score":0.375,"reason":"terms present: judah, muni, service"}
+{"intent":"grace-i05","notice":"grace-n37","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i06","notice":"grace-n16","label":"fire","score":1,"reason":"terms present: sunset, playground, renovation, rec, park"}
+{"intent":"grace-i06","notice":"grace-n01","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i06","notice":"grace-n17","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i06","notice":"grace-n11","label":"fire","score":0.42857142857142855,"reason":"terms present: sunset, rec, park"}
+{"intent":"grace-i06","notice":"grace-n29","label":"fire","score":0.2857142857142857,"reason":"terms present: sunset, playground"}
+{"intent":"grace-i06","notice":"grace-n20","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i07","notice":"grace-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i07","notice":"grace-n22","label":"fire","score":0.2,"reason":"terms present: 65, cinema"}
+{"intent":"grace-i07","notice":"grace-n12","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i07","notice":"grace-n32","label":"fire","score":0.3,"reason":"terms present: senior, day, 65"}
+{"intent":"grace-i07","notice":"grace-n26","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"grace-i08","notice":"grace-n23","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i08","notice":"grace-n24","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i08","notice":"grace-n25","label":"fire","score":0.2222222222222222,"reason":"terms present: piano, upright"}
+{"intent":"grace-i08","notice":"grace-n26","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i08","notice":"grace-n12","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i09","notice":"grace-n28","label":"fire","score":0.75,"reason":"terms present: found, orange, cat, green, collar"}
+{"intent":"grace-i09","notice":"grace-n40","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i09","notice":"grace-n27","label":"fire","score":0.875,"reason":"terms present: orange, cat, tabby, green, collar"}
+{"intent":"grace-i09","notice":"grace-n29","label":"fire","score":0.125,"reason":"terms present: found"}
+{"intent":"grace-i09","notice":"grace-n26","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i10","notice":"grace-n30","label":"fire","score":0.7333333333333333,"reason":"terms present: retrofit, grant, application, open, seismic"}
+{"intent":"grace-i10","notice":"grace-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i10","notice":"grace-n31","label":"fire","score":0.4,"reason":"terms present: retrofit, grant, application, open, seismic"}
+{"intent":"grace-i10","notice":"grace-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i10","notice":"grace-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i11","notice":"grace-n21","label":"fire","score":0.5,"reason":"terms present: open, restaurant"}
+{"intent":"grace-i11","notice":"grace-n33","label":"fire","score":0.5,"reason":"terms present: open, restaurant"}
+{"intent":"grace-i11","notice":"grace-n34","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i11","notice":"grace-n06","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"grace-i11","notice":"grace-n14","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i12","notice":"grace-n35","label":"fire","score":0.8,"reason":"terms present: great, highway, reopen, vehicl, upper"}
+{"intent":"grace-i12","notice":"grace-n36","label":"fire","score":0.3,"reason":"terms present: sunset, dun, park"}
+{"intent":"grace-i12","notice":"grace-n02","label":"fire","score":0.5,"reason":"terms present: great, highway, upper, sunset, park"}
+{"intent":"grace-i12","notice":"grace-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i12","notice":"grace-n41","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i12","notice":"grace-n37","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i13","notice":"grace-n38","label":"fire","score":0.8571428571428571,"reason":"terms present: 29, sunset, stop, 46th, judah"}
+{"intent":"grace-i13","notice":"grace-n39","label":"fire","score":0.8571428571428571,"reason":"terms present: 29, sunset, stop, 46th, judah"}
+{"intent":"grace-i13","notice":"grace-n37","label":"fire","score":0.8571428571428571,"reason":"terms present: 29, sunset, stop, 46th, judah"}
+{"intent":"grace-i13","notice":"grace-n40","label":"fire","score":0.8571428571428571,"reason":"terms present: 29, sunset, stop, 46th, judah"}
+{"intent":"grace-i13","notice":"grace-n41","label":"fire","score":0.14285714285714285,"reason":"terms present: petition"}
+{"intent":"grace-i13","notice":"grace-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i01","notice":"jordan-n01","label":"fire","score":0.5,"reason":"terms present: graco, extend2fit, 2087590, recall, convertible"}
+{"intent":"jordan-i01","notice":"jordan-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i01","notice":"jordan-n03","label":"fire","score":0.3125,"reason":"terms present: graco, recall, car, seat, model"}
+{"intent":"jordan-i01","notice":"jordan-n04","label":"fire","score":0.375,"reason":"terms present: graco, extend2fit, 2087590, recall, seat"}
+{"intent":"jordan-i01","notice":"jordan-n05","label":"fire","score":0.1875,"reason":"terms present: recall, convertible, model"}
+{"intent":"jordan-i01","notice":"jordan-n06","label":"fire","score":0.0625,"reason":"terms present: convertible"}
+{"intent":"jordan-i01","notice":"jordan-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i02","notice":"jordan-n05","label":"fire","score":0.875,"reason":"terms present: babyletto, crib, recall, million, dollar"}
+{"intent":"jordan-i02","notice":"jordan-n06","label":"fire","score":0.625,"reason":"terms present: crib, million, dollar, baby, co"}
+{"intent":"jordan-i02","notice":"jordan-n01","label":"fire","score":0.125,"reason":"terms present: recall"}
+{"intent":"jordan-i02","notice":"jordan-n03","label":"fire","score":0.125,"reason":"terms present: recall"}
+{"intent":"jordan-i02","notice":"jordan-n04","label":"fire","score":0.5,"reason":"terms present: babyletto, crib, recall, baby"}
+{"intent":"jordan-i02","notice":"jordan-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i02","notice":"jordan-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i03","notice":"jordan-n25","label":"fire","score":1,"reason":"terms present: naperville, 203, clos, e, learn"}
+{"intent":"jordan-i03","notice":"jordan-n26","label":"fire","score":0.6,"reason":"terms present: naperville, 203, community, unit, school"}
+{"intent":"jordan-i03","notice":"jordan-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i03","notice":"jordan-n29","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i03","notice":"jordan-n35","label":"fire","score":0.2,"reason":"terms present: naperville, school"}
+{"intent":"jordan-i03","notice":"jordan-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i03","notice":"jordan-n14","label":"fire","score":0.2,"reason":"terms present: naperville, district"}
+{"intent":"jordan-i04","notice":"jordan-n07","label":"fire","score":0.375,"reason":"terms present: kid, free, age"}
+{"intent":"jordan-i04","notice":"jordan-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i04","notice":"jordan-n13","label":"fire","score":0.5,"reason":"terms present: kid, family, free, age"}
+{"intent":"jordan-i04","notice":"jordan-n08","label":"fire","score":0.25,"reason":"terms present: kid, event"}
+{"intent":"jordan-i04","notice":"jordan-n09","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"jordan-i04","notice":"jordan-n12","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"jordan-i04","notice":"jordan-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i04","notice":"jordan-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i05","notice":"jordan-n16","label":"fire","score":1,"reason":"terms present: baby, jogger, city, mini, gt2"}
+{"intent":"jordan-i05","notice":"jordan-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"jordan-i05","notice":"jordan-n18","label":"fire","score":0.8571428571428571,"reason":"terms present: baby, jogger, city, mini, gt2"}
+{"intent":"jordan-i05","notice":"jordan-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i05","notice":"jordan-n24","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"jordan-i06","notice":"jordan-n19","label":"fire","score":1,"reason":"terms present: pediatric, dentist, accept, new, patient"}
+{"intent":"jordan-i06","notice":"jordan-n20","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"jordan-i06","notice":"jordan-n21","label":"fire","score":1,"reason":"terms present: pediatric, dentist, accept, new, patient"}
+{"intent":"jordan-i06","notice":"jordan-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i06","notice":"jordan-n22","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"jordan-i07","notice":"jordan-n14","label":"fire","score":1,"reason":"terms present: naperville, park, district, swim, lesson"}
+{"intent":"jordan-i07","notice":"jordan-n15","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"jordan-i07","notice":"jordan-n11","label":"fire","score":0.8333333333333334,"reason":"terms present: park, district, swim, lesson, registration"}
+{"intent":"jordan-i07","notice":"jordan-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i07","notice":"jordan-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i08","notice":"jordan-n22","label":"fire","score":0.6666666666666666,"reason":"terms present: babysitter, evening"}
+{"intent":"jordan-i08","notice":"jordan-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i08","notice":"jordan-n24","label":"fire","score":0.6666666666666666,"reason":"terms present: evening, weekday"}
+{"intent":"jordan-i08","notice":"jordan-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i08","notice":"jordan-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i09","notice":"jordan-n08","label":"fire","score":0.8333333333333334,"reason":"terms present: mo, willem, elephant, piggie, author"}
+{"intent":"jordan-i09","notice":"jordan-n09","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"jordan-i09","notice":"jordan-n07","label":"fire","score":0.16666666666666666,"reason":"terms present: pigeon"}
+{"intent":"jordan-i09","notice":"jordan-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i09","notice":"jordan-n13","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"jordan-i10","notice":"jordan-n36","label":"fire","score":0.8571428571428571,"reason":"terms present: found, dog, near, cres, creek"}
+{"intent":"jordan-i10","notice":"jordan-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i10","notice":"jordan-n37","label":"fire","score":0.5714285714285714,"reason":"terms present: found, cres, creek, naperville"}
+{"intent":"jordan-i10","notice":"jordan-n29","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i10","notice":"jordan-n22","label":"fire","score":0.42857142857142855,"reason":"terms present: near, north, naperville"}
+{"intent":"jordan-i11","notice":"jordan-n28","label":"fire","score":1,"reason":"terms present: prairie, elementary, pta, 2026, 27"}
+{"intent":"jordan-i11","notice":"jordan-n30","label":"fire","score":0.8333333333333334,"reason":"terms present: prairie, elementary, pta, 2026, 27"}
+{"intent":"jordan-i11","notice":"jordan-n31","label":"fire","score":0.8333333333333334,"reason":"terms present: prairie, elementary, pta, 2026, 27"}
+{"intent":"jordan-i11","notice":"jordan-n23","label":"fire","score":0.8333333333333334,"reason":"terms present: prairie, elementary, pta, 2026, 27"}
+{"intent":"jordan-i11","notice":"jordan-n27","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"jordan-i11","notice":"jordan-n29","label":"fire","score":0.6666666666666666,"reason":"terms present: elementary, pta, 2026, 27"}
+{"intent":"jordan-i11","notice":"jordan-n25","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"jordan-i12","notice":"jordan-n32","label":"fire","score":1,"reason":"terms present: measl, dupage, county"}
+{"intent":"jordan-i12","notice":"jordan-n33","label":"fire","score":0.3333333333333333,"reason":"terms present: county"}
+{"intent":"jordan-i12","notice":"jordan-n34","label":"fire","score":0.6666666666666666,"reason":"terms present: measl, county"}
+{"intent":"jordan-i12","notice":"jordan-n26","label":"fire","score":1,"reason":"terms present: measl, dupage, county"}
+{"intent":"jordan-i12","notice":"jordan-n35","label":"fire","score":0.6666666666666666,"reason":"terms present: dupage, county"}
+{"intent":"jordan-i12","notice":"jordan-n25","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"kai-i01","notice":"kai-n01","label":"fire","score":0.8333333333333334,"reason":"terms present: bassist, need, paid, gig, electric"}
+{"intent":"kai-i01","notice":"kai-n04","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"kai-i01","notice":"kai-n02","label":"fire","score":0.3333333333333333,"reason":"terms present: paid, electric"}
+{"intent":"kai-i01","notice":"kai-n03","label":"fire","score":0.3333333333333333,"reason":"terms present: bassist, paid"}
+{"intent":"kai-i01","notice":"kai-n06","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i01","notice":"kai-n09","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"kai-i01","notice":"kai-n36","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i01","notice":"kai-n08","label":"fire","score":0.3333333333333333,"reason":"terms present: bassist, paid"}
+{"intent":"kai-i01","notice":"kai-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i01","notice":"kai-n05","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"kai-i01","notice":"kai-n07","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"kai-i02","notice":"kai-n08","label":"fire","score":0.6,"reason":"terms present: wedd, band, bassist"}
+{"intent":"kai-i02","notice":"kai-n09","label":"fire","score":0.4,"reason":"terms present: wedd, band"}
+{"intent":"kai-i02","notice":"kai-n02","label":"fire","score":0.4,"reason":"terms present: wedd, band"}
+{"intent":"kai-i02","notice":"kai-n03","label":"fire","score":0.6,"reason":"terms present: wedd, band, bassist"}
+{"intent":"kai-i02","notice":"kai-n01","label":"fire","score":0.8,"reason":"terms present: band, bassist, need, gig"}
+{"intent":"kai-i02","notice":"kai-n06","label":"fire","score":0.6,"reason":"terms present: bassist, need, gig"}
+{"intent":"kai-i03","notice":"kai-n12","label":"fire","score":0.5555555555555556,"reason":"terms present: vintage, fender, jazz, bas, j"}
+{"intent":"kai-i03","notice":"kai-n10","label":"fire","score":0.2222222222222222,"reason":"terms present: bas, p"}
+{"intent":"kai-i03","notice":"kai-n11","label":"fire","score":0.5555555555555556,"reason":"terms present: vintage, fender, precision, bas, p"}
+{"intent":"kai-i03","notice":"kai-n13","label":"fire","score":0.4444444444444444,"reason":"terms present: vintage, fender, precision, bas"}
+{"intent":"kai-i03","notice":"kai-n15","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"kai-i03","notice":"kai-n14","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"kai-i04","notice":"kai-n14","label":"fire","score":0.7142857142857143,"reason":"terms present: ampeg, svt, head, amp, cl"}
+{"intent":"kai-i04","notice":"kai-n16","label":"fire","score":0.5714285714285714,"reason":"terms present: svt, head, amp, vintage"}
+{"intent":"kai-i04","notice":"kai-n15","label":"fire","score":0.42857142857142855,"reason":"terms present: ampeg, svt, amp"}
+{"intent":"kai-i04","notice":"kai-n17","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i04","notice":"kai-n11","label":"fire","score":0.2857142857142857,"reason":"terms present: bas, vintage"}
+{"intent":"kai-i04","notice":"kai-n13","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i05","notice":"kai-n18","label":"fire","score":0.75,"reason":"terms present: rehearsal, hourly, room"}
+{"intent":"kai-i05","notice":"kai-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i05","notice":"kai-n19","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i05","notice":"kai-n20","label":"fire","score":0.75,"reason":"terms present: rehearsal, space, hourly"}
+{"intent":"kai-i05","notice":"kai-n36","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i06","notice":"kai-n22","label":"fire","score":1,"reason":"terms present: teddy, marchetti, foxhollow, session, player"}
+{"intent":"kai-i06","notice":"kai-n24","label":"fire","score":0.42857142857142855,"reason":"terms present: foxhollow, session, player"}
+{"intent":"kai-i06","notice":"kai-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i06","notice":"kai-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i06","notice":"kai-n25","label":"fire","score":0.14285714285714285,"reason":"terms present: player"}
+{"intent":"kai-i06","notice":"kai-n27","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"kai-i07","notice":"kai-n25","label":"fire","score":0.875,"reason":"terms present: festival, open, call, back, musician"}
+{"intent":"kai-i07","notice":"kai-n27","label":"fire","score":0.25,"reason":"terms present: festival, band"}
+{"intent":"kai-i07","notice":"kai-n26","label":"fire","score":0.375,"reason":"terms present: festival, open, call"}
+{"intent":"kai-i07","notice":"kai-n22","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"kai-i07","notice":"kai-n40","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"kai-i08","notice":"kai-n28","label":"fire","score":1,"reason":"terms present: ford, transit, 350, high, roof"}
+{"intent":"kai-i08","notice":"kai-n29","label":"fire","score":0.7142857142857143,"reason":"terms present: ford, 350, roof, t, van"}
+{"intent":"kai-i08","notice":"kai-n30","label":"fire","score":0.8571428571428571,"reason":"terms present: ford, transit, 350, high, roof"}
+{"intent":"kai-i08","notice":"kai-n31","label":"fire","score":0.42857142857142855,"reason":"terms present: ford, transit, van"}
+{"intent":"kai-i08","notice":"kai-n15","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"kai-i09","notice":"kai-n33","label":"fire","score":0.16666666666666666,"reason":"terms present: rout"}
+{"intent":"kai-i09","notice":"kai-n35","label":"fire","score":0.16666666666666666,"reason":"terms present: s"}
+{"intent":"kai-i09","notice":"kai-n32","label":"fire","score":0.3333333333333333,"reason":"terms present: s, rout"}
+{"intent":"kai-i09","notice":"kai-n34","label":"fire","score":0.16666666666666666,"reason":"terms present: rout"}
+{"intent":"kai-i09","notice":"kai-n06","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"kai-i10","notice":"kai-n36","label":"fire","score":0.6,"reason":"terms present: weekly, jam, sit"}
+{"intent":"kai-i10","notice":"kai-n38","label":"fire","score":0.2,"reason":"terms present: session"}
+{"intent":"kai-i10","notice":"kai-n37","label":"fire","score":0.4,"reason":"terms present: weekly, open"}
+{"intent":"kai-i10","notice":"kai-n39","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i10","notice":"kai-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i10","notice":"kai-n43","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"kai-i11","notice":"kai-n06","label":"fire","score":1,"reason":"terms present: bassist, need, paid, gig"}
+{"intent":"kai-i11","notice":"kai-n07","label":"no","score":0,"reason":"structural: after"}
+{"intent":"kai-i11","notice":"kai-n01","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i11","notice":"kai-n05","label":"no","score":0,"reason":"structural: after"}
+{"intent":"kai-i11","notice":"kai-n44","label":"no","score":0,"reason":"structural: before"}
+{"intent":"kai-i11","notice":"kai-n02","label":"no","score":0,"reason":"structural: before"}
+{"intent":"kai-i12","notice":"kai-n40","label":"fire","score":0.9166666666666666,"reason":"terms present: bishop, s, cross, reunion, tour"}
+{"intent":"kai-i12","notice":"kai-n42","label":"fire","score":0.3333333333333333,"reason":"terms present: bishop, s, alt, country"}
+{"intent":"kai-i12","notice":"kai-n41","label":"fire","score":0.5833333333333334,"reason":"terms present: bishop, s, cross, reunion, nashville"}
+{"intent":"kai-i12","notice":"kai-n27","label":"fire","score":0.3333333333333333,"reason":"terms present: bishop, s, cross, band"}
+{"intent":"kai-i12","notice":"kai-n43","label":"fire","score":0.6666666666666666,"reason":"terms present: bishop, s, cross, reunion, nashville"}
+{"intent":"kai-i12","notice":"kai-n25","label":"fire","score":0.16666666666666666,"reason":"terms present: nashville, band"}
+{"intent":"lena-i01","notice":"lena-n01","label":"fire","score":0.5,"reason":"terms present: biosignature, detection, exoplanet"}
+{"intent":"lena-i01","notice":"lena-n02","label":"fire","score":0.3333333333333333,"reason":"terms present: exoplanet, paper"}
+{"intent":"lena-i01","notice":"lena-n05","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i01","notice":"lena-n04","label":"fire","score":0.16666666666666666,"reason":"terms present: exoplanet"}
+{"intent":"lena-i01","notice":"lena-n08","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i01","notice":"lena-n12","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i01","notice":"lena-n29","label":"fire","score":0.3333333333333333,"reason":"terms present: biosignature, detection"}
+{"intent":"lena-i01","notice":"lena-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i01","notice":"lena-n32","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i02","notice":"lena-n01","label":"fire","score":0.5714285714285714,"reason":"terms present: arxiv, biosignature, detection, exoplanet"}
+{"intent":"lena-i02","notice":"lena-n05","label":"fire","score":0.14285714285714285,"reason":"terms present: arxiv"}
+{"intent":"lena-i02","notice":"lena-n02","label":"fire","score":0.2857142857142857,"reason":"terms present: exoplanet, paper"}
+{"intent":"lena-i02","notice":"lena-n31","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i02","notice":"lena-n04","label":"fire","score":0.14285714285714285,"reason":"terms present: exoplanet"}
+{"intent":"lena-i02","notice":"lena-n29","label":"fire","score":0.2857142857142857,"reason":"terms present: biosignature, detection"}
+{"intent":"lena-i03","notice":"lena-n08","label":"fire","score":0.3333333333333333,"reason":"terms present: life, confirm"}
+{"intent":"lena-i03","notice":"lena-n09","label":"fire","score":0.16666666666666666,"reason":"terms present: life"}
+{"intent":"lena-i03","notice":"lena-n03","label":"fire","score":0.16666666666666666,"reason":"terms present: life"}
+{"intent":"lena-i03","notice":"lena-n04","label":"fire","score":0.16666666666666666,"reason":"terms present: earth"}
+{"intent":"lena-i03","notice":"lena-n05","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i03","notice":"lena-n06","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i03","notice":"lena-n07","label":"fire","score":0.5,"reason":"terms present: life, beyond, earth"}
+{"intent":"lena-i03","notice":"lena-n01","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i03","notice":"lena-n32","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i04","notice":"lena-n32","label":"fire","score":1,"reason":"terms present: ingrid, halvorsen, university, bern, also"}
+{"intent":"lena-i04","notice":"lena-n05","label":"fire","score":0.2,"reason":"terms present: halvorsen"}
+{"intent":"lena-i04","notice":"lena-n03","label":"fire","score":0.8,"reason":"terms present: ingrid, halvorsen, university, bern"}
+{"intent":"lena-i04","notice":"lena-n17","label":"fire","score":0.2,"reason":"terms present: halvorsen"}
+{"intent":"lena-i04","notice":"lena-n01","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i05","notice":"lena-n10","label":"fire","score":0.5,"reason":"terms present: abscicon, abstract, astrobiology, science, conference"}
+{"intent":"lena-i05","notice":"lena-n11","label":"fire","score":0.6,"reason":"terms present: abstract, conference, origin, life, gordon"}
+{"intent":"lena-i05","notice":"lena-n07","label":"fire","score":0.6,"reason":"terms present: call, abstract, astrobiology, conference, origin"}
+{"intent":"lena-i05","notice":"lena-n14","label":"fire","score":0.2,"reason":"terms present: call, science"}
+{"intent":"lena-i05","notice":"lena-n03","label":"fire","score":0.2,"reason":"terms present: astrobiology, life"}
+{"intent":"lena-i05","notice":"lena-n26","label":"fire","score":0.2,"reason":"terms present: astrobiology, science"}
+{"intent":"lena-i06","notice":"lena-n12","label":"fire","score":0.5882352941176471,"reason":"terms present: rocky, world, ddt, data, release"}
+{"intent":"lena-i06","notice":"lena-n13","label":"fire","score":0.47058823529411764,"reason":"terms present: 1, lhs, 1140, b, jwst"}
+{"intent":"lena-i06","notice":"lena-n14","label":"fire","score":0.11764705882352941,"reason":"terms present: jwst, program"}
+{"intent":"lena-i06","notice":"lena-n02","label":"fire","score":0.23529411764705882,"reason":"terms present: rocky, trappist, 1, e"}
+{"intent":"lena-i06","notice":"lena-n04","label":"fire","score":0.11764705882352941,"reason":"terms present: world, release"}
+{"intent":"lena-i07","notice":"lena-n15","label":"fire","score":0.6666666666666666,"reason":"terms present: postdoc, exoplanet, atmospher, postdoctoral"}
+{"intent":"lena-i07","notice":"lena-n16","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i07","notice":"lena-n17","label":"fire","score":0.3333333333333333,"reason":"terms present: postdoc, postdoctoral"}
+{"intent":"lena-i07","notice":"lena-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i07","notice":"lena-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i07","notice":"lena-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i08","notice":"lena-n18","label":"fire","score":0.3333333333333333,"reason":"terms present: telescope, dobsonian, inch"}
+{"intent":"lena-i08","notice":"lena-n19","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"lena-i08","notice":"lena-n20","label":"fire","score":0.5555555555555556,"reason":"terms present: telescope, schmidt, cassegrain, 10, inch"}
+{"intent":"lena-i08","notice":"lena-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i08","notice":"lena-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i08","notice":"lena-n06","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i09","notice":"lena-n21","label":"fire","score":0.8571428571428571,"reason":"terms present: thread, manuscript, ast, 2026, 0412"}
+{"intent":"lena-i09","notice":"lena-n22","label":"fire","score":0.42857142857142855,"reason":"terms present: ast, 2026, 0412"}
+{"intent":"lena-i09","notice":"lena-n23","label":"fire","score":0.42857142857142855,"reason":"terms present: thread, ast, 2026"}
+{"intent":"lena-i09","notice":"lena-n30","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i09","notice":"lena-n10","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"lena-i10","notice":"lena-n24","label":"fire","score":1,"reason":"terms present: griffith, observatory, public, star, party"}
+{"intent":"lena-i10","notice":"lena-n25","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"lena-i10","notice":"lena-n03","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"lena-i10","notice":"lena-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"lena-i10","notice":"lena-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i11","notice":"lena-n26","label":"fire","score":0.6666666666666666,"reason":"terms present: nasa, ros, exobiology, due, program"}
+{"intent":"lena-i11","notice":"lena-n28","label":"fire","score":0.6666666666666666,"reason":"terms present: nasa, ros, due, date, program"}
+{"intent":"lena-i11","notice":"lena-n27","label":"fire","score":0.6666666666666666,"reason":"terms present: nasa, ros, exobiology, due, program"}
+{"intent":"lena-i11","notice":"lena-n14","label":"fire","score":0.16666666666666666,"reason":"terms present: due, program"}
+{"intent":"lena-i11","notice":"lena-n10","label":"fire","score":0.08333333333333333,"reason":"terms present: world"}
+{"intent":"lena-i12","notice":"lena-n29","label":"fire","score":0.4,"reason":"terms present: retraction, okonkwo, beaulieu, tran, 2023"}
+{"intent":"lena-i12","notice":"lena-n30","label":"fire","score":0.45,"reason":"terms present: expression, concern, beaulieu, tran, 2024"}
+{"intent":"lena-i12","notice":"lena-n31","label":"fire","score":0.1,"reason":"terms present: retraction, okonkwo"}
+{"intent":"lena-i12","notice":"lena-n05","label":"fire","score":0.2,"reason":"terms present: okonkwo, beaulieu, tran, 2023"}
+{"intent":"lena-i12","notice":"lena-n01","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i13","notice":"lena-n08","label":"fire","score":0.3333333333333333,"reason":"terms present: enceladu"}
+{"intent":"lena-i13","notice":"lena-n32","label":"fire","score":0.6666666666666666,"reason":"terms present: saturn, ii"}
+{"intent":"lena-i13","notice":"lena-n06","label":"fire","score":0.6666666666666666,"reason":"terms present: enceladu, saturn"}
+{"intent":"lena-i13","notice":"lena-n09","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i13","notice":"lena-n02","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"lena-i13","notice":"lena-n07","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i01","notice":"maya-n01","label":"fire","score":0.2,"reason":"terms present: skrillex"}
+{"intent":"maya-i01","notice":"maya-n02","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i01","notice":"maya-n03","label":"fire","score":0.2,"reason":"terms present: skrillex"}
+{"intent":"maya-i01","notice":"maya-n04","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"maya-i01","notice":"maya-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i01","notice":"maya-n06","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i01","notice":"maya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i01","notice":"maya-n14","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i02","notice":"maya-n07","label":"fire","score":0.2857142857142857,"reason":"terms present: presale, caribou"}
+{"intent":"maya-i02","notice":"maya-n08","label":"fire","score":0.14285714285714285,"reason":"terms present: presale"}
+{"intent":"maya-i02","notice":"maya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i02","notice":"maya-n10","label":"fire","score":0.14285714285714285,"reason":"terms present: bicep"}
+{"intent":"maya-i02","notice":"maya-n18","label":"fire","score":0.2857142857142857,"reason":"terms present: four, tet"}
+{"intent":"maya-i02","notice":"maya-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i02","notice":"maya-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i02","notice":"maya-n12","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i03","notice":"maya-n11","label":"fire","score":0.2857142857142857,"reason":"terms present: sinclair, cambridge"}
+{"intent":"maya-i03","notice":"maya-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i03","notice":"maya-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i03","notice":"maya-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i03","notice":"maya-n03","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"maya-i03","notice":"maya-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i03","notice":"maya-n22","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"maya-i04","notice":"maya-n02","label":"fire","score":0.75,"reason":"terms present: boston, call, lineup, day, festival"}
+{"intent":"maya-i04","notice":"maya-n13","label":"fire","score":0.5,"reason":"terms present: memorial, day, weekend, allston"}
+{"intent":"maya-i04","notice":"maya-n10","label":"fire","score":0.375,"reason":"terms present: lineup, day, festival"}
+{"intent":"maya-i04","notice":"maya-n01","label":"fire","score":0.125,"reason":"terms present: boston"}
+{"intent":"maya-i04","notice":"maya-n06","label":"fire","score":0.125,"reason":"terms present: boston"}
+{"intent":"maya-i05","notice":"maya-n14","label":"no","score":0,"reason":"structural: before"}
+{"intent":"maya-i05","notice":"maya-n15","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i05","notice":"maya-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i05","notice":"maya-n10","label":"no","score":0,"reason":"structural: before"}
+{"intent":"maya-i05","notice":"maya-n32","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i05","notice":"maya-n01","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i06","notice":"maya-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i06","notice":"maya-n17","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i06","notice":"maya-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i06","notice":"maya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i06","notice":"maya-n10","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i06","notice":"maya-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i07","notice":"maya-n19","label":"fire","score":0.5,"reason":"terms present: caribou, boston, nov, 6"}
+{"intent":"maya-i07","notice":"maya-n20","label":"fire","score":0.125,"reason":"terms present: ticket"}
+{"intent":"maya-i07","notice":"maya-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i07","notice":"maya-n21","label":"fire","score":0.75,"reason":"terms present: caribou, house, blu, boston, nov"}
+{"intent":"maya-i07","notice":"maya-n16","label":"fire","score":0.875,"reason":"terms present: caribou, ticket, house, blu, boston"}
+{"intent":"maya-i07","notice":"maya-n09","label":"fire","score":0.125,"reason":"terms present: caribou"}
+{"intent":"maya-i07","notice":"maya-n05","label":"fire","score":0.375,"reason":"terms present: ticket, boston, nov"}
+{"intent":"maya-i08","notice":"maya-n01","label":"fire","score":0.16666666666666666,"reason":"terms present: skrillex"}
+{"intent":"maya-i08","notice":"maya-n04","label":"fire","score":0.16666666666666666,"reason":"terms present: skrillex"}
+{"intent":"maya-i08","notice":"maya-n02","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i08","notice":"maya-n10","label":"fire","score":0.3333333333333333,"reason":"terms present: fred, again"}
+{"intent":"maya-i08","notice":"maya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i08","notice":"maya-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i08","notice":"maya-n03","label":"fire","score":0.16666666666666666,"reason":"terms present: skrillex"}
+{"intent":"maya-i08","notice":"maya-n17","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i08","notice":"maya-n06","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i09","notice":"maya-n22","label":"fire","score":1,"reason":"terms present: comedy, studio, bow, market, union"}
+{"intent":"maya-i09","notice":"maya-n23","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i09","notice":"maya-n24","label":"fire","score":1,"reason":"terms present: comedy, studio, bow, market, union"}
+{"intent":"maya-i09","notice":"maya-n11","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"maya-i09","notice":"maya-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i10","notice":"maya-n26","label":"fire","score":0.6923076923076923,"reason":"terms present: carpool, jamie, xx, state, theatre"}
+{"intent":"maya-i10","notice":"maya-n27","label":"fire","score":0.6153846153846154,"reason":"terms present: carpool, jamie, xx, state, theatre"}
+{"intent":"maya-i10","notice":"maya-n25","label":"fire","score":0.6923076923076923,"reason":"terms present: carpool, jamie, xx, state, theatre"}
+{"intent":"maya-i10","notice":"maya-n28","label":"fire","score":0.07692307692307693,"reason":"terms present: carpool"}
+{"intent":"maya-i10","notice":"maya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i11","notice":"maya-n29","label":"fire","score":0.75,"reason":"terms present: sox, ticket, spare"}
+{"intent":"maya-i11","notice":"maya-n30","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i11","notice":"maya-n16","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i11","notice":"maya-n19","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i11","notice":"maya-n21","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i12","notice":"maya-n31","label":"fire","score":0.5,"reason":"terms present: set, tim"}
+{"intent":"maya-i12","notice":"maya-n32","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i12","notice":"maya-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i12","notice":"maya-n06","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i12","notice":"maya-n15","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"maya-i12","notice":"maya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i01","notice":"nadia-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i01","notice":"nadia-n20","label":"fire","score":0.2857142857142857,"reason":"terms present: courier, delivery"}
+{"intent":"nadia-i01","notice":"nadia-n26","label":"fire","score":0.14285714285714285,"reason":"terms present: delivery"}
+{"intent":"nadia-i01","notice":"nadia-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i01","notice":"nadia-n27","label":"fire","score":0.2857142857142857,"reason":"terms present: courier, delivery"}
+{"intent":"nadia-i01","notice":"nadia-n02","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i01","notice":"nadia-n03","label":"fire","score":0.14285714285714285,"reason":"terms present: pickup"}
+{"intent":"nadia-i01","notice":"nadia-n14","label":"fire","score":0.2857142857142857,"reason":"terms present: day, delivery"}
+{"intent":"nadia-i01","notice":"nadia-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i01","notice":"nadia-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i01","notice":"nadia-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i02","notice":"nadia-n04","label":"fire","score":0.625,"reason":"terms present: relay, leg, multi, agent, thread"}
+{"intent":"nadia-i02","notice":"nadia-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i02","notice":"nadia-n05","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i02","notice":"nadia-n07","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i02","notice":"nadia-n31","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i02","notice":"nadia-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i02","notice":"nadia-n08","label":"fire","score":0.25,"reason":"terms present: delivery, thread"}
+{"intent":"nadia-i03","notice":"nadia-n07","label":"fire","score":0.4,"reason":"terms present: post, 9k2m7w"}
+{"intent":"nadia-i03","notice":"nadia-n08","label":"fire","score":0.4,"reason":"terms present: post, 9k2m7w"}
+{"intent":"nadia-i03","notice":"nadia-n06","label":"fire","score":0.2,"reason":"terms present: post"}
+{"intent":"nadia-i03","notice":"nadia-n20","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"nadia-i03","notice":"nadia-n04","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"nadia-i03","notice":"nadia-n05","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"nadia-i04","notice":"nadia-n09","label":"fire","score":0.23529411764705882,"reason":"terms present: cargo, van, transit, ford"}
+{"intent":"nadia-i04","notice":"nadia-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i04","notice":"nadia-n11","label":"fire","score":0.23529411764705882,"reason":"terms present: cargo, van, sprinter, merced"}
+{"intent":"nadia-i04","notice":"nadia-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i04","notice":"nadia-n30","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"nadia-i04","notice":"nadia-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i05","notice":"nadia-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i05","notice":"nadia-n15","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i05","notice":"nadia-n13","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"nadia-i05","notice":"nadia-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i05","notice":"nadia-n30","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"nadia-i05","notice":"nadia-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i06","notice":"nadia-n16","label":"fire","score":0.6923076923076923,"reason":"terms present: pulaski, skyway, route, 21, closure"}
+{"intent":"nadia-i06","notice":"nadia-n28","label":"fire","score":0.6153846153846154,"reason":"terms present: pulaski, skyway, route, closure, us"}
+{"intent":"nadia-i06","notice":"nadia-n32","label":"fire","score":0.38461538461538464,"reason":"terms present: route, mccarter, highway, closure, nj"}
+{"intent":"nadia-i06","notice":"nadia-n18","label":"fire","score":0.46153846153846156,"reason":"terms present: route, 21, flood, 1, 9"}
+{"intent":"nadia-i06","notice":"nadia-n29","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i06","notice":"nadia-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i06","notice":"nadia-n24","label":"fire","score":0.15384615384615385,"reason":"terms present: closure, nj"}
+{"intent":"nadia-i06","notice":"nadia-n19","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i06","notice":"nadia-n25","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i07","notice":"nadia-n20","label":"fire","score":0.5,"reason":"terms present: ferreira, bakery, ironbound"}
+{"intent":"nadia-i07","notice":"nadia-n08","label":"fire","score":0.5,"reason":"terms present: ferreira, bakery, ironbound"}
+{"intent":"nadia-i07","notice":"nadia-n01","label":"fire","score":0.5,"reason":"terms present: ferreira, bakery, ironbound"}
+{"intent":"nadia-i07","notice":"nadia-n21","label":"fire","score":0.3333333333333333,"reason":"terms present: ferreira, bakery"}
+{"intent":"nadia-i07","notice":"nadia-n26","label":"fire","score":0.16666666666666666,"reason":"terms present: ironbound"}
+{"intent":"nadia-i08","notice":"nadia-n22","label":"fire","score":0.5,"reason":"terms present: quickhop, now, serv, logistic, same"}
+{"intent":"nadia-i08","notice":"nadia-n23","label":"fire","score":0.4166666666666667,"reason":"terms present: new, expand, qh, same, day"}
+{"intent":"nadia-i08","notice":"nadia-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i08","notice":"nadia-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i08","notice":"nadia-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i08","notice":"nadia-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i09","notice":"nadia-n24","label":"fire","score":0.3333333333333333,"reason":"terms present: port, newark, terminal, closure"}
+{"intent":"nadia-i09","notice":"nadia-n25","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i09","notice":"nadia-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i09","notice":"nadia-n28","label":"fire","score":0.08333333333333333,"reason":"terms present: closure"}
+{"intent":"nadia-i09","notice":"nadia-n22","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i09","notice":"nadia-n16","label":"fire","score":0.08333333333333333,"reason":"terms present: closure"}
+{"intent":"nadia-i10","notice":"nadia-n26","label":"fire","score":1,"reason":"terms present: military, park, farmer, market, saturday"}
+{"intent":"nadia-i10","notice":"nadia-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i10","notice":"nadia-n27","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i10","notice":"nadia-n20","label":"fire","score":0.18181818181818182,"reason":"terms present: delivery, newark"}
+{"intent":"nadia-i10","notice":"nadia-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i11","notice":"nadia-n28","label":"fire","score":1,"reason":"terms present: pulaski, skyway, clos, both, direction"}
+{"intent":"nadia-i11","notice":"nadia-n29","label":"fire","score":0.4,"reason":"terms present: skyway, clos, both, direction"}
+{"intent":"nadia-i11","notice":"nadia-n16","label":"fire","score":0.7,"reason":"terms present: pulaski, skyway, clos, closure, us"}
+{"intent":"nadia-i11","notice":"nadia-n32","label":"fire","score":0.2,"reason":"terms present: clos, closure"}
+{"intent":"nadia-i11","notice":"nadia-n17","label":"fire","score":0.1,"reason":"terms present: us"}
+{"intent":"nadia-i11","notice":"nadia-n18","label":"fire","score":0.2,"reason":"terms present: 1, 9"}
+{"intent":"nadia-i11","notice":"nadia-n24","label":"fire","score":0.2,"reason":"terms present: clos, closure"}
+{"intent":"nadia-i12","notice":"nadia-n30","label":"fire","score":0.5,"reason":"terms present: stand, overflow, capacity, per, parcel"}
+{"intent":"nadia-i12","notice":"nadia-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n09","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"priya-i01","notice":"priya-n12","label":"fire","score":0.375,"reason":"terms present: lincoln, park, campu"}
+{"intent":"priya-i01","notice":"priya-n17","label":"fire","score":0.375,"reason":"terms present: lincoln, park, campu"}
+{"intent":"priya-i01","notice":"priya-n10","label":"fire","score":0.5,"reason":"terms present: lincoln, park, campu, all"}
+{"intent":"priya-i01","notice":"priya-n01","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"priya-i01","notice":"priya-n32","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"priya-i01","notice":"priya-n14","label":"fire","score":0.5,"reason":"terms present: free, lincoln, park, campu"}
+{"intent":"priya-i01","notice":"priya-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i01","notice":"priya-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i01","notice":"priya-n06","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i01","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i02","notice":"priya-n02","label":"fire","score":0.6,"reason":"terms present: winter, sublet, room"}
+{"intent":"priya-i02","notice":"priya-n03","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i02","notice":"priya-n04","label":"fire","score":0.4,"reason":"terms present: sublet, room"}
+{"intent":"priya-i02","notice":"priya-n05","label":"fire","score":0.6,"reason":"terms present: winter, sublet, room"}
+{"intent":"priya-i02","notice":"priya-n07","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i02","notice":"priya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i03","notice":"priya-n06","label":"fire","score":0.25,"reason":"terms present: bike"}
+{"intent":"priya-i03","notice":"priya-n07","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i03","notice":"priya-n08","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"priya-i03","notice":"priya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i03","notice":"priya-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i03","notice":"priya-n02","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"priya-i03","notice":"priya-n29","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"priya-i04","notice":"priya-n10","label":"fire","score":0.6666666666666666,"reason":"terms present: ramo, whitfield, prof, elena, cs"}
+{"intent":"priya-i04","notice":"priya-n12","label":"fire","score":0.3333333333333333,"reason":"terms present: ramo, cs, doc"}
+{"intent":"priya-i04","notice":"priya-n01","label":"fire","score":0.4444444444444444,"reason":"terms present: ramo, whitfield, elena, cs"}
+{"intent":"priya-i04","notice":"priya-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i04","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i04","notice":"priya-n14","label":"fire","score":0.2222222222222222,"reason":"terms present: cs, student"}
+{"intent":"priya-i05","notice":"priya-n12","label":"fire","score":0.4444444444444444,"reason":"terms present: csc, 347, theory, computation"}
+{"intent":"priya-i05","notice":"priya-n14","label":"fire","score":0.2222222222222222,"reason":"terms present: automata, computability"}
+{"intent":"priya-i05","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i05","notice":"priya-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i05","notice":"priya-n10","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"priya-i05","notice":"priya-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i05","notice":"priya-n17","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"priya-i06","notice":"priya-n15","label":"fire","score":0.5,"reason":"terms present: hackathon, travel"}
+{"intent":"priya-i06","notice":"priya-n16","label":"fire","score":0.5,"reason":"terms present: hackathon, collegiate"}
+{"intent":"priya-i06","notice":"priya-n17","label":"fire","score":0.5,"reason":"terms present: hackathon, travel"}
+{"intent":"priya-i06","notice":"priya-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i06","notice":"priya-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i06","notice":"priya-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i07","notice":"priya-n18","label":"fire","score":0.75,"reason":"terms present: summer, 2027, software, internship, engineer"}
+{"intent":"priya-i07","notice":"priya-n19","label":"fire","score":0.375,"reason":"terms present: summer, 2027, data"}
+{"intent":"priya-i07","notice":"priya-n20","label":"fire","score":0.375,"reason":"terms present: summer, 2027, internship"}
+{"intent":"priya-i07","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i07","notice":"priya-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i07","notice":"priya-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i08","notice":"priya-n21","label":"fire","score":0.8888888888888888,"reason":"terms present: found, airpod, case, white, pro"}
+{"intent":"priya-i08","notice":"priya-n22","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i08","notice":"priya-n23","label":"no","score":0,"reason":"structural: after"}
+{"intent":"priya-i08","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i08","notice":"priya-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i08","notice":"priya-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i09","notice":"priya-n25","label":"fire","score":0.125,"reason":"terms present: priya"}
+{"intent":"priya-i09","notice":"priya-n27","label":"fire","score":0.375,"reason":"terms present: ann, arbor, rideshare"}
+{"intent":"priya-i09","notice":"priya-n24","label":"fire","score":0.125,"reason":"terms present: rideshare"}
+{"intent":"priya-i09","notice":"priya-n26","label":"fire","score":0.625,"reason":"terms present: ann, arbor, rideshare, thread, priya"}
+{"intent":"priya-i09","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i09","notice":"priya-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i09","notice":"priya-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i10","notice":"priya-n24","label":"fire","score":0.4,"reason":"terms present: rideshare, seat"}
+{"intent":"priya-i10","notice":"priya-n25","label":"fire","score":0.2,"reason":"terms present: seat"}
+{"intent":"priya-i10","notice":"priya-n27","label":"fire","score":0.8,"reason":"terms present: rideshare, ann, arbor, seat"}
+{"intent":"priya-i10","notice":"priya-n26","label":"fire","score":0.8,"reason":"terms present: rideshare, ann, arbor, car"}
+{"intent":"priya-i10","notice":"priya-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i10","notice":"priya-n08","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"priya-i10","notice":"priya-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i11","notice":"priya-n28","label":"fire","score":0.8571428571428571,"reason":"terms present: sipser, theory, computation, textbook, introduction"}
+{"intent":"priya-i11","notice":"priya-n07","label":"fire","score":0.5714285714285714,"reason":"terms present: sipser, theory, computation, textbook"}
+{"intent":"priya-i11","notice":"priya-n29","label":"fire","score":0.7142857142857143,"reason":"terms present: sipser, theory, computation, textbook, introduction"}
+{"intent":"priya-i11","notice":"priya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i11","notice":"priya-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i11","notice":"priya-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i12","notice":"priya-n30","label":"fire","score":1,"reason":"terms present: climb, wall, reopen, ray, meyer"}
+{"intent":"priya-i12","notice":"priya-n31","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i12","notice":"priya-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i12","notice":"priya-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i12","notice":"priya-n01","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i12","notice":"priya-n21","label":"fire","score":0.14285714285714285,"reason":"terms present: center"}
+{"intent":"ravi-i01","notice":"ravi-n03","label":"fire","score":0.6,"reason":"terms present: roland, juno, 60"}
+{"intent":"ravi-i01","notice":"ravi-n04","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"ravi-i01","notice":"ravi-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i01","notice":"ravi-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i01","notice":"ravi-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"ravi-i01","notice":"ravi-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i01","notice":"ravi-n05","label":"fire","score":0.6,"reason":"terms present: roland, juno, 60"}
+{"intent":"ravi-i01","notice":"ravi-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i01","notice":"ravi-n06","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"ravi-i02","notice":"ravi-n03","label":"fire","score":0.8461538461538461,"reason":"terms present: prophet, 5, minimoog, model, d"}
+{"intent":"ravi-i02","notice":"ravi-n06","label":"fire","score":0.15384615384615385,"reason":"terms present: d, moog"}
+{"intent":"ravi-i02","notice":"ravi-n01","label":"fire","score":0.23076923076923078,"reason":"terms present: prophet, 5, 3"}
+{"intent":"ravi-i02","notice":"ravi-n04","label":"fire","score":0.38461538461538464,"reason":"terms present: minimoog, model, d, 1, 3"}
+{"intent":"ravi-i02","notice":"ravi-n05","label":"fire","score":0.5384615384615384,"reason":"terms present: prophet, 5, minimoog, model, d"}
+{"intent":"ravi-i02","notice":"ravi-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i02","notice":"ravi-n14","label":"fire","score":0.07692307692307693,"reason":"terms present: moog"}
+{"intent":"ravi-i02","notice":"ravi-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i03","notice":"ravi-n07","label":"fire","score":0.47058823529411764,"reason":"terms present: mobley, original, blue, note, 4031"}
+{"intent":"ravi-i03","notice":"ravi-n08","label":"fire","score":0.8235294117647058,"reason":"terms present: hank, mobley, soul, station, original"}
+{"intent":"ravi-i03","notice":"ravi-n09","label":"fire","score":0.35294117647058826,"reason":"terms present: hank, mobley, soul, station, original"}
+{"intent":"ravi-i03","notice":"ravi-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i03","notice":"ravi-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i03","notice":"ravi-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i03","notice":"ravi-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i04","notice":"ravi-n10","label":"fire","score":0.36363636363636365,"reason":"terms present: estate, sale, content, toronto"}
+{"intent":"ravi-i04","notice":"ravi-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i04","notice":"ravi-n12","label":"fire","score":0.36363636363636365,"reason":"terms present: estate, sale, content, toronto"}
+{"intent":"ravi-i04","notice":"ravi-n19","label":"fire","score":0.18181818181818182,"reason":"terms present: record, toronto"}
+{"intent":"ravi-i04","notice":"ravi-n16","label":"fire","score":0.09090909090909091,"reason":"terms present: toronto"}
+{"intent":"ravi-i04","notice":"ravi-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i05","notice":"ravi-n13","label":"fire","score":0.4444444444444444,"reason":"terms present: synth, repair, recap, calibration"}
+{"intent":"ravi-i05","notice":"ravi-n03","label":"fire","score":0.7777777777777778,"reason":"terms present: roland, synth, repair, recap, calibration"}
+{"intent":"ravi-i05","notice":"ravi-n14","label":"fire","score":0.2222222222222222,"reason":"terms present: synth, repair"}
+{"intent":"ravi-i05","notice":"ravi-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i05","notice":"ravi-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i05","notice":"ravi-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i06","notice":"ravi-n16","label":"fire","score":0.4444444444444444,"reason":"terms present: synth, swap, hogtown, toronto"}
+{"intent":"ravi-i06","notice":"ravi-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"ravi-i06","notice":"ravi-n15","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"ravi-i06","notice":"ravi-n18","label":"fire","score":0.2222222222222222,"reason":"terms present: fair, toronto"}
+{"intent":"ravi-i06","notice":"ravi-n19","label":"fire","score":0.2222222222222222,"reason":"terms present: fair, toronto"}
+{"intent":"ravi-i06","notice":"ravi-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i06","notice":"ravi-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i07","notice":"ravi-n19","label":"fire","score":0.9,"reason":"terms present: junction, record, fair, polish, combatant"}
+{"intent":"ravi-i07","notice":"ravi-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i07","notice":"ravi-n18","label":"fire","score":0.7,"reason":"terms present: fair, polish, combatant, hall, 206"}
+{"intent":"ravi-i07","notice":"ravi-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"ravi-i07","notice":"ravi-n16","label":"fire","score":0.1,"reason":"terms present: hall"}
+{"intent":"ravi-i07","notice":"ravi-n10","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"ravi-i07","notice":"ravi-n30","label":"fire","score":0.1,"reason":"terms present: record"}
+{"intent":"ravi-i08","notice":"ravi-n22","label":"fire","score":0.5555555555555556,"reason":"terms present: jupiter, 8, kijiji, mississauga, legit"}
+{"intent":"ravi-i08","notice":"ravi-n23","label":"fire","score":0.5555555555555556,"reason":"terms present: jupiter, 8, kijiji, mississauga, legit"}
+{"intent":"ravi-i08","notice":"ravi-n21","label":"fire","score":0.5555555555555556,"reason":"terms present: jupiter, 8, kijiji, mississauga, legit"}
+{"intent":"ravi-i08","notice":"ravi-n24","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"ravi-i08","notice":"ravi-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i08","notice":"ravi-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i08","notice":"ravi-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i09","notice":"ravi-n25","label":"fire","score":0.4375,"reason":"terms present: ppg, wave, part, voice, board"}
+{"intent":"ravi-i09","notice":"ravi-n26","label":"fire","score":0.4375,"reason":"terms present: wave, part, board, palm, 2"}
+{"intent":"ravi-i09","notice":"ravi-n01","label":"fire","score":0.1875,"reason":"terms present: ppg, wave, 3"}
+{"intent":"ravi-i09","notice":"ravi-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i09","notice":"ravi-n06","label":"fire","score":0.0625,"reason":"terms present: board"}
+{"intent":"ravi-i09","notice":"ravi-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i10","notice":"ravi-n28","label":"fire","score":0.6923076923076923,"reason":"terms present: lewi, l, amour, master, tap"}
+{"intent":"ravi-i10","notice":"ravi-n29","label":"fire","score":0.23076923076923078,"reason":"terms present: tap, 1983, wulff"}
+{"intent":"ravi-i10","notice":"ravi-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i10","notice":"ravi-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i10","notice":"ravi-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i10","notice":"ravi-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i11","notice":"ravi-n31","label":"fire","score":0.75,"reason":"terms present: korg, ms, 20, original, mk1"}
+{"intent":"ravi-i11","notice":"ravi-n32","label":"fire","score":0.25,"reason":"terms present: korg, ms"}
+{"intent":"ravi-i11","notice":"ravi-n02","label":"fire","score":0.375,"reason":"terms present: korg, ms, 20"}
+{"intent":"ravi-i11","notice":"ravi-n27","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"ravi-i11","notice":"ravi-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i11","notice":"ravi-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i11","notice":"ravi-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i01","notice":"sam-n01","label":"fire","score":0.3333333333333333,"reason":"terms present: tokio, release, rs"}
+{"intent":"sam-i01","notice":"sam-n02","label":"fire","score":0.3333333333333333,"reason":"terms present: sqlx, repo, launchbadge"}
+{"intent":"sam-i01","notice":"sam-n03","label":"fire","score":0.3333333333333333,"reason":"terms present: tokio, release, rs"}
+{"intent":"sam-i01","notice":"sam-n04","label":"fire","score":0.3333333333333333,"reason":"terms present: tokio, release, rs"}
+{"intent":"sam-i01","notice":"sam-n06","label":"fire","score":0.1111111111111111,"reason":"terms present: sqlx"}
+{"intent":"sam-i01","notice":"sam-n07","label":"fire","score":0.1111111111111111,"reason":"terms present: tokio"}
+{"intent":"sam-i01","notice":"sam-n08","label":"fire","score":0.3333333333333333,"reason":"terms present: tokio, sqlx, release"}
+{"intent":"sam-i01","notice":"sam-n05","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"sam-i01","notice":"sam-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i02","notice":"sam-n05","label":"fire","score":0.3333333333333333,"reason":"terms present: rustsec, security, advisory, hyper"}
+{"intent":"sam-i02","notice":"sam-n06","label":"fire","score":0.08333333333333333,"reason":"terms present: sqlx"}
+{"intent":"sam-i02","notice":"sam-n07","label":"fire","score":0.4166666666666667,"reason":"terms present: rustsec, security, advisory, tokio, rustl"}
+{"intent":"sam-i02","notice":"sam-n08","label":"fire","score":0.4166666666666667,"reason":"terms present: rustsec, tokio, sqlx, axum, hyper"}
+{"intent":"sam-i02","notice":"sam-n01","label":"fire","score":0.08333333333333333,"reason":"terms present: tokio"}
+{"intent":"sam-i02","notice":"sam-n04","label":"fire","score":0.08333333333333333,"reason":"terms present: tokio"}
+{"intent":"sam-i03","notice":"sam-n09","label":"fire","score":0.25,"reason":"terms present: rust, meetup"}
+{"intent":"sam-i03","notice":"sam-n11","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"sam-i03","notice":"sam-n10","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"sam-i03","notice":"sam-n12","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"sam-i03","notice":"sam-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i03","notice":"sam-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i03","notice":"sam-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i04","notice":"sam-n17","label":"fire","score":0.6666666666666666,"reason":"terms present: cfp, databas, distribut, system, conference"}
+{"intent":"sam-i04","notice":"sam-n18","label":"fire","score":0.4444444444444444,"reason":"terms present: call, proposal, databas, conference"}
+{"intent":"sam-i04","notice":"sam-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i04","notice":"sam-n16","label":"fire","score":0.3333333333333333,"reason":"terms present: call, proposal, conference"}
+{"intent":"sam-i04","notice":"sam-n31","label":"fire","score":0.2222222222222222,"reason":"terms present: cfp, call"}
+{"intent":"sam-i04","notice":"sam-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i05","notice":"sam-n20","label":"fire","score":0.75,"reason":"terms present: senior, backend, engineer, remote, rust"}
+{"intent":"sam-i05","notice":"sam-n21","label":"fire","score":0.25,"reason":"terms present: backend, postgr"}
+{"intent":"sam-i05","notice":"sam-n22","label":"fire","score":0.625,"reason":"terms present: senior, engineer, remote, rust, postgr"}
+{"intent":"sam-i05","notice":"sam-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i05","notice":"sam-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i05","notice":"sam-n01","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i06","notice":"sam-n25","label":"fire","score":0.2857142857142857,"reason":"terms present: idempotency, key, axum, rust"}
+{"intent":"sam-i06","notice":"sam-n26","label":"fire","score":0.35714285714285715,"reason":"terms present: webhook, retry, axum, safe, handler"}
+{"intent":"sam-i06","notice":"sam-n27","label":"fire","score":0.14285714285714285,"reason":"terms present: retry, rust"}
+{"intent":"sam-i06","notice":"sam-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i06","notice":"sam-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i06","notice":"sam-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i07","notice":"sam-n23","label":"fire","score":0.7777777777777778,"reason":"terms present: thread, p, 8f1c3a7e, look, co"}
+{"intent":"sam-i07","notice":"sam-n24","label":"fire","score":0.3333333333333333,"reason":"terms present: thread, p, 8f1c3a7e"}
+{"intent":"sam-i07","notice":"sam-n25","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"sam-i07","notice":"sam-n30","label":"fire","score":0.1111111111111111,"reason":"terms present: thread"}
+{"intent":"sam-i07","notice":"sam-n28","label":"fire","score":0.1111111111111111,"reason":"terms present: thread"}
+{"intent":"sam-i08","notice":"sam-n19","label":"fire","score":0.6,"reason":"terms present: tomasz, wierzbicki, talk"}
+{"intent":"sam-i08","notice":"sam-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i08","notice":"sam-n09","label":"fire","score":0.4,"reason":"terms present: tomwierz, talk"}
+{"intent":"sam-i08","notice":"sam-n10","label":"fire","score":0.4,"reason":"terms present: tomasz, talk"}
+{"intent":"sam-i08","notice":"sam-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i09","notice":"sam-n32","label":"fire","score":0.5,"reason":"terms present: boba, u4t, keyboard, switch"}
+{"intent":"sam-i09","notice":"sam-n33","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"sam-i09","notice":"sam-n34","label":"fire","score":0.125,"reason":"terms present: keyboard"}
+{"intent":"sam-i09","notice":"sam-n35","label":"fire","score":0.375,"reason":"terms present: boba, u4t, keyboard"}
+{"intent":"sam-i09","notice":"sam-n36","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"sam-i09","notice":"sam-n21","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"sam-i10","notice":"sam-n28","label":"fire","score":0.75,"reason":"terms present: longhaul, 24, flaky, ci, triage"}
+{"intent":"sam-i10","notice":"sam-n29","label":"fire","score":0.25,"reason":"terms present: ci, lh24, fct"}
+{"intent":"sam-i10","notice":"sam-n30","label":"fire","score":0.4166666666666667,"reason":"terms present: longhaul, 24, coordination, benchmark, agent"}
+{"intent":"sam-i10","notice":"sam-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i10","notice":"sam-n23","label":"fire","score":0.08333333333333333,"reason":"terms present: triage"}
+{"intent":"sam-i11","notice":"sam-n14","label":"fire","score":1,"reason":"terms present: rust, foundation, portland, office"}
+{"intent":"sam-i11","notice":"sam-n15","label":"fire","score":0.75,"reason":"terms present: rust, foundation, office"}
+{"intent":"sam-i11","notice":"sam-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i11","notice":"sam-n16","label":"fire","score":0.75,"reason":"terms present: rust, foundation, portland"}
+{"intent":"sam-i11","notice":"sam-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i11","notice":"sam-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i12","notice":"sam-n12","label":"fire","score":0.875,"reason":"terms present: hack, night, pdx, hackerspace, ctrl"}
+{"intent":"sam-i12","notice":"sam-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i12","notice":"sam-n09","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"sam-i12","notice":"sam-n10","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"sam-i12","notice":"sam-n11","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"sam-i12","notice":"sam-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i12","notice":"sam-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i01","notice":"tomas-n01","label":"fire","score":0.4444444444444444,"reason":"terms present: austin, away, houston, verde"}
+{"intent":"tomas-i01","notice":"tomas-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i01","notice":"tomas-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i01","notice":"tomas-n04","label":"fire","score":0.4444444444444444,"reason":"terms present: austin, fc, ticket, dalla"}
+{"intent":"tomas-i01","notice":"tomas-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i01","notice":"tomas-n29","label":"fire","score":0.1111111111111111,"reason":"terms present: austin"}
+{"intent":"tomas-i01","notice":"tomas-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i02","notice":"tomas-n02","label":"fire","score":0.625,"reason":"terms present: austin, fc, watch, party, away"}
+{"intent":"tomas-i02","notice":"tomas-n03","label":"fire","score":0.375,"reason":"terms present: austin, verde, away"}
+{"intent":"tomas-i02","notice":"tomas-n01","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i02","notice":"tomas-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i02","notice":"tomas-n07","label":"fire","score":0.375,"reason":"terms present: austin, watch, party"}
+{"intent":"tomas-i02","notice":"tomas-n31","label":"fire","score":0.375,"reason":"terms present: austin, watch, party"}
+{"intent":"tomas-i02","notice":"tomas-n32","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i02","notice":"tomas-n11","label":"fire","score":0.125,"reason":"terms present: austin"}
+{"intent":"tomas-i03","notice":"tomas-n05","label":"fire","score":0.6666666666666666,"reason":"terms present: texa, longhorn, kickoff, time, change"}
+{"intent":"tomas-i03","notice":"tomas-n06","label":"fire","score":0.2222222222222222,"reason":"terms present: texa, horn"}
+{"intent":"tomas-i03","notice":"tomas-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i03","notice":"tomas-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i03","notice":"tomas-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i03","notice":"tomas-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i04","notice":"tomas-n09","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"tomas-i04","notice":"tomas-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i04","notice":"tomas-n11","label":"fire","score":0.3333333333333333,"reason":"terms present: pickup"}
+{"intent":"tomas-i04","notice":"tomas-n12","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i04","notice":"tomas-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i04","notice":"tomas-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i05","notice":"tomas-n12","label":"fire","score":1,"reason":"terms present: goalkeeper, look, team"}
+{"intent":"tomas-i05","notice":"tomas-n13","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i05","notice":"tomas-n09","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"tomas-i05","notice":"tomas-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i05","notice":"tomas-n11","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"tomas-i05","notice":"tomas-n30","label":"fire","score":0.3333333333333333,"reason":"terms present: look"}
+{"intent":"tomas-i06","notice":"tomas-n14","label":"fire","score":0.75,"reason":"terms present: lone, star, degenerat, 2026, post"}
+{"intent":"tomas-i06","notice":"tomas-n15","label":"fire","score":0.75,"reason":"terms present: lone, star, degenerat, 2026, post"}
+{"intent":"tomas-i06","notice":"tomas-n08","label":"fire","score":0.75,"reason":"terms present: lone, star, degenerat, 2026, post"}
+{"intent":"tomas-i06","notice":"tomas-n16","label":"fire","score":0.25,"reason":"terms present: 2026, post"}
+{"intent":"tomas-i06","notice":"tomas-n06","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i06","notice":"tomas-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i07","notice":"tomas-n17","label":"fire","score":1,"reason":"terms present: keldon, johnson, trad, spur, san"}
+{"intent":"tomas-i07","notice":"tomas-n18","label":"fire","score":0.6666666666666666,"reason":"terms present: keldon, spur, san, antonio"}
+{"intent":"tomas-i07","notice":"tomas-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i07","notice":"tomas-n19","label":"fire","score":0.16666666666666666,"reason":"terms present: johnson"}
+{"intent":"tomas-i07","notice":"tomas-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i07","notice":"tomas-n20","label":"fire","score":0.3333333333333333,"reason":"terms present: san, antonio"}
+{"intent":"tomas-i08","notice":"tomas-n25","label":"fire","score":1,"reason":"terms present: austin, marathon, 2027, registration, open"}
+{"intent":"tomas-i08","notice":"tomas-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i08","notice":"tomas-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i08","notice":"tomas-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i08","notice":"tomas-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i08","notice":"tomas-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i09","notice":"tomas-n27","label":"fire","score":0.6666666666666666,"reason":"terms present: road, bike"}
+{"intent":"tomas-i09","notice":"tomas-n28","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i09","notice":"tomas-n29","label":"fire","score":0.6666666666666666,"reason":"terms present: road, bike"}
+{"intent":"tomas-i09","notice":"tomas-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i09","notice":"tomas-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i09","notice":"tomas-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i10","notice":"tomas-n20","label":"fire","score":0.7142857142857143,"reason":"terms present: moody, center, austin, san, antonio"}
+{"intent":"tomas-i10","notice":"tomas-n21","label":"fire","score":0.5714285714285714,"reason":"terms present: spur, moody, center, austin"}
+{"intent":"tomas-i10","notice":"tomas-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i10","notice":"tomas-n22","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i10","notice":"tomas-n23","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"tomas-i10","notice":"tomas-n24","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"tomas-i10","notice":"tomas-n31","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"tomas-i11","notice":"tomas-n31","label":"fire","score":0.7142857142857143,"reason":"terms present: champion, league, final, watch, party"}
+{"intent":"tomas-i11","notice":"tomas-n32","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i11","notice":"tomas-n02","label":"fire","score":0.2857142857142857,"reason":"terms present: watch, party"}
+{"intent":"tomas-i11","notice":"tomas-n07","label":"fire","score":0.2857142857142857,"reason":"terms present: watch, party"}
+{"intent":"tomas-i11","notice":"tomas-n03","label":"no","score":0,"reason":"no query or subject term present"}
+{"intent":"tomas-i11","notice":"tomas-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i12","notice":"tomas-n22","label":"fire","score":0.6666666666666666,"reason":"terms present: austin, nba, team, expansion"}
+{"intent":"tomas-i12","notice":"tomas-n21","label":"fire","score":0.6666666666666666,"reason":"terms present: austin, expansion, franchise, tx"}
+{"intent":"tomas-i12","notice":"tomas-n20","label":"fire","score":0.5,"reason":"terms present: austin, nba, tx"}
+{"intent":"tomas-i12","notice":"tomas-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i12","notice":"tomas-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i12","notice":"tomas-n17","label":"fire","score":0.3333333333333333,"reason":"terms present: nba, team"}
