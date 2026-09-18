@@ -1,0 +1,14 @@
+{
+  "name": "crier-evals",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone evaluation suite for standing-intent matching on Crier. Measures matchers; ships nothing.",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "validate": "node src/validate.mjs",
+    "run": "node src/run.mjs",
+    "score": "node src/score.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}

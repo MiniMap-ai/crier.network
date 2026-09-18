@@ -1,5 +1,5 @@
-// Validate and summarise the standing-intent evaluation set (evals/README.md).
-// Usage: node scripts/evals-report.mjs [dir]   (default: evals)
+// Validate and summarise the standing-intent evaluation set (see README.md).
+// Usage: node src/validate.mjs [dir]   (default: data)
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -147,7 +147,7 @@ export function report(dir) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const dir = process.argv[2] ?? "evals";
+  const dir = process.argv[2] ?? new URL("../data", import.meta.url).pathname;
   const r = report(dir);
   console.log(r.text);
   if (r.errors.length) {

@@ -1,0 +1,990 @@
+{"intent":"aisha-i01","notice":"aisha-n01","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"aisha-i01","notice":"aisha-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i01","notice":"aisha-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i01","notice":"aisha-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i01","notice":"aisha-n03","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i01","notice":"aisha-n12","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i02","notice":"aisha-n03","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"aisha-i02","notice":"aisha-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i02","notice":"aisha-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i02","notice":"aisha-n05","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"aisha-i02","notice":"aisha-n07","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i02","notice":"aisha-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i02","notice":"aisha-n12","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i03","notice":"aisha-n07","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i03","notice":"aisha-n03","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i03","notice":"aisha-n12","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i03","notice":"aisha-n08","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i03","notice":"aisha-n04","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i03","notice":"aisha-n05","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i03","notice":"aisha-n09","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i04","notice":"aisha-n33","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i04","notice":"aisha-n35","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"aisha-i04","notice":"aisha-n34","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"aisha-i04","notice":"aisha-n04","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i04","notice":"aisha-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n14","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i05","notice":"aisha-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n15","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"aisha-i05","notice":"aisha-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i05","notice":"aisha-n12","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i06","notice":"aisha-n17","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"aisha-i06","notice":"aisha-n19","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i06","notice":"aisha-n18","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i06","notice":"aisha-n13","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"aisha-i06","notice":"aisha-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i06","notice":"aisha-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i07","notice":"aisha-n21","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"aisha-i07","notice":"aisha-n25","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"aisha-i07","notice":"aisha-n22","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"aisha-i07","notice":"aisha-n23","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i07","notice":"aisha-n24","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"aisha-i07","notice":"aisha-n28","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i08","notice":"aisha-n26","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"aisha-i08","notice":"aisha-n28","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"aisha-i08","notice":"aisha-n27","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"aisha-i08","notice":"aisha-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i08","notice":"aisha-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"aisha-i09","notice":"aisha-n29","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i09","notice":"aisha-n30","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i09","notice":"aisha-n31","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"aisha-i09","notice":"aisha-n32","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i09","notice":"aisha-n20","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i10","notice":"aisha-n09","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i10","notice":"aisha-n10","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"aisha-i10","notice":"aisha-n11","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"aisha-i10","notice":"aisha-n12","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"aisha-i10","notice":"aisha-n01","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"aisha-i10","notice":"aisha-n03","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"aisha-i11","notice":"aisha-n04","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i11","notice":"aisha-n14","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"aisha-i11","notice":"aisha-n20","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"aisha-i11","notice":"aisha-n01","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"aisha-i11","notice":"aisha-n17","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i11","notice":"aisha-n19","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"aisha-i12","notice":"aisha-n07","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"aisha-i12","notice":"aisha-n12","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"aisha-i12","notice":"aisha-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i12","notice":"aisha-n13","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i12","notice":"aisha-n11","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"aisha-i12","notice":"aisha-n16","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"aisha-i12","notice":"aisha-n08","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"aisha-i12","notice":"aisha-n15","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"aisha-i12","notice":"aisha-n03","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"aisha-i12","notice":"aisha-n14","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i01","notice":"dev-n01","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"dev-i01","notice":"dev-n02","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i01","notice":"dev-n03","label":"no","score":0.14285714285714285,"reason":"14% of query terms present"}
+{"intent":"dev-i01","notice":"dev-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i01","notice":"dev-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i01","notice":"dev-n05","label":"no","score":0.14285714285714285,"reason":"14% of query terms present"}
+{"intent":"dev-i01","notice":"dev-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i02","notice":"dev-n05","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"dev-i02","notice":"dev-n06","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"dev-i02","notice":"dev-n03","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"dev-i02","notice":"dev-n07","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"dev-i02","notice":"dev-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i02","notice":"dev-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i02","notice":"dev-n01","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"dev-i03","notice":"dev-n08","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"dev-i03","notice":"dev-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i03","notice":"dev-n09","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"dev-i03","notice":"dev-n10","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"dev-i03","notice":"dev-n11","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"dev-i03","notice":"dev-n29","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"dev-i04","notice":"dev-n08","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"dev-i04","notice":"dev-n10","label":"no","score":0.7142857142857143,"reason":"71% of query terms present"}
+{"intent":"dev-i04","notice":"dev-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i04","notice":"dev-n09","label":"no","score":0.2857142857142857,"reason":"29% of query terms present"}
+{"intent":"dev-i04","notice":"dev-n11","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"dev-i04","notice":"dev-n18","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i04","notice":"dev-n29","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"dev-i05","notice":"dev-n13","label":"no","score":0.42857142857142855,"reason":"43% of query terms present"}
+{"intent":"dev-i05","notice":"dev-n14","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"dev-i05","notice":"dev-n16","label":"no","score":0.42857142857142855,"reason":"43% of query terms present"}
+{"intent":"dev-i05","notice":"dev-n10","label":"no","score":0.42857142857142855,"reason":"43% of query terms present"}
+{"intent":"dev-i05","notice":"dev-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i05","notice":"dev-n11","label":"no","score":0.14285714285714285,"reason":"14% of query terms present"}
+{"intent":"dev-i06","notice":"dev-n17","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"dev-i06","notice":"dev-n18","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i06","notice":"dev-n19","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"dev-i06","notice":"dev-n27","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"dev-i06","notice":"dev-n29","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"dev-i06","notice":"dev-n26","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i06","notice":"dev-n22","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"dev-i07","notice":"dev-n25","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"dev-i07","notice":"dev-n26","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i07","notice":"dev-n04","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"dev-i07","notice":"dev-n27","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"dev-i07","notice":"dev-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i07","notice":"dev-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i07","notice":"dev-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i08","notice":"dev-n20","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i08","notice":"dev-n21","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i08","notice":"dev-n19","label":"no","score":0.375,"reason":"38% of query terms present"}
+{"intent":"dev-i08","notice":"dev-n27","label":"no","score":0.125,"reason":"13% of query terms present"}
+{"intent":"dev-i08","notice":"dev-n25","label":"no","score":0.125,"reason":"13% of query terms present"}
+{"intent":"dev-i08","notice":"dev-n04","label":"no","score":0.125,"reason":"13% of query terms present"}
+{"intent":"dev-i08","notice":"dev-n17","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"dev-i09","notice":"dev-n22","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"dev-i09","notice":"dev-n23","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"dev-i09","notice":"dev-n24","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"dev-i09","notice":"dev-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i09","notice":"dev-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i09","notice":"dev-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i10","notice":"dev-n29","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"dev-i10","notice":"dev-n28","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"dev-i10","notice":"dev-n26","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"dev-i10","notice":"dev-n09","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"dev-i10","notice":"dev-n24","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"dev-i10","notice":"dev-n17","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"dev-i10","notice":"dev-n25","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"dev-i10","notice":"dev-n19","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"dev-i11","notice":"dev-n31","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"dev-i11","notice":"dev-n32","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"dev-i11","notice":"dev-n30","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"dev-i11","notice":"dev-n28","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"dev-i11","notice":"dev-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"dev-i11","notice":"dev-n29","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i01","notice":"earl-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i01","notice":"earl-n02","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"earl-i01","notice":"earl-n03","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"earl-i01","notice":"earl-n04","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"earl-i01","notice":"earl-n05","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"earl-i01","notice":"earl-n06","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"earl-i01","notice":"earl-n07","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i01","notice":"earl-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i01","notice":"earl-n09","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"earl-i01","notice":"earl-n43","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"earl-i01","notice":"earl-n13","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"earl-i02","notice":"earl-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i02","notice":"earl-n11","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i02","notice":"earl-n03","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"earl-i02","notice":"earl-n12","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i02","notice":"earl-n07","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i02","notice":"earl-n09","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"earl-i02","notice":"earl-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i02","notice":"earl-n34","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"earl-i03","notice":"earl-n13","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"earl-i03","notice":"earl-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i03","notice":"earl-n15","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i03","notice":"earl-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i03","notice":"earl-n07","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i04","notice":"earl-n16","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i04","notice":"earl-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i04","notice":"earl-n05","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"earl-i04","notice":"earl-n07","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i04","notice":"earl-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i04","notice":"earl-n24","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"earl-i05","notice":"earl-n18","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i05","notice":"earl-n19","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i05","notice":"earl-n20","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i05","notice":"earl-n21","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i05","notice":"earl-n36","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i05","notice":"earl-n42","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i06","notice":"earl-n22","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i06","notice":"earl-n23","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i06","notice":"earl-n24","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i06","notice":"earl-n25","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i06","notice":"earl-n06","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i06","notice":"earl-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i07","notice":"earl-n03","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i07","notice":"earl-n06","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i07","notice":"earl-n26","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"earl-i07","notice":"earl-n28","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i07","notice":"earl-n27","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i07","notice":"earl-n05","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"earl-i07","notice":"earl-n43","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"earl-i08","notice":"earl-n30","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"earl-i08","notice":"earl-n31","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"earl-i08","notice":"earl-n29","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"earl-i08","notice":"earl-n33","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"earl-i08","notice":"earl-n28","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"earl-i08","notice":"earl-n35","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"earl-i09","notice":"earl-n38","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i09","notice":"earl-n39","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"earl-i09","notice":"earl-n40","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"earl-i09","notice":"earl-n14","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"earl-i09","notice":"earl-n17","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i09","notice":"earl-n43","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i10","notice":"earl-n41","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i10","notice":"earl-n42","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"earl-i10","notice":"earl-n43","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"earl-i10","notice":"earl-n44","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"earl-i10","notice":"earl-n18","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"earl-i10","notice":"earl-n20","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"earl-i11","notice":"earl-n36","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i11","notice":"earl-n37","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"earl-i11","notice":"earl-n35","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i11","notice":"earl-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i11","notice":"earl-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i11","notice":"earl-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i12","notice":"earl-n32","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"earl-i12","notice":"earl-n33","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"earl-i12","notice":"earl-n34","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"earl-i12","notice":"earl-n35","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"earl-i12","notice":"earl-n29","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"earl-i12","notice":"earl-n31","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"grace-i01","notice":"grace-n01","label":"no","score":0.8571428571428571,"reason":"86% of query terms present"}
+{"intent":"grace-i01","notice":"grace-n02","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"grace-i01","notice":"grace-n03","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"grace-i01","notice":"grace-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i01","notice":"grace-n05","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"grace-i01","notice":"grace-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i01","notice":"grace-n18","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"grace-i02","notice":"grace-n07","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"grace-i02","notice":"grace-n04","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i02","notice":"grace-n05","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i02","notice":"grace-n06","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"grace-i02","notice":"grace-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i02","notice":"grace-n02","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i03","notice":"grace-n09","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"grace-i03","notice":"grace-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i03","notice":"grace-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i03","notice":"grace-n12","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"grace-i03","notice":"grace-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i03","notice":"grace-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i04","notice":"grace-n13","label":"no","score":0.7142857142857143,"reason":"71% of query terms present"}
+{"intent":"grace-i04","notice":"grace-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i04","notice":"grace-n14","label":"no","score":0.42857142857142855,"reason":"43% of query terms present"}
+{"intent":"grace-i04","notice":"grace-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i04","notice":"grace-n27","label":"no","score":0.14285714285714285,"reason":"14% of query terms present"}
+{"intent":"grace-i04","notice":"grace-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i05","notice":"grace-n18","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"grace-i05","notice":"grace-n19","label":"no","score":0.7142857142857143,"reason":"71% of query terms present"}
+{"intent":"grace-i05","notice":"grace-n01","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"grace-i05","notice":"grace-n03","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"grace-i05","notice":"grace-n20","label":"no","score":0.42857142857142855,"reason":"43% of query terms present"}
+{"intent":"grace-i05","notice":"grace-n37","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i06","notice":"grace-n16","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"grace-i06","notice":"grace-n01","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i06","notice":"grace-n17","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i06","notice":"grace-n11","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"grace-i06","notice":"grace-n29","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"grace-i06","notice":"grace-n20","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i07","notice":"grace-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i07","notice":"grace-n22","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"grace-i07","notice":"grace-n12","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i07","notice":"grace-n32","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"grace-i07","notice":"grace-n26","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"grace-i08","notice":"grace-n23","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i08","notice":"grace-n24","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i08","notice":"grace-n25","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"grace-i08","notice":"grace-n26","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i08","notice":"grace-n12","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i09","notice":"grace-n28","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"grace-i09","notice":"grace-n40","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i09","notice":"grace-n27","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"grace-i09","notice":"grace-n29","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"grace-i09","notice":"grace-n26","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"grace-i10","notice":"grace-n30","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"grace-i10","notice":"grace-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i10","notice":"grace-n31","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"grace-i10","notice":"grace-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i10","notice":"grace-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i11","notice":"grace-n21","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"grace-i11","notice":"grace-n33","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"grace-i11","notice":"grace-n34","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i11","notice":"grace-n06","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"grace-i11","notice":"grace-n14","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"grace-i12","notice":"grace-n35","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"grace-i12","notice":"grace-n36","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"grace-i12","notice":"grace-n02","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"grace-i12","notice":"grace-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i12","notice":"grace-n41","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i12","notice":"grace-n37","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"grace-i13","notice":"grace-n38","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"grace-i13","notice":"grace-n39","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"grace-i13","notice":"grace-n37","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"grace-i13","notice":"grace-n40","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"grace-i13","notice":"grace-n41","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"grace-i13","notice":"grace-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i01","notice":"jordan-n01","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"jordan-i01","notice":"jordan-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i01","notice":"jordan-n03","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"jordan-i01","notice":"jordan-n04","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"jordan-i01","notice":"jordan-n05","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"jordan-i01","notice":"jordan-n06","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"jordan-i01","notice":"jordan-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i02","notice":"jordan-n05","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i02","notice":"jordan-n06","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"jordan-i02","notice":"jordan-n01","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"jordan-i02","notice":"jordan-n03","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"jordan-i02","notice":"jordan-n04","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i02","notice":"jordan-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i02","notice":"jordan-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i03","notice":"jordan-n25","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i03","notice":"jordan-n26","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"jordan-i03","notice":"jordan-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i03","notice":"jordan-n29","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i03","notice":"jordan-n35","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"jordan-i03","notice":"jordan-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i03","notice":"jordan-n14","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"jordan-i04","notice":"jordan-n07","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"jordan-i04","notice":"jordan-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i04","notice":"jordan-n13","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i04","notice":"jordan-n08","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"jordan-i04","notice":"jordan-n09","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"jordan-i04","notice":"jordan-n12","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"jordan-i04","notice":"jordan-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i04","notice":"jordan-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i05","notice":"jordan-n16","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i05","notice":"jordan-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"jordan-i05","notice":"jordan-n18","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"jordan-i05","notice":"jordan-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i05","notice":"jordan-n24","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"jordan-i06","notice":"jordan-n19","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i06","notice":"jordan-n20","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"jordan-i06","notice":"jordan-n21","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i06","notice":"jordan-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i06","notice":"jordan-n22","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"jordan-i07","notice":"jordan-n14","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i07","notice":"jordan-n15","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"jordan-i07","notice":"jordan-n11","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"jordan-i07","notice":"jordan-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i07","notice":"jordan-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i08","notice":"jordan-n22","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i08","notice":"jordan-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i08","notice":"jordan-n24","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"jordan-i08","notice":"jordan-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i08","notice":"jordan-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i09","notice":"jordan-n08","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i09","notice":"jordan-n09","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"jordan-i09","notice":"jordan-n07","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"jordan-i09","notice":"jordan-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i09","notice":"jordan-n13","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"jordan-i10","notice":"jordan-n36","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i10","notice":"jordan-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i10","notice":"jordan-n37","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"jordan-i10","notice":"jordan-n29","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"jordan-i10","notice":"jordan-n22","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"jordan-i11","notice":"jordan-n28","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"jordan-i11","notice":"jordan-n30","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"jordan-i11","notice":"jordan-n31","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"jordan-i11","notice":"jordan-n23","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"jordan-i11","notice":"jordan-n27","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"jordan-i11","notice":"jordan-n29","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"jordan-i11","notice":"jordan-n25","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"jordan-i12","notice":"jordan-n32","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i12","notice":"jordan-n33","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"jordan-i12","notice":"jordan-n34","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"jordan-i12","notice":"jordan-n26","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"jordan-i12","notice":"jordan-n35","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"jordan-i12","notice":"jordan-n25","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"kai-i01","notice":"kai-n01","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i01","notice":"kai-n04","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"kai-i01","notice":"kai-n02","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"kai-i01","notice":"kai-n03","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"kai-i01","notice":"kai-n06","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i01","notice":"kai-n09","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"kai-i01","notice":"kai-n36","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i01","notice":"kai-n08","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"kai-i01","notice":"kai-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i01","notice":"kai-n05","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"kai-i01","notice":"kai-n07","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"kai-i02","notice":"kai-n08","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"kai-i02","notice":"kai-n09","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"kai-i02","notice":"kai-n02","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"kai-i02","notice":"kai-n03","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"kai-i02","notice":"kai-n01","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"kai-i02","notice":"kai-n06","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"kai-i03","notice":"kai-n12","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"kai-i03","notice":"kai-n10","label":"no","score":0.14285714285714285,"reason":"14% of query terms present"}
+{"intent":"kai-i03","notice":"kai-n11","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"kai-i03","notice":"kai-n13","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"kai-i03","notice":"kai-n15","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"kai-i03","notice":"kai-n14","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"kai-i04","notice":"kai-n14","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i04","notice":"kai-n16","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"kai-i04","notice":"kai-n15","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"kai-i04","notice":"kai-n17","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i04","notice":"kai-n11","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"kai-i04","notice":"kai-n13","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i05","notice":"kai-n18","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"kai-i05","notice":"kai-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i05","notice":"kai-n19","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i05","notice":"kai-n20","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i05","notice":"kai-n36","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i06","notice":"kai-n22","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i06","notice":"kai-n24","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"kai-i06","notice":"kai-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i06","notice":"kai-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i06","notice":"kai-n25","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"kai-i06","notice":"kai-n27","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"kai-i07","notice":"kai-n25","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i07","notice":"kai-n27","label":"no","score":0.2857142857142857,"reason":"29% of query terms present"}
+{"intent":"kai-i07","notice":"kai-n26","label":"no","score":0.42857142857142855,"reason":"43% of query terms present"}
+{"intent":"kai-i07","notice":"kai-n22","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"kai-i07","notice":"kai-n40","label":"no","score":0,"reason":"structural: tags"}
+{"intent":"kai-i08","notice":"kai-n28","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i08","notice":"kai-n29","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"kai-i08","notice":"kai-n30","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i08","notice":"kai-n31","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"kai-i08","notice":"kai-n15","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"kai-i09","notice":"kai-n33","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"kai-i09","notice":"kai-n35","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"kai-i09","notice":"kai-n32","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"kai-i09","notice":"kai-n34","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"kai-i09","notice":"kai-n06","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"kai-i10","notice":"kai-n36","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i10","notice":"kai-n38","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"kai-i10","notice":"kai-n37","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"kai-i10","notice":"kai-n39","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i10","notice":"kai-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"kai-i10","notice":"kai-n43","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"kai-i11","notice":"kai-n06","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i11","notice":"kai-n07","label":"no","score":0,"reason":"structural: after"}
+{"intent":"kai-i11","notice":"kai-n01","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"kai-i11","notice":"kai-n05","label":"no","score":0,"reason":"structural: after"}
+{"intent":"kai-i11","notice":"kai-n44","label":"no","score":0,"reason":"structural: before"}
+{"intent":"kai-i11","notice":"kai-n02","label":"no","score":0,"reason":"structural: before"}
+{"intent":"kai-i12","notice":"kai-n40","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"kai-i12","notice":"kai-n42","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"kai-i12","notice":"kai-n41","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"kai-i12","notice":"kai-n27","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"kai-i12","notice":"kai-n43","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"kai-i12","notice":"kai-n25","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i01","notice":"lena-n01","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"lena-i01","notice":"lena-n02","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"lena-i01","notice":"lena-n05","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i01","notice":"lena-n04","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"lena-i01","notice":"lena-n08","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i01","notice":"lena-n12","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i01","notice":"lena-n29","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"lena-i01","notice":"lena-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i01","notice":"lena-n32","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i02","notice":"lena-n01","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"lena-i02","notice":"lena-n05","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"lena-i02","notice":"lena-n02","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"lena-i02","notice":"lena-n31","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i02","notice":"lena-n04","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"lena-i02","notice":"lena-n29","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"lena-i03","notice":"lena-n08","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"lena-i03","notice":"lena-n09","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"lena-i03","notice":"lena-n03","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"lena-i03","notice":"lena-n04","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"lena-i03","notice":"lena-n05","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i03","notice":"lena-n06","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i03","notice":"lena-n07","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"lena-i03","notice":"lena-n01","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i03","notice":"lena-n32","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i04","notice":"lena-n32","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"lena-i04","notice":"lena-n05","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"lena-i04","notice":"lena-n03","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"lena-i04","notice":"lena-n17","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"lena-i04","notice":"lena-n01","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i05","notice":"lena-n10","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"lena-i05","notice":"lena-n11","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"lena-i05","notice":"lena-n07","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"lena-i05","notice":"lena-n14","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"lena-i05","notice":"lena-n03","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i05","notice":"lena-n26","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i06","notice":"lena-n12","label":"no","score":0.7272727272727273,"reason":"73% of query terms present"}
+{"intent":"lena-i06","notice":"lena-n13","label":"no","score":0.36363636363636365,"reason":"36% of query terms present"}
+{"intent":"lena-i06","notice":"lena-n14","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i06","notice":"lena-n02","label":"no","score":0.36363636363636365,"reason":"36% of query terms present"}
+{"intent":"lena-i06","notice":"lena-n04","label":"no","score":0.18181818181818182,"reason":"18% of query terms present"}
+{"intent":"lena-i07","notice":"lena-n15","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"lena-i07","notice":"lena-n16","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i07","notice":"lena-n17","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"lena-i07","notice":"lena-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i07","notice":"lena-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i07","notice":"lena-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i08","notice":"lena-n18","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"lena-i08","notice":"lena-n19","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"lena-i08","notice":"lena-n20","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"lena-i08","notice":"lena-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i08","notice":"lena-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i08","notice":"lena-n06","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i09","notice":"lena-n21","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"lena-i09","notice":"lena-n22","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"lena-i09","notice":"lena-n23","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"lena-i09","notice":"lena-n30","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"lena-i09","notice":"lena-n10","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"lena-i10","notice":"lena-n24","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"lena-i10","notice":"lena-n25","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"lena-i10","notice":"lena-n03","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"lena-i10","notice":"lena-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"lena-i10","notice":"lena-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"lena-i11","notice":"lena-n26","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"lena-i11","notice":"lena-n28","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"lena-i11","notice":"lena-n27","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"lena-i11","notice":"lena-n14","label":"no","score":0.14285714285714285,"reason":"14% of query terms present"}
+{"intent":"lena-i11","notice":"lena-n10","label":"no","score":0.14285714285714285,"reason":"14% of query terms present"}
+{"intent":"lena-i12","notice":"lena-n29","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"lena-i12","notice":"lena-n30","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"lena-i12","notice":"lena-n31","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"lena-i12","notice":"lena-n05","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"lena-i12","notice":"lena-n01","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i13","notice":"lena-n08","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"lena-i13","notice":"lena-n32","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i13","notice":"lena-n06","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"lena-i13","notice":"lena-n09","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i13","notice":"lena-n02","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"lena-i13","notice":"lena-n07","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i01","notice":"maya-n01","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"maya-i01","notice":"maya-n02","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i01","notice":"maya-n03","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"maya-i01","notice":"maya-n04","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"maya-i01","notice":"maya-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i01","notice":"maya-n06","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i01","notice":"maya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i01","notice":"maya-n14","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i02","notice":"maya-n07","label":"no","score":0.2857142857142857,"reason":"29% of query terms present"}
+{"intent":"maya-i02","notice":"maya-n08","label":"no","score":0.14285714285714285,"reason":"14% of query terms present"}
+{"intent":"maya-i02","notice":"maya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i02","notice":"maya-n10","label":"no","score":0.14285714285714285,"reason":"14% of query terms present"}
+{"intent":"maya-i02","notice":"maya-n18","label":"no","score":0.2857142857142857,"reason":"29% of query terms present"}
+{"intent":"maya-i02","notice":"maya-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i02","notice":"maya-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i02","notice":"maya-n12","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i03","notice":"maya-n11","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"maya-i03","notice":"maya-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i03","notice":"maya-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i03","notice":"maya-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i03","notice":"maya-n03","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"maya-i03","notice":"maya-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i03","notice":"maya-n22","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"maya-i04","notice":"maya-n02","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"maya-i04","notice":"maya-n13","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i04","notice":"maya-n10","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"maya-i04","notice":"maya-n01","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"maya-i04","notice":"maya-n06","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"maya-i05","notice":"maya-n14","label":"no","score":0,"reason":"structural: before"}
+{"intent":"maya-i05","notice":"maya-n15","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i05","notice":"maya-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i05","notice":"maya-n10","label":"no","score":0,"reason":"structural: before"}
+{"intent":"maya-i05","notice":"maya-n32","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i05","notice":"maya-n01","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i06","notice":"maya-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i06","notice":"maya-n17","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i06","notice":"maya-n18","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i06","notice":"maya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i06","notice":"maya-n10","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i06","notice":"maya-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i07","notice":"maya-n19","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"maya-i07","notice":"maya-n20","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"maya-i07","notice":"maya-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i07","notice":"maya-n21","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"maya-i07","notice":"maya-n16","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"maya-i07","notice":"maya-n09","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"maya-i07","notice":"maya-n05","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"maya-i08","notice":"maya-n01","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"maya-i08","notice":"maya-n04","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"maya-i08","notice":"maya-n02","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i08","notice":"maya-n10","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"maya-i08","notice":"maya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i08","notice":"maya-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i08","notice":"maya-n03","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"maya-i08","notice":"maya-n17","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i08","notice":"maya-n06","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i09","notice":"maya-n22","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"maya-i09","notice":"maya-n23","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i09","notice":"maya-n24","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"maya-i09","notice":"maya-n11","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"maya-i09","notice":"maya-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i10","notice":"maya-n26","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"maya-i10","notice":"maya-n27","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"maya-i10","notice":"maya-n25","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"maya-i10","notice":"maya-n28","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"maya-i10","notice":"maya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i11","notice":"maya-n29","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"maya-i11","notice":"maya-n30","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i11","notice":"maya-n16","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i11","notice":"maya-n19","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i11","notice":"maya-n21","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"maya-i12","notice":"maya-n31","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"maya-i12","notice":"maya-n32","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i12","notice":"maya-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i12","notice":"maya-n06","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"maya-i12","notice":"maya-n15","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"maya-i12","notice":"maya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i01","notice":"nadia-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i01","notice":"nadia-n20","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"nadia-i01","notice":"nadia-n26","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"nadia-i01","notice":"nadia-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i01","notice":"nadia-n27","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"nadia-i01","notice":"nadia-n02","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i01","notice":"nadia-n03","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"nadia-i01","notice":"nadia-n14","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"nadia-i01","notice":"nadia-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i01","notice":"nadia-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i01","notice":"nadia-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i02","notice":"nadia-n04","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"nadia-i02","notice":"nadia-n06","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i02","notice":"nadia-n05","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i02","notice":"nadia-n07","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i02","notice":"nadia-n31","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i02","notice":"nadia-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i02","notice":"nadia-n08","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"nadia-i03","notice":"nadia-n07","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i03","notice":"nadia-n08","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i03","notice":"nadia-n06","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i03","notice":"nadia-n20","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"nadia-i03","notice":"nadia-n04","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i03","notice":"nadia-n05","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i04","notice":"nadia-n09","label":"no","score":0.36363636363636365,"reason":"36% of query terms present"}
+{"intent":"nadia-i04","notice":"nadia-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i04","notice":"nadia-n11","label":"no","score":0.36363636363636365,"reason":"36% of query terms present"}
+{"intent":"nadia-i04","notice":"nadia-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i04","notice":"nadia-n30","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"nadia-i04","notice":"nadia-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i05","notice":"nadia-n12","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i05","notice":"nadia-n15","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i05","notice":"nadia-n13","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"nadia-i05","notice":"nadia-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i05","notice":"nadia-n30","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"nadia-i05","notice":"nadia-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i06","notice":"nadia-n16","label":"no","score":0.5555555555555556,"reason":"56% of query terms present"}
+{"intent":"nadia-i06","notice":"nadia-n28","label":"no","score":0.4444444444444444,"reason":"44% of query terms present"}
+{"intent":"nadia-i06","notice":"nadia-n32","label":"no","score":0.4444444444444444,"reason":"44% of query terms present"}
+{"intent":"nadia-i06","notice":"nadia-n18","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"nadia-i06","notice":"nadia-n29","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i06","notice":"nadia-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i06","notice":"nadia-n24","label":"no","score":0.1111111111111111,"reason":"11% of query terms present"}
+{"intent":"nadia-i06","notice":"nadia-n19","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i06","notice":"nadia-n25","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i07","notice":"nadia-n20","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i07","notice":"nadia-n08","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i07","notice":"nadia-n01","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i07","notice":"nadia-n21","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i07","notice":"nadia-n26","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"nadia-i08","notice":"nadia-n22","label":"no","score":0.42857142857142855,"reason":"43% of query terms present"}
+{"intent":"nadia-i08","notice":"nadia-n23","label":"no","score":0.2857142857142857,"reason":"29% of query terms present"}
+{"intent":"nadia-i08","notice":"nadia-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i08","notice":"nadia-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i08","notice":"nadia-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i08","notice":"nadia-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i09","notice":"nadia-n24","label":"no","score":0.4166666666666667,"reason":"42% of query terms present"}
+{"intent":"nadia-i09","notice":"nadia-n25","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i09","notice":"nadia-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i09","notice":"nadia-n28","label":"no","score":0.08333333333333333,"reason":"8% of query terms present"}
+{"intent":"nadia-i09","notice":"nadia-n22","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i09","notice":"nadia-n16","label":"no","score":0.08333333333333333,"reason":"8% of query terms present"}
+{"intent":"nadia-i10","notice":"nadia-n26","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"nadia-i10","notice":"nadia-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i10","notice":"nadia-n27","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"nadia-i10","notice":"nadia-n20","label":"no","score":0.1111111111111111,"reason":"11% of query terms present"}
+{"intent":"nadia-i10","notice":"nadia-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"nadia-i11","notice":"nadia-n28","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"nadia-i11","notice":"nadia-n29","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"nadia-i11","notice":"nadia-n16","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"nadia-i11","notice":"nadia-n32","label":"no","score":0.2857142857142857,"reason":"29% of query terms present"}
+{"intent":"nadia-i11","notice":"nadia-n17","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"nadia-i11","notice":"nadia-n18","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"nadia-i11","notice":"nadia-n24","label":"no","score":0.2857142857142857,"reason":"29% of query terms present"}
+{"intent":"nadia-i12","notice":"nadia-n30","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"nadia-i12","notice":"nadia-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"nadia-i12","notice":"nadia-n09","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i01","notice":"priya-n12","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i01","notice":"priya-n17","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i01","notice":"priya-n10","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i01","notice":"priya-n01","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"priya-i01","notice":"priya-n32","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"priya-i01","notice":"priya-n14","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"priya-i01","notice":"priya-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i01","notice":"priya-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i01","notice":"priya-n06","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i01","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i02","notice":"priya-n02","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i02","notice":"priya-n03","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i02","notice":"priya-n04","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"priya-i02","notice":"priya-n05","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i02","notice":"priya-n07","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i02","notice":"priya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i03","notice":"priya-n06","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"priya-i03","notice":"priya-n07","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i03","notice":"priya-n08","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"priya-i03","notice":"priya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i03","notice":"priya-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i03","notice":"priya-n02","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i03","notice":"priya-n29","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i04","notice":"priya-n10","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i04","notice":"priya-n12","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"priya-i04","notice":"priya-n01","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i04","notice":"priya-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i04","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i04","notice":"priya-n14","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i05","notice":"priya-n12","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"priya-i05","notice":"priya-n14","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i05","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i05","notice":"priya-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i05","notice":"priya-n10","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i05","notice":"priya-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i05","notice":"priya-n17","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i06","notice":"priya-n15","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"priya-i06","notice":"priya-n16","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"priya-i06","notice":"priya-n17","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"priya-i06","notice":"priya-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i06","notice":"priya-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i06","notice":"priya-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i07","notice":"priya-n18","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"priya-i07","notice":"priya-n19","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"priya-i07","notice":"priya-n20","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"priya-i07","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i07","notice":"priya-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i07","notice":"priya-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i08","notice":"priya-n21","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i08","notice":"priya-n22","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i08","notice":"priya-n23","label":"no","score":0,"reason":"structural: after"}
+{"intent":"priya-i08","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i08","notice":"priya-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i08","notice":"priya-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i09","notice":"priya-n25","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"priya-i09","notice":"priya-n27","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"priya-i09","notice":"priya-n24","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"priya-i09","notice":"priya-n26","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"priya-i09","notice":"priya-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i09","notice":"priya-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i09","notice":"priya-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i10","notice":"priya-n24","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"priya-i10","notice":"priya-n25","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i10","notice":"priya-n27","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i10","notice":"priya-n26","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i10","notice":"priya-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i10","notice":"priya-n08","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"priya-i10","notice":"priya-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i11","notice":"priya-n28","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i11","notice":"priya-n07","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i11","notice":"priya-n29","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i11","notice":"priya-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i11","notice":"priya-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i11","notice":"priya-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i12","notice":"priya-n30","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"priya-i12","notice":"priya-n31","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"priya-i12","notice":"priya-n32","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i12","notice":"priya-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i12","notice":"priya-n01","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"priya-i12","notice":"priya-n21","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"ravi-i01","notice":"ravi-n03","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i01","notice":"ravi-n04","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"ravi-i01","notice":"ravi-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i01","notice":"ravi-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i01","notice":"ravi-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"ravi-i01","notice":"ravi-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i01","notice":"ravi-n05","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i01","notice":"ravi-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i01","notice":"ravi-n06","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"ravi-i02","notice":"ravi-n03","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i02","notice":"ravi-n06","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"ravi-i02","notice":"ravi-n01","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"ravi-i02","notice":"ravi-n04","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"ravi-i02","notice":"ravi-n05","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i02","notice":"ravi-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i02","notice":"ravi-n14","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"ravi-i02","notice":"ravi-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i03","notice":"ravi-n07","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"ravi-i03","notice":"ravi-n08","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"ravi-i03","notice":"ravi-n09","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"ravi-i03","notice":"ravi-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i03","notice":"ravi-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i03","notice":"ravi-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i03","notice":"ravi-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i04","notice":"ravi-n10","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"ravi-i04","notice":"ravi-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i04","notice":"ravi-n12","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"ravi-i04","notice":"ravi-n19","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"ravi-i04","notice":"ravi-n16","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"ravi-i04","notice":"ravi-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i05","notice":"ravi-n13","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"ravi-i05","notice":"ravi-n03","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i05","notice":"ravi-n14","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"ravi-i05","notice":"ravi-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i05","notice":"ravi-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i05","notice":"ravi-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i06","notice":"ravi-n16","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"ravi-i06","notice":"ravi-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"ravi-i06","notice":"ravi-n15","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"ravi-i06","notice":"ravi-n18","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"ravi-i06","notice":"ravi-n19","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"ravi-i06","notice":"ravi-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i06","notice":"ravi-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i07","notice":"ravi-n19","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i07","notice":"ravi-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i07","notice":"ravi-n18","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"ravi-i07","notice":"ravi-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"ravi-i07","notice":"ravi-n16","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"ravi-i07","notice":"ravi-n10","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"ravi-i07","notice":"ravi-n30","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"ravi-i08","notice":"ravi-n22","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"ravi-i08","notice":"ravi-n23","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"ravi-i08","notice":"ravi-n21","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"ravi-i08","notice":"ravi-n24","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"ravi-i08","notice":"ravi-n05","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i08","notice":"ravi-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i08","notice":"ravi-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i09","notice":"ravi-n25","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i09","notice":"ravi-n26","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"ravi-i09","notice":"ravi-n01","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"ravi-i09","notice":"ravi-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i09","notice":"ravi-n06","label":"no","score":0.2,"reason":"20% of query terms present"}
+{"intent":"ravi-i09","notice":"ravi-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i10","notice":"ravi-n28","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i10","notice":"ravi-n29","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"ravi-i10","notice":"ravi-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i10","notice":"ravi-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i10","notice":"ravi-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i10","notice":"ravi-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i11","notice":"ravi-n31","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i11","notice":"ravi-n32","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"ravi-i11","notice":"ravi-n02","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"ravi-i11","notice":"ravi-n27","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"ravi-i11","notice":"ravi-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i11","notice":"ravi-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"ravi-i11","notice":"ravi-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i01","notice":"sam-n01","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"sam-i01","notice":"sam-n02","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"sam-i01","notice":"sam-n03","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"sam-i01","notice":"sam-n04","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"sam-i01","notice":"sam-n06","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"sam-i01","notice":"sam-n07","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"sam-i01","notice":"sam-n08","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"sam-i01","notice":"sam-n05","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"sam-i01","notice":"sam-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i02","notice":"sam-n05","label":"no","score":0.36363636363636365,"reason":"36% of query terms present"}
+{"intent":"sam-i02","notice":"sam-n06","label":"no","score":0.09090909090909091,"reason":"9% of query terms present"}
+{"intent":"sam-i02","notice":"sam-n07","label":"no","score":0.45454545454545453,"reason":"45% of query terms present"}
+{"intent":"sam-i02","notice":"sam-n08","label":"no","score":0.45454545454545453,"reason":"45% of query terms present"}
+{"intent":"sam-i02","notice":"sam-n01","label":"no","score":0.09090909090909091,"reason":"9% of query terms present"}
+{"intent":"sam-i02","notice":"sam-n04","label":"no","score":0.09090909090909091,"reason":"9% of query terms present"}
+{"intent":"sam-i03","notice":"sam-n09","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"sam-i03","notice":"sam-n11","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"sam-i03","notice":"sam-n10","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"sam-i03","notice":"sam-n12","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"sam-i03","notice":"sam-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i03","notice":"sam-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i03","notice":"sam-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i04","notice":"sam-n17","label":"no","score":0.7142857142857143,"reason":"71% of query terms present"}
+{"intent":"sam-i04","notice":"sam-n18","label":"no","score":0.5714285714285714,"reason":"57% of query terms present"}
+{"intent":"sam-i04","notice":"sam-n19","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i04","notice":"sam-n16","label":"no","score":0.42857142857142855,"reason":"43% of query terms present"}
+{"intent":"sam-i04","notice":"sam-n31","label":"no","score":0.2857142857142857,"reason":"29% of query terms present"}
+{"intent":"sam-i04","notice":"sam-n21","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i05","notice":"sam-n20","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"sam-i05","notice":"sam-n21","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"sam-i05","notice":"sam-n22","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"sam-i05","notice":"sam-n15","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i05","notice":"sam-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i05","notice":"sam-n01","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i06","notice":"sam-n25","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"sam-i06","notice":"sam-n26","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"sam-i06","notice":"sam-n27","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"sam-i06","notice":"sam-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i06","notice":"sam-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i06","notice":"sam-n28","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i07","notice":"sam-n23","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"sam-i07","notice":"sam-n24","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"sam-i07","notice":"sam-n25","label":"no","score":0,"reason":"structural: thread"}
+{"intent":"sam-i07","notice":"sam-n30","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"sam-i07","notice":"sam-n28","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"sam-i08","notice":"sam-n19","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"sam-i08","notice":"sam-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i08","notice":"sam-n09","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"sam-i08","notice":"sam-n10","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"sam-i08","notice":"sam-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i09","notice":"sam-n32","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"sam-i09","notice":"sam-n33","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"sam-i09","notice":"sam-n34","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"sam-i09","notice":"sam-n35","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"sam-i09","notice":"sam-n36","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"sam-i09","notice":"sam-n21","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"sam-i10","notice":"sam-n28","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"sam-i10","notice":"sam-n29","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"sam-i10","notice":"sam-n30","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"sam-i10","notice":"sam-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i10","notice":"sam-n23","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"sam-i11","notice":"sam-n14","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"sam-i11","notice":"sam-n15","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"sam-i11","notice":"sam-n10","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i11","notice":"sam-n16","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"sam-i11","notice":"sam-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i11","notice":"sam-n22","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i12","notice":"sam-n12","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"sam-i12","notice":"sam-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i12","notice":"sam-n09","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"sam-i12","notice":"sam-n10","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"sam-i12","notice":"sam-n11","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"sam-i12","notice":"sam-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"sam-i12","notice":"sam-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i01","notice":"tomas-n01","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"tomas-i01","notice":"tomas-n02","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i01","notice":"tomas-n03","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i01","notice":"tomas-n04","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"tomas-i01","notice":"tomas-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i01","notice":"tomas-n29","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"tomas-i01","notice":"tomas-n31","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i02","notice":"tomas-n02","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"tomas-i02","notice":"tomas-n03","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"tomas-i02","notice":"tomas-n01","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i02","notice":"tomas-n04","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i02","notice":"tomas-n07","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"tomas-i02","notice":"tomas-n31","label":"no","score":0.75,"reason":"75% of query terms present"}
+{"intent":"tomas-i02","notice":"tomas-n32","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i02","notice":"tomas-n11","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"tomas-i03","notice":"tomas-n05","label":"no","score":0.8333333333333334,"reason":"83% of query terms present"}
+{"intent":"tomas-i03","notice":"tomas-n06","label":"no","score":0.16666666666666666,"reason":"17% of query terms present"}
+{"intent":"tomas-i03","notice":"tomas-n07","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i03","notice":"tomas-n08","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i03","notice":"tomas-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i03","notice":"tomas-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i04","notice":"tomas-n09","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"tomas-i04","notice":"tomas-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i04","notice":"tomas-n11","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"tomas-i04","notice":"tomas-n12","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i04","notice":"tomas-n13","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i04","notice":"tomas-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i05","notice":"tomas-n12","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"tomas-i05","notice":"tomas-n13","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i05","notice":"tomas-n09","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"tomas-i05","notice":"tomas-n10","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i05","notice":"tomas-n11","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"tomas-i05","notice":"tomas-n30","label":"no","score":0.3333333333333333,"reason":"33% of query terms present"}
+{"intent":"tomas-i06","notice":"tomas-n14","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"tomas-i06","notice":"tomas-n15","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"tomas-i06","notice":"tomas-n08","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"tomas-i06","notice":"tomas-n16","label":"fire","score":1,"reason":"no q: filters alone match"}
+{"intent":"tomas-i06","notice":"tomas-n06","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i06","notice":"tomas-n17","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i07","notice":"tomas-n17","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"tomas-i07","notice":"tomas-n18","label":"no","score":0.5,"reason":"50% of query terms present"}
+{"intent":"tomas-i07","notice":"tomas-n16","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i07","notice":"tomas-n19","label":"no","score":0.25,"reason":"25% of query terms present"}
+{"intent":"tomas-i07","notice":"tomas-n14","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i07","notice":"tomas-n20","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"tomas-i08","notice":"tomas-n25","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"tomas-i08","notice":"tomas-n26","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i08","notice":"tomas-n09","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i08","notice":"tomas-n27","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i08","notice":"tomas-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i08","notice":"tomas-n11","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i09","notice":"tomas-n27","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"tomas-i09","notice":"tomas-n28","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i09","notice":"tomas-n29","label":"no","score":0.6666666666666666,"reason":"67% of query terms present"}
+{"intent":"tomas-i09","notice":"tomas-n30","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i09","notice":"tomas-n01","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i09","notice":"tomas-n25","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i10","notice":"tomas-n20","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"tomas-i10","notice":"tomas-n21","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"tomas-i10","notice":"tomas-n17","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i10","notice":"tomas-n22","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i10","notice":"tomas-n23","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"tomas-i10","notice":"tomas-n24","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"tomas-i10","notice":"tomas-n31","label":"no","score":0,"reason":"structural: radius"}
+{"intent":"tomas-i11","notice":"tomas-n31","label":"fire","score":1,"reason":"every query term present"}
+{"intent":"tomas-i11","notice":"tomas-n32","label":"no","score":0,"reason":"structural: no-coords"}
+{"intent":"tomas-i11","notice":"tomas-n02","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"tomas-i11","notice":"tomas-n07","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"tomas-i11","notice":"tomas-n03","label":"no","score":0,"reason":"0% of query terms present"}
+{"intent":"tomas-i11","notice":"tomas-n20","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i12","notice":"tomas-n22","label":"no","score":0.8,"reason":"80% of query terms present"}
+{"intent":"tomas-i12","notice":"tomas-n21","label":"no","score":0.6,"reason":"60% of query terms present"}
+{"intent":"tomas-i12","notice":"tomas-n20","label":"no","score":0.4,"reason":"40% of query terms present"}
+{"intent":"tomas-i12","notice":"tomas-n23","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i12","notice":"tomas-n24","label":"no","score":0,"reason":"structural: kind"}
+{"intent":"tomas-i12","notice":"tomas-n17","label":"no","score":0.4,"reason":"40% of query terms present"}
