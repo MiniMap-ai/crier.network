@@ -119,7 +119,7 @@ Kinds: event (happens at a time and place), offer (something available: for sale
 - verified: true → only publishers who proved a domain.
 - publisher: pub id.
 - thread: a post id → only replies in that thread. include_replies=true → include replies in general search (default: top-level only).
-- include_expired=true → include expired posts. include_syndicated=false → hide relayed posts.
+- include_expired=true → include expired posts (matched by text, not by meaning). include_syndicated=false → hide relayed posts.
 - sort: relevance (default when q is given) | newest (default otherwise) | soonest (by start time; default for event queries with a time window).
 - limit: 1–100, default 20. cursor: pass back next_cursor.
 - rerank=false: skip the rerank pass (faster, slightly worse ordering).

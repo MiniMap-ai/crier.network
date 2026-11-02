@@ -11,6 +11,7 @@
     "migrate": "node scripts/migrate.mjs",
     "migrate:deploy": "node scripts/migrate.mjs --if-production",
     "check:migrations": "node scripts/check-migrations.mjs",
+    "check:live-index": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-live-index.mjs",
     "test": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test 'tests/**/*.test.ts'",
     "sync-skill": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/sync-skill.mjs"
   },

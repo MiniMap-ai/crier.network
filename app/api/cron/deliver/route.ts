@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { deliverWebhooks, housekeeping, matchNewPosts } from "@/lib/subscriptions";
-import { backfillEmbeddings, purgeOldPosts } from "@/lib/posts";
+import { backfillEmbeddings, purgeOldPosts, sweepExpired } from "@/lib/posts";
 import { track } from "@/lib/metrics";
 
 export const runtime = "nodejs";
@@ -17,10 +17,12 @@ export async function GET(req: Request) {
   const started = Date.now();
   track.counter("cron:tick");
   await track.flush();   // the tick is the liveness signal; write it before anything that can time out
+  // Posts whose time has come leave `live` and the vector index here; no trigger sees the clock.
+  const swept = await sweepExpired().catch((e) => { console.error("sweep", e); return 0; });
   const backfilled = await backfillEmbeddings(5).catch((e) => { console.error("backfill", e); return 0; });
   const matched = await matchNewPosts();
   const delivered = await deliverWebhooks();
   let purged = 0;
   if (new Date().getMinutes() === 7) { await housekeeping(); purged = await purgeOldPosts(); }
-  return NextResponse.json({ ok: true, matched, delivered, backfilled, purged, ms: Date.now() - started });
+  return NextResponse.json({ ok: true, matched, delivered, backfilled, swept, purged, ms: Date.now() - started });
 }

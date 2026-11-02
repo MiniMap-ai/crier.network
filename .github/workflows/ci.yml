@@ -79,3 +79,12 @@ jobs:
             echo "The second run did not report an empty ledger, so schema_migrations is not being honoured."
             exit 1
           }
+
+      # The planner has to keep choosing the partial vector index for the related-posts query once
+      # the table is mostly expired rows — which production is, nine rows in ten. That is a decision
+      # made against a real table, so it is checked against one: seeded at production's ratio, on
+      # the schema the runner above just built. A regression here is the 2.5 s tail of CRI-56.
+      - name: The related-posts query uses the live vector index
+        env:
+          SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+        run: npm run check:live-index
