@@ -110,3 +110,27 @@ test("consecutive timeouts recycle the pool; a success in between does not", asy
   __resetDbHealth();
   (globalThis as { __crier_sql?: unknown }).__crier_sql = undefined;
 });
+
+// ---------- connection failures, as distinct from timeouts ----------
+
+test("a connection-level failure is recognised by its code, whoever raised it", async () => {
+  const { isDbConnectError } = await import("../lib/db-timeout.ts");
+  // How Supavisor reported "Failed to connect to database: {:error, :timeout}" on 2026-10-17.
+  assert.ok(isDbConnectError(Object.assign(new Error("Failed to connect to database: {:error, :timeout}"), { code: "08006", severity_local: "FATAL" })));
+  assert.ok(isDbConnectError(Object.assign(new Error("connection_exception"), { code: "08000" })));
+  // postgres.js's own, for a socket that never came up or went away under a query.
+  assert.ok(isDbConnectError(Object.assign(new Error("CONNECT_TIMEOUT"), { code: "CONNECT_TIMEOUT" })));
+  assert.ok(isDbConnectError(Object.assign(new Error("CONNECTION_CLOSED"), { code: "CONNECTION_CLOSED" })));
+  // Node's.
+  assert.ok(isDbConnectError(Object.assign(new Error("connect ECONNREFUSED"), { code: "ECONNREFUSED" })));
+});
+
+test("a timeout, a query error and a plain error are not connection failures", async () => {
+  const { isDbConnectError, DbTimeoutError } = await import("../lib/db-timeout.ts");
+  assert.ok(!isDbConnectError(new DbTimeoutError(2500, "relatedPosts")));
+  assert.ok(!isDbConnectError(Object.assign(new Error("canceling statement due to lock timeout"), { code: "55P03" })));
+  assert.ok(!isDbConnectError(Object.assign(new Error("invalid input syntax"), { code: "22P02" })));
+  assert.ok(!isDbConnectError(new Error("anything")));
+  assert.ok(!isDbConnectError(null));
+  assert.ok(!isDbConnectError({ code: 8006 }));
+});

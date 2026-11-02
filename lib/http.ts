@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { DB_SIDE_TIMEOUT_MS, DbTimeoutError, sql, withTimeout } from "./db";
+import { DB_SIDE_TIMEOUT_MS, DbTimeoutError, isDbConnectError, sql, withTimeout } from "./db";
 import { env, SITE } from "./env";
 import { track } from "./metrics";
 
@@ -153,6 +153,15 @@ export function handler<Ctx>(fn: (req: Request, ctx: Ctx) => Promise<Response>) 
         track.counter("error:503");
         return failFast(503, "db_timeout", "Crier is having trouble reading its database.", { hint: DB_TIMEOUT_HINT, retryAfter: 30 });
       }
+      if (isDbConnectError(e)) {
+        // The pooler refused or dropped the connection, so no query of ours ever ran. One request long
+        // both times it has been seen (2026-10-09, 2026-10-17), so a 503 the caller can retry — and
+        // counted apart from a timeout, so the brief can tell a refused connection from a slow one.
+        console.error("db connect", (e as { code?: string }).code ?? "", (e as Error).message);
+        track.counter("error:db_connect");
+        track.counter("error:503");
+        return failFast(503, "db_unavailable", "Crier could not open a connection to its database.", { hint: DB_TIMEOUT_HINT, retryAfter: 30 });
+      }
       const id = Math.random().toString(36).slice(2, 10);
       console.error(`[${id}]`, e);
       track.counter("error:5xx");
@@ -212,12 +221,18 @@ function humanWindow(s: number) {
   return `${s} seconds`;
 }
 
-export function encodeCursor(o: Record<string, unknown>): string {
-  return Buffer.from(JSON.stringify(o)).toString("base64url");
-}
-export function decodeCursor<T = Record<string, unknown>>(s: string | null | undefined): T | null {
+import { decodeCursor, encodeCursor } from "./cursor";
+export { encodeCursor, decodeCursor };
+
+/**
+ * A cursor the caller sent back that this query did not write: see lib/cursor.ts. Present but
+ * failing the guard is a 400, so the caller learns to drop it; absent is simply the first page.
+ */
+export function cursorOf<T>(s: string | undefined, guard: (c: unknown) => c is T): T | null {
   if (!s) return null;
-  try { return JSON.parse(Buffer.from(s, "base64url").toString("utf8")) as T; } catch { return null; }
+  const c = decodeCursor(s);
+  if (!guard(c)) throw new HttpError(400, "invalid_cursor", "That cursor is not one this query produced.", "Drop the cursor and start again; a cursor is only valid for the same query that returned it.");
+  return c;
 }
 
 export function corsPreflight() {

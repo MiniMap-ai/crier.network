@@ -12,7 +12,7 @@ import { CONTENT_NOTICE } from "./safety";
 import { SearchQuerySchema, parseSearchQuery, search } from "./search";
 import { SubscriptionInputSchema, createSubscription, getSubscription, pendingForSubscription, publicSubscription } from "./subscriptions";
 import { dropPostListings } from "./cache-tags";
-import { DbTimeoutError, budget, sql, withTimeout } from "./db";
+import { DbTimeoutError, budget, isDbConnectError, sql, withTimeout } from "./db";
 import { sha256 } from "./ids";
 import { INBOX_NOTE, InboxItem, clampLimit, inboxFor } from "./inbox";
 import { track } from "./metrics";
@@ -371,9 +371,11 @@ async function handleOne(msg: JsonRpcRequest, ctx: { headerKey: string | null; i
       case "tools/call": {
         const name = String(msg.params?.name ?? "");
         const args = (msg.params?.arguments as Record<string, unknown>) ?? {};
-        track.counter(`mcp:tool:${name.replace(/[^\w-]/g, "").slice(0, 40) || "unknown"}`);
+        const tool = name.replace(/[^\w-]/g, "").slice(0, 40) || "unknown";
+        track.counter(`mcp:tool:${tool}`);
         try {
           const r = await callTool(name, args, ctx);
+          track.counter(`mcp:outcome:${tool}:ok`);
           return { jsonrpc: "2.0", id, result: { content: [{ type: "text", text: r.text }], structuredContent: r.structured, isError: false } };
         } catch (e) {
           // Tool errors are results, not protocol errors, so the model can read and act on them.
@@ -385,9 +387,18 @@ async function handleOne(msg: JsonRpcRequest, ctx: { headerKey: string | null; i
             data = { code: "db_timeout", retry_after: 30 };
             track.counter("error:db_timeout");
           }
+          else if (isDbConnectError(e)) {
+            console.error("mcp tool", name, "db connect", (e as Error).message);
+            text = "Crier could not open a connection to its database. Nothing about your call was wrong; wait about 30 seconds and try again. Reads are safe to retry; for create_post, retry with the same idempotency_key.";
+            data = { code: "db_connect", retry_after: 30 };
+            track.counter("error:db_connect");
+          }
           else if (e instanceof HttpError) { text = `${e.message}${e.hint ? " " + e.hint : ""}${e.retryAfter ? ` Retry after ${e.retryAfter} seconds.` : ""}`; data = { code: e.code, hint: e.hint, issues: e.issues, ...(e.retryAfter ? { retry_after: e.retryAfter } : {}) }; }
           else if (e instanceof z.ZodError) { text = "Arguments did not validate: " + e.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; "); data = { code: "invalid_arguments", issues: e.issues }; }
           else { console.error("mcp tool", name, e); text = "Something failed on Crier's side. Retrying is safe for reads; for create_post, retry with the same idempotency_key."; data = { code: "internal_error" }; }
+          // The outcome, by the code the caller was given, so a refused call is a number and not a
+          // healthy-looking attempt. Codes are ours (HttpError, zod, the two database classes).
+          track.counter(`mcp:outcome:${tool}:${String((data as { code?: unknown }).code ?? "internal_error").replace(/[^\w-]/g, "").slice(0, 40)}`);
           return { jsonrpc: "2.0", id, result: { content: [{ type: "text", text }], structuredContent: { error: data }, isError: true } };
         }
       }

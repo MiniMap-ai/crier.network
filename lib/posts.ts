@@ -330,6 +330,7 @@ export async function relatedPosts(id: string, limit = 5, at: Budget = budget(DB
 
 /** Replies to a post, oldest first. */
 export async function repliesFor(id: string, limit = 50, after?: string, at: Budget = budget(DB_SIDE_TIMEOUT_MS)): Promise<{ posts: PublicPost[]; next_cursor: string | null }> {
+  if (after && Number.isNaN(Date.parse(after))) throw new HttpError(400, "invalid_cursor", "That cursor is not one this query produced.", "Drop the cursor and start again.");
   const cur = after ? new Date(after) : null;
   const rows = cur
     ? await withTimeout(sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null and p.created_at > $2 order by p.created_at asc, p.id asc limit $3`, [id, cur, limit + 1]), at("repliesFor:after"))

@@ -2,7 +2,9 @@ import { z } from "zod";
 import { budget, sql, toVectorLiteral, withTimeout } from "./db";
 import type { Budget } from "./db";
 import { embedQuery, rerank } from "./cohere";
-import { HttpError, decodeCursor, encodeCursor } from "./http";
+import { HttpError, cursorOf, encodeCursor } from "./http";
+import { isKeysetCursor, isOffsetCursor } from "./cursor";
+import { POST_ID_RE } from "./ids";
 import { KINDS, POST_COLUMNS, PostRow, PublicPost, publicPost } from "./posts";
 import { hasBudget } from "./limits";
 import { track } from "./metrics";
@@ -116,7 +118,7 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
     sortUsed = sort;
     const params = [...b.params];
     let where = b.where;
-    const cur = decodeCursor<{ k: string; id: string }>(q.cursor);
+    const cur = cursorOf(q.cursor, (c): c is { k: string; id: string } => isKeysetCursor(c, POST_ID_RE));
     const orderKey = sort === "soonest" ? "coalesce(p.starts_at, p.created_at)" : "p.created_at";
     if (cur) {
       params.push(new Date(cur.k), cur.id);
@@ -139,7 +141,7 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
     }
   } else {
     mode = "hybrid";
-    const cur = decodeCursor<{ o: number }>(q.cursor);
+    const cur = cursorOf(q.cursor, isOffsetCursor);
     const offset = Math.max(0, Math.min(cur?.o ?? 0, POOL));
     const text = q.q;
     const vec = await embedQuery(text);

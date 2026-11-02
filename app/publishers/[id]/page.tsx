@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { noteDbTimeout, track } from "@/lib/metrics";
+import { noteDbTimeout, notePageFailure, track } from "@/lib/metrics";
 import { headers } from "next/headers";
 import { PostList } from "@/components/PostList";
 import { getPublisher, publicPublisher } from "@/lib/publishers";
@@ -16,7 +16,9 @@ type Props = { params: Promise<{ id: string }> };
 
 // One primary-key lookup, shared by generateMetadata and the body. Its budget is the small one: the
 // listing below needs the rest of what the route is allowed.
-const loadPublisher = cache((id: string) => getPublisher(id, budget(DB_SIDE_TIMEOUT_MS)));
+// If it fails the page is a 500, and it is counted on the shared promise for the reason given in
+// app/p/[id]/page.tsx: either awaiter may be the one that sees the rejection.
+const loadPublisher = cache((id: string) => getPublisher(id, budget(DB_SIDE_TIMEOUT_MS)).catch((e: unknown) => { notePageFailure("publishers/[id]", e); throw e; }));
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
@@ -26,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function PublisherPage({ params }: Props) {
   const { id } = await params;
-  const row = await loadPublisher(id).catch((e: unknown) => { noteDbTimeout("publishers/[id]", e); throw e; });
+  const row = await loadPublisher(id);
   if (!row) notFound();
   const p = publicPublisher(row);
   track.pageView((await headers()).get("user-agent"), "publisher");
