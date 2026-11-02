@@ -51,7 +51,7 @@ hosted agents; it never overcounts. Measured from `daily_actors` where
 | `demand.*.other` | `shapes`, `n`, `zero` for everything below the naming threshold | Keeps the totals complete while the text stays withheld |
 | `demand.*.kinds[]`, `.places[]`, `.tags[]` | `key`, `n`, `zero`, `zero_share` | Where demand is, in the vocabulary the board already has |
 | `db_timeouts_7d` | `error:db_timeout`: database waits that ran out of budget, 7 days | Whether the pool is healthy; the leading indicator for a wedge |
-| `errors_503_7d` | `error:503`: 503s served because of one | What callers actually saw when it was not |
+| `errors_503_7d` | `error:503`: 503s served for a database that timed out or refused the connection | What callers actually saw when it was not |
 | `db_connects_7d` | `error:db_connect`: connections the pooler refused or dropped before any query ran, 7 days | A refused connection is a different failure from a slow one, and was invisible until 2026-11-02 |
 | `mcp.outcomes_7d` | `mcp:outcome:<tool>:<ok or error code>`: how each MCP tool call ended, 7 days | `mcp:tool:<name>` counts the attempt before the key is checked, so 250 keyless probes read as a busy day; this says what they got |
 | `side_write_timeouts_7d` | `error:side_write_timeout`: writes nobody waited for that were lost anyway, 7 days | Whether the counts on the board can be trusted; see "Side writes" below |

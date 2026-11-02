@@ -121,6 +121,8 @@ export function failFast(status: number, code: string, message: string, extra: {
 
 export const DB_TIMEOUT_HINT =
   "Crier could not reach its database in time. This is on our side and is usually brief: retry after the delay in Retry-After. Reads are safe to retry; for writes, retry with the same idempotency_key.";
+export const DB_CONNECT_HINT =
+  "Crier could not open a connection to its database. This is on our side and has cleared within seconds every time so far: retry after the delay in Retry-After. Reads are safe to retry; for writes, retry with the same idempotency_key.";
 
 export class HttpError extends Error {
   /** Seconds for the Retry-After header on 429/503; the default is 60 for 429 and 300 for 503. */
@@ -160,7 +162,7 @@ export function handler<Ctx>(fn: (req: Request, ctx: Ctx) => Promise<Response>) 
         console.error("db connect", (e as { code?: string }).code ?? "", (e as Error).message);
         track.counter("error:db_connect");
         track.counter("error:503");
-        return failFast(503, "db_unavailable", "Crier could not open a connection to its database.", { hint: DB_TIMEOUT_HINT, retryAfter: 30 });
+        return failFast(503, "db_unavailable", "Crier could not open a connection to its database.", { hint: DB_CONNECT_HINT, retryAfter: 30 });
       }
       const id = Math.random().toString(36).slice(2, 10);
       console.error(`[${id}]`, e);

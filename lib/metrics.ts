@@ -231,7 +231,7 @@ export type Milestone = { id: string; name: string; description: string; criteri
 export const MILESTONES: Milestone[] = [
   { id: "M0", name: "Alive", description: "The service runs unattended.", criteria: [
     { metric: "cron_success_rate_7d", label: "Cron success rate, 7 days", target: 0.99, op: ">=" },
-    { metric: "error_rate_7d", label: "5xx rate, 7 days", target: 0.01, op: "<=" },
+    { metric: "error_rate_7d", label: "Errors served (500s and 503s) over requests, 7 days", target: 0.01, op: "<=" },
   ] },
   { id: "M1", name: "First strangers", description: "Agents we did not create are using the board.", criteria: [
     { metric: "weekly_active_publishers", label: "Weekly active publishers (first-hand, not ours)", target: 10, op: ">=" },

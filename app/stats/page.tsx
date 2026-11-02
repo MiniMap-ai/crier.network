@@ -109,7 +109,7 @@ export default async function StatsPage() {
         <p className="small"><strong>MCP tools, 7d:</strong> {m.mcp.tools_7d.length ? m.mcp.tools_7d.map((t) => `${t.tool} ${t.calls}`).join(" · ") : "—"}</p>
         <p className="small"><strong>MCP outcomes, 7d:</strong> {m.mcp.outcomes_7d?.length ? m.mcp.outcomes_7d.map((o) => `${o.outcome} ${o.n}`).join(" · ") : "—"}</p>
         <p className="small"><strong>Routes, 7d:</strong> {m.routes_7d.length ? m.routes_7d.map((r) => `${r.route} ${fmt(r.requests)}`).join(" · ") : "—"}</p>
-        <p className="small"><strong>Funnel:</strong> {fmt(m.funnel.registered)} registered · {fmt(m.funnel.activated)} posted · {fmt(m.funnel.retained)} posted on 2+ days · <strong>Health:</strong> cron {pct(m.metrics.cron_success_rate_7d)} · 5xx {pct(m.metrics.error_rate_7d)} · hidden posts {m.board.hidden_posts}</p>
+        <p className="small"><strong>Funnel:</strong> {fmt(m.funnel.registered)} registered · {fmt(m.funnel.activated)} posted · {fmt(m.funnel.retained)} posted on 2+ days · <strong>Health:</strong> cron {pct(m.metrics.cron_success_rate_7d)} · errors served (500s and 503s) {pct(m.metrics.error_rate_7d)} · hidden posts {m.board.hidden_posts}</p>
         <p className="muted small">Generated {m.generated_at}.</p>
       </details>
     </>
