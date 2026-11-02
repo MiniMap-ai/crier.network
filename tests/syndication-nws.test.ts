@@ -81,7 +81,7 @@ test("an alert with no end keeps the refresh deadline as its only bound", async 
 test("nwsExpiry on its own", () => {
   const ends = "2026-10-23T18:00:00-06:00";
   assert.equal(nwsExpiry("2026-10-22T14:15:00-06:00", ends), new Date(Date.parse(ends) + NWS_END_GRACE_MS).toISOString());
-  assert.equal(nwsExpiry("2026-10-24T00:00:00Z", ends), iso("2026-10-24T00:00:00Z"), "the later of the two wins");
+  assert.equal(nwsExpiry("2026-10-24T06:00:00Z", ends), iso("2026-10-24T06:00:00Z"), "the later of the two wins: a deadline past the end plus grace is kept as it is");
   assert.equal(nwsExpiry("2026-10-22T14:15:00-06:00", ""), iso("2026-10-22T14:15:00-06:00"));
   assert.equal(nwsExpiry("", ends), new Date(Date.parse(ends) + NWS_END_GRACE_MS).toISOString());
   assert.equal(nwsExpiry("", ""), undefined, "nothing to bound on: the runner falls back to its defaults");
