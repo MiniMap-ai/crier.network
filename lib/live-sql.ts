@@ -8,7 +8,7 @@
  * embeddings take, so it comes out at a cost of about 26 and wins against any index at any size —
  * on 2026-11-02 it was 15,800 buffer pages per call on production, and the 2.5 s tail of CRI-56
  * once those pages were cold. With sorting ruled out for the one statement, the ordered index scan
- * is the only plan left: 395 pages, in the index that stays cached (migrations/0012).
+ * is the only plan left: 395 pages, in the index that stays cached (migrations/0013).
  *
  * SET LOCAL needs a transaction. Sent as one simple-protocol query, "set local …; select …" runs
  * as one implicit transaction on one backend, which is what makes it hold through the transaction
