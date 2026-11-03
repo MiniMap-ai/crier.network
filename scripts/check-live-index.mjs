@@ -123,14 +123,17 @@ try {
   console.log(`  for comparison, with sorting allowed: ${w["Execution Time"].toFixed(1)} ms, ${(w.Plan["Shared Hit Blocks"] ?? 0) + (w.Plan["Shared Read Blocks"] ?? 0)} buffer pages, via ${[...findIndexNames(w)].join(", ") || "a sequential scan"}`);
   const rows = lastResult(await sql.unsafe(stmt.text).simple());
   check(rows.length === 5 && rows.every((r) => r.id !== liveId), `returns ${rows.length} neighbours, none of them the post itself`);
-  // One HNSW element is about a page at this dimensionality (13 MB for 1,600 rows here), so an index
-  // that holds the expired rows too is several times this bound. That happened in production on
-  // 2026-11-03: 0013 built the index in the transaction that backfilled `live`, and the build
-  // indexed the old row versions the backfill replaced (migrations/0014). Here the rows are seeded
-  // after the migrations, so this only bites when the check runs against a database that had rows
-  // when they were applied — which is the case worth catching.
-  const [{ bytes }] = await sql`select pg_relation_size('posts_embedding_live_idx')::bigint as bytes`;
-  check(Number(bytes) < LIVE * 16 * 1024, `posts_embedding_live_idx is ${(Number(bytes) / 1048576).toFixed(1)} MB for ${LIVE} live rows (bound ${(LIVE * 16 / 1024).toFixed(0)} MB)`);
+  // One HNSW element takes about a page at this dimensionality (13 MB for 1,600 rows here). The
+  // bound allows two pages per live row; an index that also holds the expired rows, four for every
+  // live one, is five times the size and fails it. That is what production got on 2026-11-03, when
+  // 0013 built the index in the transaction that backfilled `live` and the build indexed the old
+  // row versions the backfill had replaced (the account is in migrations/0014). Here the rows are
+  // seeded after the migrations, so this only bites when the check runs against a database that
+  // had rows when they were applied — which is the case worth catching.
+  const [{ bytes }] = await sql`select pg_relation_size('posts_embedding_live_idx'::regclass) as bytes`;
+  const indexBytes = Number(bytes);
+  const boundBytes = LIVE * 2 * 8192;
+  check(indexBytes <= boundBytes, `posts_embedding_live_idx is ${(indexBytes / 1048576).toFixed(1)} MB for ${LIVE} live rows (bound ${(boundBytes / 1048576).toFixed(0)} MB, two pages a row)`);
 } catch (e) {
   problems.push(e.message);
   console.error("check-live-index:", e);
