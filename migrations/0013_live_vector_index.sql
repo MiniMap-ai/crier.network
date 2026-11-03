@@ -8,7 +8,8 @@
 set local lock_timeout = '10s';
 set local statement_timeout = '15min';
 
--- The rows already here. Also what makes a second run of this file a no-op.
+-- The rows already here. The WHERE keeps a rerun cheap: it touches only rows whose flag has
+-- drifted from the clock since the trigger or the minute sweep last wrote it, usually none.
 update posts
    set live = (deleted_at is null and hidden_at is null and expires_at > now())
  where live is distinct from (deleted_at is null and hidden_at is null and expires_at > now());

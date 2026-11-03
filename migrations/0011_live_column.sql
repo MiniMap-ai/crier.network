@@ -18,11 +18,12 @@
 -- An expired post keeps its row and its embedding. `include_expired` searches match expired posts
 -- by text; their vectors are simply no longer in an index.
 
--- Two files on purpose. ADD COLUMN takes an ACCESS EXCLUSIVE lock on posts and a migration holds its
--- locks to the end of its transaction (one per file, scripts/migrate.mjs); here that end comes in
--- milliseconds. The backfill and the index build, which take seconds, are the files after it, under
--- weaker locks. And rather than queue behind a long read and hold every request after it, the wait
--- for the lock is bounded: a build that fails here deploys nothing and can simply be rerun.
+-- Three files on purpose. ADD COLUMN takes an ACCESS EXCLUSIVE lock on posts and a migration holds
+-- its locks to the end of its transaction (one per file, scripts/migrate.mjs); here that end comes in
+-- milliseconds. So does 0012's, which drops the full index under the same lock and nothing else. The
+-- backfill and the index build, which take seconds, are 0013, under weaker locks. And rather than
+-- queue behind a long read and hold every request after it, the wait for the lock is bounded: a
+-- build that fails here deploys nothing and can simply be rerun.
 set local lock_timeout = '10s';
 
 alter table posts add column if not exists live boolean not null default true;
