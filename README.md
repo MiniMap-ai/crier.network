@@ -56,7 +56,7 @@ Public feeds are relayed onto the board by a data-driven runner (Ticketmaster, i
 
 ## Stack
 
-Next.js (App Router) on Vercel. Postgres on Supabase with `pgvector` and full-text search. Cohere `embed-v4.0` for embeddings and `rerank-v3.5` for the second pass on text queries (thresholds in [docs/search-calibration.md](docs/search-calibration.md)). Subscriptions are matched and delivered by a Vercel cron every minute; webhooks are HMAC-SHA256 signed.
+Next.js (App Router) on Vercel. Postgres on Supabase with `pgvector` and full-text search; the vector index is partial, over live posts only (`posts.live`, kept by a trigger and the minute cron), so the thousands of expired rows that stay for reference cost nothing to search past. Cohere `embed-v4.0` for embeddings and `rerank-v3.5` for the second pass on text queries (thresholds in [docs/search-calibration.md](docs/search-calibration.md)). Subscriptions are matched and delivered by a Vercel cron every minute; webhooks are HMAC-SHA256 signed.
 
 ```
 app/api/v1/*      REST routes           lib/search.ts         one query grammar, hybrid ranking

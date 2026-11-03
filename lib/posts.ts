@@ -4,7 +4,7 @@ import { DB_SIDE_TIMEOUT_MS, budget, sql, toVectorLiteral, withTimeout, withTime
 import type { Budget } from "./db";
 import { env } from "./env";
 import { HttpError } from "./http";
-import { newPostId } from "./ids";
+import { POST_ID_RE, newPostId } from "./ids";
 import { normalizeSourceKey } from "./source-key";
 import { embedDocuments, postEmbeddingText } from "./cohere";
 import { PublicPublisher, PublisherRow, publicPublisher } from "./publishers";
@@ -12,6 +12,7 @@ import { contentFlags, piiNote, stripHiddenUnicode } from "./safety";
 import { hasBudget } from "./limits";
 import { track } from "./metrics";
 import { indexNow } from "./indexnow";
+import { lastResult, nearestLiveStatement, relatedPostsStatement } from "./live-sql";
 
 export { normalizeSourceKey };
 
@@ -210,12 +211,10 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
   const tags = [...new Set(input.tags)];
   const [vec] = (await hasBudget("embeds_per_day")) ? await embedDocuments([postEmbeddingText({ ...input, tags, place_name: input.location?.name ?? null })]) : [null];
   if (vec && !parentId) {
-    // Near-duplicate check: same content posted recently by anyone. A note, never a block.
-    const [dup] = await withTimeoutOr(sql()<{ id: string; title: string; d: number }[]>`
-      select id, title, (embedding <=> ${toVectorLiteral(vec)}::vector) as d from posts
-       where deleted_at is null and hidden_at is null and parent_id is null and expires_at > now() and embedding is not null
-         and created_at > now() - interval '30 days'
-       order by embedding <=> ${toVectorLiteral(vec)}::vector limit 1`, [], { ms: DB_SIDE_TIMEOUT_MS, label: "createPost:duplicate" });
+    // Near-duplicate check: same content posted recently by anyone. A note, never a block. One
+    // simple-protocol statement with the planner held to the live vector index; lib/live-sql.ts says why.
+    const [dup] = lastResult<{ id: string; title: string; d: number }>(
+      await withTimeoutOr(sql().unsafe(nearestLiveStatement(toVectorLiteral(vec)).text).simple(), [], { ms: DB_SIDE_TIMEOUT_MS, label: "createPost:duplicate" }));
     if (dup && dup.d < 0.12) notes.push(`A very similar post already exists: ${env.SITE_URL}/p/${dup.id} ("${dup.title}"). If it is the same thing, consider replying to it (parent_id) instead of duplicating it. Your post was created anyway.`);
   }
   if (!input.syndicated) {
@@ -316,16 +315,36 @@ export async function getPostRow(id: string | null, by?: { publisherId: string; 
   return rows[0] ?? null;
 }
 
-/** Nearest live posts by embedding, excluding the post itself. */
+/**
+ * Nearest live posts by embedding, excluding the post itself.
+ *
+ * Two statements on purpose. With the embedding fetched by a subquery in the same statement the
+ * planner costed a join and could not take the ordered index path at all; fetched first and inlined,
+ * the second statement is the shape pgvector's index serves, `order by embedding <=> v limit n` over
+ * `live` rows — and lib/live-sql.ts holds the planner to that index, which it would otherwise not
+ * choose. That was the 2.5 s tail of CRI-56; scripts/check-live-index.mjs keeps it closed in CI.
+ */
 export async function relatedPosts(id: string, limit = 5, at: Budget = budget(DB_SIDE_TIMEOUT_MS)): Promise<PublicPost[]> {
-  const rows = await withTimeout(sql().unsafe<PostRow[]>(
-    `select ${POST_COLUMNS}
-       from posts p join publishers u on u.id = p.publisher_id, (select embedding from posts where id = $1) q
-      where p.id <> $1 and p.parent_id is null and p.deleted_at is null and p.hidden_at is null and p.expires_at > now()
-        and p.embedding is not null and q.embedding is not null and (p.embedding <=> q.embedding) <= 0.85
-      order by p.embedding <=> q.embedding
-      limit $2`, [id, limit]), at("relatedPosts"));
+  if (!POST_ID_RE.test(id)) return [];
+  const [q] = await withTimeout(sql().unsafe<{ embedding: string | null }[]>(`select embedding::text as embedding from posts where id = $1`, [id]), at("relatedPosts:embedding"));
+  if (!q?.embedding) return [];
+  // The vector and the id are inlined, not bound: the statement carries its own SET LOCAL, which the
+  // simple protocol can send and the extended protocol cannot. lib/live-sql.ts checks both first.
+  const rows = lastResult<PostRow>(await withTimeout(sql().unsafe(relatedPostsStatement(POST_COLUMNS, q.embedding, id, limit).text).simple(), at("relatedPosts")));
   return rows.map((r) => publicPost(r));
+}
+
+/**
+ * Expiry is the clock, which no trigger sees. The cron calls this every minute so a post whose time
+ * has come leaves `live`, and with it the partial vector index, within the minute. Everything that
+ * reads `live` still checks expires_at itself, so the minute of lag is a cost and not a correctness
+ * gap. See migrations/0012_live_vector_index.sql.
+ */
+export async function sweepExpired(): Promise<number> {
+  // Bounded like every other statement a request waits on: a stalled pooler must cost the cron its
+  // sweep for a minute, not its whole tick.
+  const rows = await withTimeout(sql()<{ id: string }[]>`update posts set live = false where live and expires_at <= now() returning id`, { label: "sweepExpired" });
+  return rows.length;
 }
 
 /** Replies to a post, oldest first. */
@@ -339,10 +358,10 @@ export async function repliesFor(id: string, limit = 50, after?: string, at: Bud
   return { posts: page.map((r) => publicPost(r)), next_cursor: rows.length > limit ? page[page.length - 1].created_at.toISOString() : null };
 }
 
-/** Embed posts that were stored without an embedding (Cohere was down or over budget). A few per cron tick. */
+/** Embed live posts that were stored without an embedding (Cohere was down or over budget). A few per cron tick. An expired one is not worth the call: nothing searches it by meaning. */
 export async function backfillEmbeddings(limit = 5): Promise<number> {
   const rows = await sql()<{ id: string; kind: string; title: string; body: string; tags: string[]; place_name: string | null }[]>`
-    select id, kind, title, body, tags, place_name from posts where embedding is null and deleted_at is null order by created_at asc limit ${limit}`;
+    select id, kind, title, body, tags, place_name from posts where embedding is null and live order by created_at asc limit ${limit}`;
   if (rows.length === 0) return 0;
   if (!(await hasBudget("embeds_per_day"))) return 0;
   const vecs = await embedDocuments(rows.map((r) => postEmbeddingText(r)));

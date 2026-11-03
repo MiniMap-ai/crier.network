@@ -5,6 +5,7 @@ import { embedQuery, rerank } from "./cohere";
 import { HttpError, cursorOf, encodeCursor } from "./http";
 import { isKeysetCursor, isOffsetCursor } from "./cursor";
 import { POST_ID_RE } from "./ids";
+import { NO_SORT } from "./live-sql";
 import { KINDS, POST_COLUMNS, PostRow, PublicPost, publicPost } from "./posts";
 import { hasBudget } from "./limits";
 import { track } from "./metrics";
@@ -153,14 +154,24 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
         where ${b.where} and p.tsv @@ websearch_to_tsquery('english', $${ftsParams.length - 1})
         order by ts_rank_cd(p.tsv, websearch_to_tsquery('english', $${ftsParams.length - 1})) desc, p.created_at desc
         limit $${ftsParams.length}`, ftsParams as never[]), at("search:fts"));
-    // Semantic candidates.
+    // Semantic candidates. `p.live` is what lets the planner use the partial vector index
+    // (migrations/0012); with include_expired the text arms still reach expired posts, this one does
+    // not — an expired post's vector is in no index, and walking every row for it was the 2.5 s tail.
+    //
+    // The planner will not take that index on its own (lib/live-sql.ts says why), so the statement
+    // runs with sorting ruled out, `set local` inside a transaction of its own because the filters
+    // here are the caller's and go as parameters, which the simple protocol cannot carry. Both
+    // statements are bounded and cancellable inside the transaction; a timeout rolls it back.
     const vecParams = [...b.params, vec ? toVectorLiteral(vec) : null, VECTOR_CANDIDATE_MAX_DISTANCE, POOL];
-    const sem = vec
-      ? withTimeout(s.unsafe<{ id: string }[]>(
-        `select p.id from posts p join publishers u on u.id = p.publisher_id
-          where ${b.where} and p.embedding is not null and (p.embedding <=> $${vecParams.length - 2}::vector) <= $${vecParams.length - 1}
-          order by p.embedding <=> $${vecParams.length - 2}::vector
-          limit $${vecParams.length}`, vecParams as never[]), at("search:semantic"))
+    const sem: Promise<{ id: string }[]> = vec
+      ? s.begin(async (tx) => {
+        await withTimeout(tx.unsafe(NO_SORT), at("search:semantic:set"));
+        return withTimeout(tx.unsafe<{ id: string }[]>(
+          `select p.id from posts p join publishers u on u.id = p.publisher_id
+            where ${b.where} and p.live and p.embedding is not null and (p.embedding <=> $${vecParams.length - 2}::vector) <= $${vecParams.length - 1}
+            order by p.embedding <=> $${vecParams.length - 2}::vector
+            limit $${vecParams.length}`, vecParams as never[]), at("search:semantic"));
+      }) as Promise<{ id: string }[]>
       : Promise.resolve([] as { id: string }[]);
     // Trigram fallback for typos and short names, only when FTS is thin.
     const [ftsRows, semRows] = await Promise.all([fts, sem]);
