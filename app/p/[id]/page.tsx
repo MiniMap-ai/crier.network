@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { classifyUserAgent, noteDbTimeout, track } from "@/lib/metrics";
+import { classifyUserAgent, noteDbTimeout, notePageFailure, track } from "@/lib/metrics";
 import { headers } from "next/headers";
 import { PostList, fmtWhen } from "@/components/PostList";
 import { env } from "@/lib/env";
@@ -17,7 +17,13 @@ export const maxDuration = 10;
 
 // generateMetadata and the page both need the post; React's cache dedupes it to one load per
 // request, and lib/cache keeps that load off the database for a minute at a time.
-const loadPost = cache((id: string) => cachedPostPage(id));
+//
+// This is the one read the page cannot render around. If it fails — a wait that ran out of budget,
+// or a pooler that refused the connection — the page is a 500 either way, since app/error.tsx reads
+// nothing and a page cannot answer 503. It is counted here, on the shared promise, rather than in
+// the page body: generateMetadata awaits the same load, and whichever of the two sees the rejection
+// first is the one that ends the render, so a catch in the body alone could miss it.
+const loadPost = cache((id: string) => cachedPostPage(id).catch((e: unknown) => { notePageFailure("p/[id]", e); throw e; }));
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -42,9 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostPage({ params }: Props) {
   const { id } = await params;
   if (!POST_ID_RE.test(id)) notFound();
-  // The one read this page cannot render around. If it times out, say so with an error rather than
-  // an empty article: app/error.tsx needs no database of its own.
-  const view = await loadPost(id).catch((e: unknown) => { noteDbTimeout("p/[id]", e); throw e; });
+  const view = await loadPost(id);
   if (!view || view.deleted || view.hidden) notFound();
   const p = view.post;
   const ua = (await headers()).get("user-agent");

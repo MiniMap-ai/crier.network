@@ -2,7 +2,8 @@ import { z } from "zod";
 import { createHmac } from "node:crypto";
 import { sideWrite, sql, toVectorLiteral, withTimeout } from "./db";
 import { env } from "./env";
-import { HttpError, decodeCursor, encodeCursor } from "./http";
+import { isDeliveryCursor } from "./cursor";
+import { cursorOf, encodeCursor, HttpError } from "./http";
 import { newSecret, newSubscriptionId } from "./ids";
 import { embedQuery } from "./cohere";
 import { POST_COLUMNS, PostRow, PublicPost, publicPost } from "./posts";
@@ -139,7 +140,7 @@ export async function deleteSubscription(publisher: PublisherRow, id: string) {
 
 /** Matches since cursor, oldest first. The cursor is the client's watermark; nothing is consumed server-side. */
 export async function pendingForSubscription(sub: SubscriptionRow, cursor: string | undefined, limit: number): Promise<{ posts: (PublicPost & { delivery_id: number; matched_at: string })[]; next_cursor: string | null }> {
-  const cur = decodeCursor<{ d: number }>(cursor);
+  const cur = cursorOf(cursor, isDeliveryCursor);
   const after = cur?.d ?? 0;
   const rows = await withTimeout(sql().unsafe<(PostRow & { delivery_id: number; matched_at: Date })[]>(
     `select ${POST_COLUMNS}, d.id as delivery_id, d.created_at as matched_at

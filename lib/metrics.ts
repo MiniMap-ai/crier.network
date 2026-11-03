@@ -3,7 +3,7 @@
  * No raw addresses, no per-person history. See docs/metrics.md for definitions.
  */
 import { after } from "next/server";
-import { DbTimeoutError, budget, sideWrite, sql, withTimeout } from "./db";
+import { DbTimeoutError, budget, isDbConnectError, sideWrite, sql, withTimeout } from "./db";
 import type { SearchQuery } from "./search";
 import { drainSearches, foldDemand, normalizeQuery, recordSearch, roundNear } from "./search-log";
 import type { DemandRow, SearchSource } from "./search-log";
@@ -20,12 +20,14 @@ import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, 
  * never hold a pool connection for 20 s while it waits on a lock, because that starves the
  * request that comes next. Losing a few counters under duress is fine; losing requests is not.
  *
- * What these counters can and cannot see: `error:5xx` is what a handler returned, `error:db_timeout`
- * is a database wait that ran out of budget (lib/db-timeout.ts), and `error:503` is a 503 we served
- * because of one. A request killed by the platform before it reached a handler — Vercel's
- * "Task timed out after N seconds", which is what the 2026-09-10 wedge produced — is counted by
- * nothing here, because no code of ours ran. Those are only visible in Vercel's runtime logs; the
- * daily check reads them there.
+ * What these counters can and cannot see: `error:5xx` is a 500 a handler returned or a page Next
+ * answered 500 for (notePageFailure), `error:503` is a 503 we served, and beside them the causes —
+ * `error:db_timeout`, a database wait that ran out of budget (lib/db-timeout.ts), and
+ * `error:db_connect`, a connection the pooler refused or dropped. `errors_7d` sums the first two,
+ * the errors a caller saw (SERVED_ERROR_KEYS). A request killed by the platform before it reached a
+ * handler — Vercel's "Task timed out after N seconds", which is what the 2026-09-10 wedge produced —
+ * is counted by nothing here, because no code of ours ran. Those are only visible in Vercel's
+ * runtime logs; the daily check reads them there.
  */
 
 const pendingCounters = new Map<string, number>();
@@ -179,15 +181,37 @@ export const track = {
 };
 
 /**
- * A database wait a page could not render around. App Router pages cannot set a response status, so
- * Next turns the rethrow into a 500 rendered by app/error.tsx, which reads nothing; this counter is
- * the only place a page-level timeout shows up in our own numbers. `error:503` is left to the API
- * handlers, which really do return one.
+ * The counter keys that mean "a caller got an error from us": a 500 a handler returned, a 503 we
+ * served for a database we could not reach, and a page Next answered 500 for because its one
+ * necessary read failed. `errors_7d` and `error_rate_7d` sum these. They read `error:5xx` alone until
+ * 2026-11-02, which handlers write only for a 500, so for the 36 days after timeouts started being
+ * answered 503 the headline error numbers read zero through every served 503 (CRI-59).
+ */
+export const SERVED_ERROR_KEYS = ["error:5xx", "error:503"];
+
+/**
+ * A database wait a page could render around — related posts, a listing — timed out, and the page
+ * went out without that section. Not an error the caller saw, so only the cause is counted.
  */
 export function noteDbTimeout(where: string, e: unknown): void {
   if (!(e instanceof DbTimeoutError)) return;
   console.error("page db timeout", where, e.label ?? "", e.message);
   track.counter("error:db_timeout");
+}
+
+/**
+ * The one read a page cannot render without failed. The App Router gives a page no way to set a
+ * response status, so the page rethrows and Next answers 500 from app/error.tsx, which reads
+ * nothing. That is a served error, and it is counted as one here (`error:5xx`) so the day is not
+ * clean — before this, a refused connection on /p/[id] was a 500 no counter saw (CRI-58) — with the
+ * cause beside it (`error:db_timeout`, `error:db_connect`) so the brief can tell a slow pool from
+ * one that would not answer at all.
+ */
+export function notePageFailure(where: string, e: unknown): void {
+  const cause = e instanceof DbTimeoutError ? "db_timeout" : isDbConnectError(e) ? "db_connect" : null;
+  console.error("page failed", where, cause ?? "unhandled", e instanceof Error ? e.message : String(e));
+  track.counter("error:5xx");
+  if (cause) track.counter(`error:${cause}`);
 }
 
 const CRAWLER_RE = /bot|crawl|spider|slurp|fetch|scan|archiver|preview|facebookexternalhit|embedly|quora link|pinterest|whatsapp|telegram|discord|skype|slack|twitter|linkedin|google|bing|yandex|baidu|duckduck|applebot|petalbot|semrush|ahrefs|mj12|dotbot|gptbot|claudebot|perplexity|anthropic|openai|ccbot|bytespider|amazonbot|cohere-ai|meta-external/i;
@@ -207,7 +231,7 @@ export type Milestone = { id: string; name: string; description: string; criteri
 export const MILESTONES: Milestone[] = [
   { id: "M0", name: "Alive", description: "The service runs unattended.", criteria: [
     { metric: "cron_success_rate_7d", label: "Cron success rate, 7 days", target: 0.99, op: ">=" },
-    { metric: "error_rate_7d", label: "5xx rate, 7 days", target: 0.01, op: "<=" },
+    { metric: "error_rate_7d", label: "Errors served (500s and 503s) over requests, 7 days", target: 0.01, op: "<=" },
   ] },
   { id: "M1", name: "First strangers", description: "Agents we did not create are using the board.", criteria: [
     { metric: "weekly_active_publishers", label: "Weekly active publishers (first-hand, not ours)", target: 10, op: ">=" },
@@ -260,12 +284,13 @@ export async function metricsSnapshot() {
       (select count(*)::int from posts where deleted_at is null and hidden_at is null and expires_at > now() and parent_id is null and syndicated) as active_syndicated,
       (select count(*)::int from posts p join publishers u on u.id = p.publisher_id where p.deleted_at is null and p.hidden_at is null and p.expires_at > now() and p.parent_id is null and u.internal and not p.syndicated) as active_internal,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'cron:tick' and day between current_date - 7 and current_date - 1) as cron_ticks_7d,
-      (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:5xx' and day >= current_date - 6) as errors_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = any(${SERVED_ERROR_KEYS}) and day >= current_date - 6) as errors_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key like 'route:%' and day >= current_date - 6) as requests_7d,
       (select count(*)::int from reports where resolved_at is null) as open_reports,
       (select count(*)::int from posts where hidden_at is not null and deleted_at is null) as hidden_posts,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:db_timeout' and day >= current_date - 6) as db_timeouts_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:503' and day >= current_date - 6) as errors_503_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:db_connect' and day >= current_date - 6) as db_connects_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = ${SIDE_WRITE_TIMEOUT_KEY} and day >= current_date - 6) as side_write_timeouts_7d`, at("metrics:core"));
 
   const series = await withTimeout(s<{ day: string; searches: number; zero: number; posts: number; registrations: number; deliveries: number; mcp_init: number; mcp_calls: number; page_human: number; page_crawler: number; page_agent: number; publishers: number; seekers: number }[]>`
@@ -290,6 +315,11 @@ export async function metricsSnapshot() {
      where role = 'mcp_client' and day >= current_date - 29 group by actor order by sessions desc limit 20`, at("metrics:mcp"));
   const tools = await withTimeout(s<{ tool: string; calls: number }[]>`
     select replace(key, 'mcp:tool:', '') as tool, sum(n)::int as calls from daily_counters where key like 'mcp:tool:%' and day >= current_date - 6 group by key order by calls desc`, at("metrics:tools"));
+  // Outcomes, not only calls. `mcp:tool:<name>` counts the attempt, before the key is checked, so a
+  // tool called 250 times by keyless probes and storing nothing read as a busy, healthy day (CRI-39).
+  // This is the same week as `subscribe:missing_api_key 250`.
+  const outcomes = await withTimeout(s<{ outcome: string; n: number }[]>`
+    select replace(key, 'mcp:outcome:', '') as outcome, sum(n)::int as n from daily_counters where key like 'mcp:outcome:%' and day >= current_date - 6 group by key order by n desc limit 60`, at("metrics:outcomes"));
   const routes = await withTimeout(s<{ route: string; requests: number }[]>`
     select replace(key, 'route:', '') as route, sum(n)::int as requests from daily_counters where key like 'route:%' and day >= current_date - 6 group by key order by requests desc limit 30`, at("metrics:routes"));
   const registrationClients = await withTimeout(s<{ client: string; n: number }[]>`
@@ -354,6 +384,9 @@ export async function metricsSnapshot() {
       // Database waits that ran out of budget, and the 503s we served because of them. Requests the
       // platform killed before any handler ran (Vercel 504s) are not here; see the note at the top.
       db_timeouts_7d: core.db_timeouts_7d, errors_503_7d: core.errors_503_7d,
+      // Connections the pooler refused or dropped before any query ran. Answered 503 by the API and
+      // 500 by a page; counted apart from a timeout so the two are not confused for each other.
+      db_connects_7d: core.db_connects_7d,
       // Writes nobody waited for that were lost anyway: a count that never reached `posts.views`,
       // a `last_polled_at` left stale. Counted on the next successful flush, so it is a floor.
       side_write_timeouts_7d: core.side_write_timeouts_7d,
@@ -379,7 +412,9 @@ export async function metricsSnapshot() {
       last_30d: foldDemand(demandRows),
       note: "Every search, de-identified: one row per day per query shape, with no seeker, address or time of day, so it cannot be read back as one agent's history. A shape is named only once it has been searched three or more times or on two or more days; the rest are counted in `other`. `zero` is how many of those searches found nothing, `days` how many separate days the shape was asked on, and `poller` marks a shape that ran more than 50 times in a single day — a schedule, not a question. Our own accounts are not recorded. Places are ~50 km cells; personal data patterns are stripped before storage; rows are kept 365 days.",
     },
-    mcp: { clients_30d: mcpClients, tools_7d: tools },
+    // `outcomes_7d` is optional in the type on purpose: a cache entry written by the deployment before
+    // it existed has no such field, and /stats reads the entry it is handed (lib/metrics-view.ts).
+    mcp: { clients_30d: mcpClients, tools_7d: tools, outcomes_7d: outcomes } as { clients_30d: typeof mcpClients; tools_7d: typeof tools; outcomes_7d?: typeof outcomes },
     routes_7d: routes,
     registration_clients: registrationClients,
     series_30d: series,

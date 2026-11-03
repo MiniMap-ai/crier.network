@@ -49,6 +49,25 @@ export class DbTimeoutError extends Error {
   }
 }
 
+/**
+ * The codes a connection-level failure arrives with. SQLSTATE class 08 is how the Supabase pooler
+ * reports a backend it could not open (`08006 Failed to connect to database: {:error, :timeout}`,
+ * 2026-10-17); the rest are postgres.js's own and Node's, for a socket that never came up or went
+ * away under a query. None of them is a timeout of ours: no query was ever waiting.
+ */
+const CONNECT_CODES = new Set(["CONNECT_TIMEOUT", "CONNECTION_CLOSED", "CONNECTION_ENDED", "CONNECTION_DESTROYED", "ECONNREFUSED", "ECONNRESET", "ENOTFOUND", "ETIMEDOUT", "EPIPE", "EAI_AGAIN"]);
+
+/**
+ * Did the database connection fail, rather than a query run long? Handlers answer 503 for it as they
+ * do for a timeout, pages count it, and both record `error:db_connect`, so a pooler that refused a
+ * connection is told apart from one that was slow. Before this, a refused connection on /p/[id] was
+ * an unhandled render error that no counter saw (CRI-58).
+ */
+export function isDbConnectError(e: unknown): boolean {
+  const code = (e as { code?: unknown } | null)?.code;
+  return typeof code === "string" && (code.startsWith("08") || CONNECT_CODES.has(code));
+}
+
 /** What this module needs from a postgres.js pending query. Plain promises are accepted too. */
 type Pending<T> = PromiseLike<T> & { execute?: () => unknown; cancel?: () => unknown };
 

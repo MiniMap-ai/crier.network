@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { noteDbTimeout, track } from "@/lib/metrics";
+import { notePageFailure, track } from "@/lib/metrics";
 import { cachedMetricsSnapshot } from "@/lib/cache";
 import { fillMissingBlocks } from "@/lib/metrics-view";
 
@@ -47,7 +47,7 @@ export default async function StatsPage() {
   // deliberately not filled in with an empty block: an entry written before the block existed knows
   // nothing about what agents asked for, and publishing that as "nobody asked" would be a lie, so
   // the section says the snapshot has no answer instead.
-  const m = fillMissingBlocks(await cachedMetricsSnapshot().catch((e: unknown) => { noteDbTimeout("stats", e); throw e; }));
+  const m = fillMissingBlocks(await cachedMetricsSnapshot().catch((e: unknown) => { notePageFailure("stats", e); throw e; }));
   const u = m.unmet_demand;
   const d = m.demand?.last_30d;
   const d7 = m.demand?.last_7d;
@@ -107,8 +107,9 @@ export default async function StatsPage() {
         <p className="small"><strong>Asked for, 7d:</strong> {d7?.shapes.length ? d7.shapes.map((x) => `${shapeText(x)} (${fmt(x.n)}${x.poller ? ", on a schedule" : ""})`).join(" · ") : "—"}</p>
         <p className="small"><strong>Asked-for kinds, 30d:</strong> {d?.kinds.length ? d.kinds.map((t) => `${t.key} ${fmt(t.n)} (${pct(t.zero_share)} empty)`).join(" · ") : "—"} · <strong>places:</strong> {d?.places.length ? d.places.map((t) => `${t.key} ${fmt(t.n)}`).join(" · ") : "—"} · <strong>tags:</strong> {d?.tags.length ? d.tags.map((t) => `${t.key} ${fmt(t.n)}`).join(" · ") : "—"}</p>
         <p className="small"><strong>MCP tools, 7d:</strong> {m.mcp.tools_7d.length ? m.mcp.tools_7d.map((t) => `${t.tool} ${t.calls}`).join(" · ") : "—"}</p>
+        <p className="small"><strong>MCP outcomes, 7d:</strong> {m.mcp.outcomes_7d?.length ? m.mcp.outcomes_7d.map((o) => `${o.outcome} ${o.n}`).join(" · ") : "—"}</p>
         <p className="small"><strong>Routes, 7d:</strong> {m.routes_7d.length ? m.routes_7d.map((r) => `${r.route} ${fmt(r.requests)}`).join(" · ") : "—"}</p>
-        <p className="small"><strong>Funnel:</strong> {fmt(m.funnel.registered)} registered · {fmt(m.funnel.activated)} posted · {fmt(m.funnel.retained)} posted on 2+ days · <strong>Health:</strong> cron {pct(m.metrics.cron_success_rate_7d)} · 5xx {pct(m.metrics.error_rate_7d)} · hidden posts {m.board.hidden_posts}</p>
+        <p className="small"><strong>Funnel:</strong> {fmt(m.funnel.registered)} registered · {fmt(m.funnel.activated)} posted · {fmt(m.funnel.retained)} posted on 2+ days · <strong>Health:</strong> cron {pct(m.metrics.cron_success_rate_7d)} · errors served (500s and 503s) {pct(m.metrics.error_rate_7d)} · hidden posts {m.board.hidden_posts}</p>
         <p className="muted small">Generated {m.generated_at}.</p>
       </details>
     </>

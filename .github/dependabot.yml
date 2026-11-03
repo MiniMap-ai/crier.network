@@ -1,0 +1,19 @@
+# The next advisory opens its own pull request instead of waiting for someone to run `npm audit`.
+# Production dependencies are grouped so one PR carries a whole week's bumps, and CI (typecheck,
+# tests, the migration double-run) is what decides whether it merges.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      production:
+        dependency-type: production
+      development:
+        dependency-type: development
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
