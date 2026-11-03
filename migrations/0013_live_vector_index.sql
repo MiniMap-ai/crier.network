@@ -1,9 +1,12 @@
--- Second half of 0011_live_column.sql: the rows already here, the partial vector index over them,
--- and the full index that nothing reads any more. CREATE INDEX blocks writes for the seconds the
--- build takes (about 1,650 vectors); the counters flush has its own lock_timeout and counts what it
--- loses. DROP INDEX wants ACCESS EXCLUSIVE and is last, so it holds it only until the commit that
--- follows. The wait for either is bounded for the same reason as in 0011.
+-- Third of three files for the live vector index (0011: the column and its trigger; 0012: the full
+-- index dropped): the rows already here, and the partial vector index over them. CREATE INDEX
+-- blocks writes for the seconds the build takes (about 1,650 vectors); the counters flush has its
+-- own lock_timeout and counts what it loses. The wait for a lock is bounded for the same reason as
+-- in 0011. The statement timeout is raised for this transaction only: the migration role's default
+-- is two minutes, the backfill below touches 16,000 rows, and a deploy that rolls back on the clock
+-- deploys nothing.
 set local lock_timeout = '10s';
+set local statement_timeout = '15min';
 
 -- The rows already here. Also what makes a second run of this file a no-op.
 update posts
@@ -17,8 +20,6 @@ create index if not exists posts_live_expires_idx on posts (expires_at) where li
 create index if not exists posts_embedding_live_idx
   on posts using hnsw (embedding vector_cosine_ops) with (m = 16, ef_construction = 64)
   where live;
-
-drop index if exists posts_embedding_idx;
 
 -- A row swept out of `live` leaves a dead entry in the partial index until VACUUM takes it, and the
 -- default trigger (20% of the table) is a fortnight of expiries at this table's size. Vacuum sooner.

@@ -6,7 +6,7 @@
  * On 2026-11-02, EXPLAIN on production showed the planner scanning every live row and computing
  * every distance for /p/[id]'s related posts rather than using the HNSW index: the index held every
  * row ever embedded, nine in ten of them expired, and the query's vector came from a join.
- * migrations/0012 and lib/posts.ts changed both. This is what keeps it that way. A regression here
+ * migrations/0013 and lib/posts.ts changed both. This is what keeps it that way. A regression here
  * is the 2.5 s tail of CRI-56 coming back, and no unit test can see it: it is a planner decision,
  * made against a real table.
  *

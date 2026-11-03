@@ -338,7 +338,7 @@ export async function relatedPosts(id: string, limit = 5, at: Budget = budget(DB
  * Expiry is the clock, which no trigger sees. The cron calls this every minute so a post whose time
  * has come leaves `live`, and with it the partial vector index, within the minute. Everything that
  * reads `live` still checks expires_at itself, so the minute of lag is a cost and not a correctness
- * gap. See migrations/0012_live_vector_index.sql.
+ * gap. See migrations/0013_live_vector_index.sql.
  */
 export async function sweepExpired(): Promise<number> {
   // Bounded like every other statement a request waits on: a stalled pooler must cost the cron its

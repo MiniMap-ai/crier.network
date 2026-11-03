@@ -155,7 +155,7 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
         order by ts_rank_cd(p.tsv, websearch_to_tsquery('english', $${ftsParams.length - 1})) desc, p.created_at desc
         limit $${ftsParams.length}`, ftsParams as never[]), at("search:fts"));
     // Semantic candidates. `p.live` is what lets the planner use the partial vector index
-    // (migrations/0012); with include_expired the text arms still reach expired posts, this one does
+    // (migrations/0013); with include_expired the text arms still reach expired posts, this one does
     // not — an expired post's vector is in no index, and walking every row for it was the 2.5 s tail.
     //
     // The planner will not take that index on its own (lib/live-sql.ts says why), so the statement
