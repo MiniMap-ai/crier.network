@@ -341,7 +341,9 @@ export async function relatedPosts(id: string, limit = 5, at: Budget = budget(DB
  * gap. See migrations/0012_live_vector_index.sql.
  */
 export async function sweepExpired(): Promise<number> {
-  const rows = await sql()<{ id: string }[]>`update posts set live = false where live and expires_at <= now() returning id`;
+  // Bounded like every other statement a request waits on: a stalled pooler must cost the cron its
+  // sweep for a minute, not its whole tick.
+  const rows = await withTimeout(sql()<{ id: string }[]>`update posts set live = false where live and expires_at <= now() returning id`, { label: "sweepExpired" });
   return rows.length;
 }
 

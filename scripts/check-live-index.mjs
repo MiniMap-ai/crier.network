@@ -113,7 +113,8 @@ try {
   const ms = top["Execution Time"];
   const pages = (top.Plan["Shared Hit Blocks"] ?? 0) + (top.Plan["Shared Read Blocks"] ?? 0);
   check(names.has("posts_embedding_live_idx"), `the planner uses posts_embedding_live_idx (indexes in the plan: ${[...names].join(", ") || "none"})`);
-  check(!names.has("posts_embedding_idx"), "the full index is gone");
+  const [{ stale }] = await sql`select count(*)::int as stale from pg_indexes where tablename = 'posts' and indexname = 'posts_embedding_idx'`;
+  check(stale === 0, "the full index posts_embedding_idx is gone from the catalog");
   check(ms < BOUND_MS, `execution ${ms.toFixed(1)} ms, bound ${BOUND_MS} ms, ${pages} buffer pages`);
   // The brute force the planner would otherwise pick, for the record: the same query with sorting allowed.
   const [without] = await sql.unsafe(`explain (analyze, buffers, format json) ${stmt.query}`);

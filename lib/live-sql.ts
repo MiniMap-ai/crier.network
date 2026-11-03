@@ -14,7 +14,9 @@
  * as one implicit transaction on one backend, which is what makes it hold through the transaction
  * pooler and leak to nothing after. The simple protocol has no parameters, so what goes into these
  * statements is only ever ours — a vector read back from the database or produced by lib/cohere.ts,
- * a post id that passed POST_ID_RE, a limit — and each is checked again here before it is inlined.
+ * a post id, a limit — and each is checked here before it is inlined: the vector against pgvector's
+ * literal grammar, the id against a safe character set (relatedPosts has already required
+ * POST_ID_RE of it), the limit clamped to an integer.
  * Caller-supplied filters never come this way: lib/search.ts runs its semantic arm with parameters
  * inside an explicit transaction instead.
  *

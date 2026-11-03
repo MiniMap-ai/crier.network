@@ -160,12 +160,12 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
     //
     // The planner will not take that index on its own (lib/live-sql.ts says why), so the statement
     // runs with sorting ruled out, `set local` inside a transaction of its own because the filters
-    // here are the caller's and go as parameters, which the simple protocol cannot carry. The wait
-    // that is bounded and cancelled is the query's, inside the transaction; a timeout rolls it back.
+    // here are the caller's and go as parameters, which the simple protocol cannot carry. Both
+    // statements are bounded and cancellable inside the transaction; a timeout rolls it back.
     const vecParams = [...b.params, vec ? toVectorLiteral(vec) : null, VECTOR_CANDIDATE_MAX_DISTANCE, POOL];
     const sem: Promise<{ id: string }[]> = vec
       ? s.begin(async (tx) => {
-        await tx.unsafe(NO_SORT);
+        await withTimeout(tx.unsafe(NO_SORT), at("search:semantic:set"));
         return withTimeout(tx.unsafe<{ id: string }[]>(
           `select p.id from posts p join publishers u on u.id = p.publisher_id
             where ${b.where} and p.live and p.embedding is not null and (p.embedding <=> $${vecParams.length - 2}::vector) <= $${vecParams.length - 1}

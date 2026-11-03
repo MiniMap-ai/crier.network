@@ -29,10 +29,17 @@ alter table posts set (autovacuum_vacuum_scale_factor = 0.02, autovacuum_vacuum_
 -- candidates instead of a hundred. Iterative scans (pgvector 0.8) keep walking until the LIMIT is
 -- met. Set on the database so it holds through the transaction pooler, where a SET on one
 -- connection is no promise about the next; pooled backends pick it up as they reconnect.
+-- ALTER DATABASE wants the database's owner. In production that is the migration role; where it is
+-- not, the setting is the one part of this file worth losing: everything above it stands on its
+-- own, and the notice says what to run by hand.
 do $$ begin
   perform '[1]'::vector;   -- loads pgvector's library, which is what registers its settings
   if exists (select 1 from pg_settings where name = 'hnsw.iterative_scan') then
-    execute format('alter database %I set hnsw.iterative_scan = %L', current_database(), 'relaxed_order');
+    begin
+      execute format('alter database %I set hnsw.iterative_scan = %L', current_database(), 'relaxed_order');
+    exception when insufficient_privilege then
+      raise notice 'not the owner of database %, so hnsw.iterative_scan was not set; run as the owner: alter database %I set hnsw.iterative_scan = relaxed_order', current_database(), current_database();
+    end;
   else
     raise notice 'pgvector % has no hnsw.iterative_scan; filtered vector scans stop at ef_search candidates', (select extversion from pg_extension where extname = 'vector');
   end if;
