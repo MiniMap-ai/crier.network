@@ -4,7 +4,8 @@
 --
 -- Until 0011 it said `deleted_at is null` and was served by posts_embedding_null_idx (0003), whose
 -- predicate says the same, so the planner walked a 16 kB index in created_at order and stopped at
--- the first row, usually finding none. 0013 moved the query to `live` and left the index behind:
+-- the first row, usually finding none. The code that shipped with 0013 (lib/posts.ts, #14) moved the
+-- query to `live` and left the index behind:
 -- `live` is not implied by `deleted_at is null`, so the planner cannot use the index, and instead
 -- reads every live row through posts_live_expires_idx and sorts them to return nothing — 1,300
 -- buffer pages and the wide columns of 1,650 rows, 1,440 times a day, and 10.7 s inside the stall of

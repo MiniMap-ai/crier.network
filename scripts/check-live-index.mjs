@@ -55,6 +55,14 @@ function findIndexNames(node, out = new Set()) {
   return out;
 }
 
+/** Every node type in the plan, so a check can say "no sort of any kind": Sort, Incremental Sort, or a new one. */
+function findNodeTypes(node, out = new Set()) {
+  if (!node || typeof node !== "object") return out;
+  if (typeof node["Node Type"] === "string") out.add(node["Node Type"]);
+  for (const k of ["Plan", "Plans"]) if (node[k]) (Array.isArray(node[k]) ? node[k] : [node[k]]).forEach((c) => findNodeTypes(c, out));
+  return out;
+}
+
 try {
   await sql`delete from posts where publisher_id = ${PUB}`;
   await sql`delete from publishers where id = ${PUB}`;
@@ -107,9 +115,9 @@ try {
   // `deleted_at is null` cannot serve a query that says `live`, and the planner read and sorted every
   // live row to return none. The index of migrations/0015 says `live`; this holds the plan to it.
   const embedPlan = (await sql.unsafe(`explain (format json) select id from posts where embedding is null and live order by created_at asc limit 5`))[0]["QUERY PLAN"][0];
-  const embedNodes = JSON.stringify(embedPlan);
-  check(findIndexNames(embedPlan).has("posts_embedding_pending_idx") && !embedNodes.includes('"Node Type":"Sort"'),
-    `the embedding sweep walks posts_embedding_pending_idx in created_at order (indexes in the plan: ${[...findIndexNames(embedPlan)].join(", ") || "none"}${embedNodes.includes('"Node Type":"Sort"') ? ", with a Sort" : ""})`);
+  const sorts = [...findNodeTypes(embedPlan)].filter((t) => /sort/i.test(t));
+  check(findIndexNames(embedPlan).has("posts_embedding_pending_idx") && sorts.length === 0,
+    `the embedding sweep walks posts_embedding_pending_idx in created_at order (indexes in the plan: ${[...findIndexNames(embedPlan)].join(", ") || "none"}${sorts.length ? `, sorted by ${sorts.join(", ")}` : ""})`);
 
   console.log("the related-posts query, as lib/posts.ts runs it");
   const [{ id: liveId, embedding }] = await sql`select id, embedding::text as embedding from posts where publisher_id = ${PUB} and live order by id limit 1`;
