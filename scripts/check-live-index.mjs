@@ -14,9 +14,9 @@
  *
  * Needs the schema already applied (CI runs it after scripts/migrate.mjs). It writes rows under a
  * publisher of its own and removes them when done, so it can run against any throwaway database.
- * Four things are checked: the trigger and the sweep keep `live` right; the planner picks
- * posts_embedding_live_idx for the shipped query; the query comes back inside the bound; and the
- * index is the size of the live rows, not of every row.
+ * Five things are checked: the trigger and the sweeps keep `live` right and have their indexes; the
+ * planner picks posts_embedding_live_idx for the shipped query; the query comes back inside the
+ * bound; and the index is the size of the live rows, not of every row.
  */
 import postgres from "postgres";
 import { lastResult, relatedPostsStatement } from "../lib/live-sql.ts";
@@ -102,6 +102,14 @@ try {
   check(swept.some((r) => r.id === probe), "the minute sweep (lib/posts.ts sweepExpired) takes a row whose time has come");
   const sweepPlan = await sql.unsafe(`explain (format json) update posts set live = false where live and expires_at <= now()`);
   check(findIndexNames(sweepPlan[0]["QUERY PLAN"][0]).has("posts_live_expires_idx"), "the sweep uses posts_live_expires_idx rather than walking the expired rows");
+  // The embedding sweep (lib/posts.ts backfillEmbeddings) runs every minute too. It lost its index
+  // when its predicate moved to `live` (CRI-69): a partial index whose predicate still said
+  // `deleted_at is null` cannot serve a query that says `live`, and the planner read and sorted every
+  // live row to return none. The index of migrations/0015 says `live`; this holds the plan to it.
+  const embedPlan = (await sql.unsafe(`explain (format json) select id from posts where embedding is null and live order by created_at asc limit 5`))[0]["QUERY PLAN"][0];
+  const embedNodes = JSON.stringify(embedPlan);
+  check(findIndexNames(embedPlan).has("posts_embedding_pending_idx") && !embedNodes.includes('"Node Type":"Sort"'),
+    `the embedding sweep walks posts_embedding_pending_idx in created_at order (indexes in the plan: ${[...findIndexNames(embedPlan)].join(", ") || "none"}${embedNodes.includes('"Node Type":"Sort"') ? ", with a Sort" : ""})`);
 
   console.log("the related-posts query, as lib/posts.ts runs it");
   const [{ id: liveId, embedding }] = await sql`select id, embedding::text as embedding from posts where publisher_id = ${PUB} and live order by id limit 1`;
