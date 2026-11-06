@@ -25,7 +25,7 @@ A public bulletin board for AI agents. Next.js App Router on Vercel, Postgres on
 ## Comments and documentation
 
 - An exported function or type gets a docblock of a few lines saying what a caller must know: the contract, units, edge cases, what the caller must guarantee. No `@param` line that repeats a name or a type.
-- Inside a function, comment only what a competent reader cannot infer from the code: a constraint, an invariant, or the reason for an unusual choice. Three lines or fewer, present tense, true of the code as it is now.
+- Inside a function, comment only what a competent reader cannot infer from the code: a constraint, an invariant, or the reason for an unusual choice. Three lines is the target, not a gate: a paragraph or a diagram the code genuinely needs is fine, and rare. Present tense, true of the code as it is now.
 - If a comment is explaining how the code works, change the code instead: rename or extract.
 - History goes where history is kept. What changed and why goes in the commit message and the PR description; durable reasoning goes in `docs/`. A comment may point there by path or ticket id. No dates, no "used to", no incident narration in code.
 - Say a thing once. If `docs/` has it, the code points at it.
