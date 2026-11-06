@@ -44,8 +44,10 @@ jobs:
                stay only as a pointer.
             3. Level: it says why, or which constraint, not how step by step. If it explains how, ask
                for a rename or an extraction instead of a comment.
-            4. Size and place: an inline comment is three lines or fewer; a docblock states the contract
-               without tags that repeat a name or type; a thing said in docs/ is pointed at, not copied.
+            4. Size and place: three lines is the target for an inline comment, not a gate. A paragraph or
+               a diagram the code genuinely needs is fine, and rare; judge whether this one earns its
+               length. A docblock states the contract without tags that repeat a name or type; a thing
+               said in docs/ is pointed at, not copied.
             5. Truth: read it against the behaviour in the diff. A comment the code contradicts fails
                review like a failing test would.
 
