@@ -27,11 +27,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Skipped, not failed, until the secret exists: a missing key must not turn every PR red.
+      # Skipped, not failed, until the secret exists, and a failed run never turns the PR red: the
+      # review is advisory, so a key or model problem shows as a warning on this job, not as CI.
       - if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ env.ANTHROPIC_API_KEY }}
+          show_full_output: true
           prompt: |
             Review only the comments and documentation this pull request adds or changes. Do not review
             logic, naming or style. Read the change with `git diff origin/${{ github.base_ref }}...HEAD`
