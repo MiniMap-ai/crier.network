@@ -4,14 +4,14 @@
  * retire vanished. Every relayed post carries source_url, syndicated=true and a source note.
  */
 import { createHash } from "node:crypto";
-import { sql } from "../db";
+import { sql, withTimeout } from "../db";
 import { newPostId } from "../ids";
 import { track } from "../metrics";
 import { PostInput, PostInputSchema, createPost, deletePost, getPostRow, normalizeSourceKey, updatePost } from "../posts";
 import { PublisherRow } from "../publishers";
 import { ADAPTERS } from "./adapters";
-import { collapseInstances } from "./collapse";
-import { Item, SourceRow } from "./types";
+import { collapseInstances, identities } from "./collapse";
+import { Item, SourceRow, runLimit } from "./types";
 
 const SYNDICATION_NAME = "Crier Syndication";
 const RETIRE_AFTER_MISSING_RUNS = 3;
@@ -140,16 +140,32 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     const seen = new Set<string>();
     const existing = new Map((await s<{ uid: string; post_id: string | null; hash: string }[]>`select uid, post_id, hash from source_items where source_id = ${source.id}`).map((r) => [r.uid, r]));
 
+    const limit = runLimit(source);
+
     for (const item of items) {
       if (Date.now() > deadline - 3000) { counts.skipped += 1; continue; }
-      seen.add(item.uid);
-      const ex = existing.get(item.uid);
+      const ids = identities(item);
+      let ex = existing.get(item.uid);
+      const alias = ex ? undefined : ids.find((id) => existing.get(id)?.post_id);
+      if (alias) {
+        await withTimeout(s`update source_items set uid = ${item.uid} where source_id = ${source.id} and uid = ${alias}`, { label: "synd:rekey" });
+        ex = { ...existing.get(alias)!, uid: item.uid };
+        existing.delete(alias);
+        existing.set(item.uid, ex);
+      }
+      // A second row under another alias is a duplicate posted before the merge; it is kept seen,
+      // not retired, and expires with its event (docs/syndication.md).
+      for (const id of ids) if (id === item.uid || existing.has(id)) seen.add(id);
       if (item.cancelled) {
-        if (ex?.post_id) { const row = await getPostRow(ex.post_id); if (row && !row.deleted_at) { await deletePost(publisher, ex.post_id); counts.retired++; } }
-        await s`delete from source_items where source_id = ${source.id} and uid = ${item.uid}`;
+        for (const id of ids) {
+          const row = existing.get(id);
+          if (row?.post_id) { const post = await getPostRow(row.post_id); if (post && !post.deleted_at) { await deletePost(publisher, row.post_id); counts.retired++; } }
+          if (id === item.uid || row) await s`delete from source_items where source_id = ${source.id} and uid = ${id}`;
+          existing.delete(id);
+        }
         continue;
       }
-      if (counts.created + counts.updated >= source.max_per_run) { counts.skipped++; continue; }
+      if (counts.created + counts.updated >= limit) { counts.skipped++; continue; }
       let input: PostInput;
       try { input = toInput(source, item, now); } catch { counts.skipped++; continue; }
       const hash = hashInput(input);

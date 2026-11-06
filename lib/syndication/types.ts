@@ -37,7 +37,22 @@ export type Item = {
   expires_at?: string;
   cancelled?: boolean;
   metadata?: Record<string, unknown>;
+  /**
+   * An identity the adapter vouches for, steadier than the URL. A fold of one keeps it as its uid;
+   * see lib/syndication/collapse.ts.
+   */
+  key?: string;
+  /** Other uids a `source_items` row for this same thing may already be stored under. */
+  aliases?: string[];
 };
+
+/** The relay policy's ceiling on writes per source per run, whatever the row says. */
+export const MAX_PER_RUN_CAP = 100;
+
+/** How many posts one run of this source may create or update: the row's value, capped by policy. */
+export function runLimit(source: Pick<SourceRow, "max_per_run">): number {
+  return Math.max(0, Math.min(source.max_per_run, MAX_PER_RUN_CAP));
+}
 
 export type AdapterContext = { now: Date; horizonEnd: Date; signal: AbortSignal };
 export type Adapter = (source: SourceRow, ctx: AdapterContext) => Promise<Item[]>;

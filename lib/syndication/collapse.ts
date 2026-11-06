@@ -108,7 +108,11 @@ export function collapseInstances(items: Item[], now: Date): Collapsed {
 function fold(key: string, live: Item[], now: Date): Item {
   const sorted = [...live].sort(byStart);
   const next = sorted.find((i) => startMs(i) >= now.getTime()) ?? sorted[0];
-  const item: Item = { ...next, uid: key };
+  const uid = sorted.length === 1 && next.key ? next.key : key;
+  const item: Item = { ...next, uid };
+  const aliases = foldedAliases(uid, key, live);
+  if (aliases) item.aliases = aliases;
+  else delete item.aliases;
   if (sorted.length === 1) return item;
 
   const rest = [...new Set(
@@ -127,6 +131,21 @@ function fold(key: string, live: Item[], now: Date): Item {
     item.expires_at = new Date(until).toISOString();
   }
   return item;
+}
+
+/**
+ * The uids the instances were, or may have been, stored under. Only adapters that set `key` or
+ * `aliases` get any: a URL-keyed adapter has one identity and keeps it.
+ */
+function foldedAliases(uid: string, key: string, live: Item[]): string[] | undefined {
+  const known = live.flatMap((i) => [i.key, ...(i.aliases ?? [])]).filter((a): a is string => !!a);
+  if (known.length === 0) return undefined;
+  return [...new Set([key, ...known])].filter((a) => a !== uid);
+}
+
+/** Every uid the runner may find this item's `source_items` row under: its own first. */
+export function identities(item: Item): string[] {
+  return [...new Set([item.uid, ...(item.key ? [item.key] : []), ...(item.aliases ?? [])])];
 }
 
 /**

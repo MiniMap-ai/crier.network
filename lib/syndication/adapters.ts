@@ -1,6 +1,8 @@
 import { RECURRENCE_CAP } from "./collapse.ts";
 import { icalDate, icalText, parseFeed, parseICal } from "./feeds.ts";
-import { fetchJson, fetchText, inHorizon, plainText } from "./types.ts";
+import { mergeRepresentations, representation } from "./ticketmaster.ts";
+import type { Representation } from "./ticketmaster.ts";
+import { fetchJson, fetchText, inHorizon, plainText, runLimit } from "./types.ts";
 // Split out: node's type stripping erases `import type` but cannot spot types inside a mixed list.
 import type { Adapter, AdapterContext, Item, SourceRow } from "./types.ts";
 
@@ -14,7 +16,8 @@ const point = (lat: unknown, lng: unknown): { lat: number; lng: number } | undef
 
 /* ---------------- Ticketmaster Discovery API ----------------
    config: { lat, lng, radius_km, city (label), segment? ("Music" | "Sports" | "Arts & Theatre" | ...) }
-   Terms require attribution and a link back; every post says "Source: Ticketmaster" and links the event. */
+   Terms require attribution and a link back; every post says "Source: Ticketmaster" and links the event.
+   Mapping and the merge of duplicate Discovery records live in ./ticketmaster.ts. */
 export const ticketmaster: Adapter = async (source, ctx) => {
   const key = process.env.TICKETMASTER_API_KEY;
   if (!key) throw new Error("TICKETMASTER_API_KEY is not set");
@@ -23,9 +26,9 @@ export const ticketmaster: Adapter = async (source, ctx) => {
   if (lat === undefined || lng === undefined) throw new Error("config.lat and config.lng are required");
   const radius = Math.min(150, num(c.radius_km) ?? 40);
   const fmt = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, "Z");
-  const items: Item[] = [];
+  const reps: Representation[] = [];
   const pageSize = 200;
-  const maxPages = Math.ceil(source.max_per_run / pageSize);
+  const maxPages = Math.ceil(runLimit(source) / pageSize);
   for (let page = 0; page < maxPages && page * pageSize < 1000; page++) {
     const params = new URLSearchParams({
       apikey: key, latlong: `${lat},${lng}`, radius: String(Math.round(radius)), unit: "km",
@@ -36,47 +39,12 @@ export const ticketmaster: Adapter = async (source, ctx) => {
     const data = await fetchJson<TM>(`https://app.ticketmaster.com/discovery/v2/events.json?${params}`, ctx);
     const events = data._embedded?.events ?? [];
     for (const e of events) {
-      const id = str(e.id); if (!id) continue;
-      const dates = (e.dates ?? {}) as Record<string, unknown>;
-      const start = (dates.start ?? {}) as Record<string, unknown>;
-      const status = ((dates.status ?? {}) as Record<string, unknown>).code;
-      const startsAt = str(start.dateTime) || (str(start.localDate) ? `${start.localDate}T${str(start.localTime, "12:00:00")}` : "");
-      const venue = (((e._embedded ?? {}) as Record<string, unknown>).venues as Record<string, unknown>[] | undefined)?.[0] ?? {};
-      const vloc = (venue.location ?? {}) as Record<string, unknown>;
-      const city = ((venue.city ?? {}) as Record<string, unknown>).name;
-      const state = ((venue.state ?? {}) as Record<string, unknown>).stateCode;
-      const cls = ((e.classifications as Record<string, unknown>[] | undefined)?.[0] ?? {}) as Record<string, Record<string, unknown>>;
-      // Ticketmaster fills empty classifications with the literal name "Undefined"; treat it as absent.
-      const cname = (v: unknown) => { const t = str(v); return /^undefined$/i.test(t) ? "" : t; };
-      const segment = cname(cls.segment?.name), genre = cname(cls.genre?.name), sub = cname(cls.subGenre?.name);
-      const price = ((e.priceRanges as Record<string, unknown>[] | undefined)?.[0] ?? {}) as Record<string, unknown>;
-      const priceStr = num(price.min) !== undefined ? `${str(price.currency, "USD")} ${num(price.min)}${num(price.max) !== undefined && num(price.max) !== num(price.min) ? "–" + num(price.max) : ""}` : "";
-      const place = [str(venue.name), [city, state].filter(Boolean).join(", ")].filter(Boolean).join(", ");
-      const bodyParts = [
-        [segment, genre, sub && sub !== genre ? sub : ""].filter(Boolean).join(" · "),
-        place ? `At ${place}.` : "",
-        priceStr ? `Tickets from ${priceStr}.` : "",
-        plainText(str(e.info) || str(e.pleaseNote), 300),
-        `Tickets and details: ${str(e.url)}`,
-        "Source: Ticketmaster (relayed by Crier; details may change, check the link).",
-      ].filter(Boolean);
-      const tags = [...source.tags, segment, genre].filter(Boolean).map((t) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")).filter((t) => t.length >= 2 && t.length <= 40);
-      items.push({
-        uid: id,
-        title: str(e.name).slice(0, 200),
-        body: bodyParts.join("\n"),
-        url: str(e.url) || undefined,
-        kind: "event",
-        starts_at: startsAt || undefined,
-        timezone: str(dates.timezone) || undefined,
-        location: { name: place || undefined, lat: num(vloc.latitude), lng: num(vloc.longitude) },
-        tags: [...new Set(tags)],
-        cancelled: status === "cancelled",
-        metadata: { source: "ticketmaster", segment, genre, venue: str(venue.name), status },
-      });
+      const r = representation(e, source);
+      if (r) reps.push(r);
     }
     if (events.length < pageSize || (data.page?.totalPages ?? 0) <= page + 1) break;
   }
+  const items = mergeRepresentations(reps);
   return items.filter((i) => inHorizon(i.starts_at, ctx));
 };
 
