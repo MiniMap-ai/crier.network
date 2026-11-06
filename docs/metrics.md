@@ -230,8 +230,9 @@ an API handler and a 500 from a page, and is counted under both its cause and
 what was served. The exception is a read the caller can do without: the related
 posts beside a post on `/p/[id]`, `GET /api/v1/posts/:id` and MCP `get_post`,
 and the listing on `/publishers/[id]`. There the answer goes out without that
-section, nothing is served as an error, and only the cause is counted
-(`noteDbTimeout` in `lib/metrics.ts`).
+section, nothing is served as an error, and only the cause is counted. The
+runtime log line is `dropped read db timeout` or `dropped read db connect`,
+followed by the caller (`noteDbTimeout` in `lib/metrics.ts`).
 
 Until 2026-11-02 `errors_7d` read `error:5xx` alone, which handlers write only
 for a 500, so from the day timeouts started being answered 503 the headline

@@ -269,19 +269,25 @@ test("the related read beside a post is dropped when the database fails it; the 
   // One budget across the post and its related posts, the post read bare and the related read behind
   // the catch GET /api/v1/posts/:id and MCP get_post use; `dropped` stands in for noteDbTimeout.
   const dropped: unknown[] = [];
-  const fetchPost = async (post: FakeQuery<{ id: string }>, related: FakeQuery<string[]>) => {
-    const at = budget(60);
+  const fetchPost = async (post: FakeQuery<{ id: string }>, related: FakeQuery<string[]>, replies: FakeQuery<string[]> = fakeQuery<string[]>({ value: [], delayMs: 1 }), totalMs = 60) => {
+    const at = budget(totalMs);
     const row = await withTimeout(post, at("getPostRow"));
+    const reps = await withTimeout(replies, at("repliesFor"));
     const rel = await withTimeout(related, at("relatedPosts")).catch((e: unknown) => { if (!isDbFailure(e)) throw e; dropped.push(e); return []; });
-    return { ...row, related: rel };
+    return { ...row, replies: reps, related: rel };
   };
   const post = () => fakeQuery({ value: { id: "8Hq2mZk3" }, delayMs: 1 });
-  assert.deepEqual(await fetchPost(post(), fakeQuery()), { id: "8Hq2mZk3", related: [] }, "a related read that never answers is dropped");
+  const served = { id: "8Hq2mZk3", replies: [], related: [] };
+  assert.deepEqual(await fetchPost(post(), fakeQuery()), served, "a related read that never answers is dropped");
   assert.ok(dropped[0] instanceof DbTimeoutError, "what is counted is the timeout itself");
-  assert.deepEqual(await fetchPost(post(), failingQuery(lostConnection("CONNECTION_DESTROYED"))), { id: "8Hq2mZk3", related: [] }, "a related read that lost its connection is dropped");
+  assert.deepEqual(await fetchPost(post(), failingQuery(lostConnection("CONNECTION_DESTROYED"))), served, "a related read that lost its connection is dropped");
   assert.equal(dropped.length, 2);
   await assert.rejects(fetchPost(post(), failingQuery(Object.assign(new Error("invalid input syntax"), { code: "22P02" }))), { code: "22P02" }, "an application error in the related read is rethrown");
   await assert.rejects(fetchPost(fakeQuery(), fakeQuery({ value: ["x"], delayMs: 1 })), DbTimeoutError, "the post read is not caught");
   assert.equal(dropped.length, 2, "neither an application error nor a primary-read failure is a dropped read");
+  // Replies that answer after the 100 ms floor a spent budget leaves: only the order of the two reads
+  // decides whether they arrive.
+  assert.deepEqual(await fetchPost(post(), fakeQuery(), fakeQuery<string[]>({ value: ["r1"], delayMs: 150 }), 300), { id: "8Hq2mZk3", replies: ["r1"], related: [] }, "replies are read before related, so a related timeout does not cost them");
+  assert.equal(dropped.length, 3);
   __resetDbHealth();
 });

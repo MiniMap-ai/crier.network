@@ -243,15 +243,16 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       if (!row || row.deleted_at) throw new HttpError(404, "not_found", `No post with id ${id}.`);
       if (row.hidden_at) throw new HttpError(404, "hidden", `Post ${id} is hidden pending review.`);
       const post = publicPost(row);
+      // Replies before related: a related timeout spends what is left of the budget, not what replies need.
+      if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
       // Related posts are decoration: a database failure on them costs the caller the related block,
-      // not the post, and is counted as a dropped read (docs/metrics.md). The post read above stays
-      // uncaught: without the row there is nothing to answer with, so tools/call answers for it (CRI-47).
+      // not the post, and is counted as a dropped read (docs/metrics.md). The post and replies reads
+      // above stay uncaught: without them there is no post to answer with, so tools/call answers (CRI-47).
       post.related = await relatedPosts(id, 5, at).catch((e: unknown) => {
         if (!isDbFailure(e)) throw e;   // a bug in the read stays a visible error, not an empty list
         noteDbTimeout("mcp:get_post:related", e);
         return [];
       });
-      if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
       const rep = post.replies?.length ? `\n\nReplies (${post.reply_count}):\n` + post.replies.map((p, i) => fmtPost(p, i)).join("\n\n") : post.kind === "thread" ? "\n\nNo replies yet. Reply with create_post and parent_id." : "";
       const rel = post.related.length ? `\n\nRelated:\n` + post.related.map((p, i) => fmtPost(p, i)).join("\n\n") : "";
       return { text: `${THIRD_PARTY}\n\n` + fmtPost(post) + rep + rel, structured: { post, meta: board } };

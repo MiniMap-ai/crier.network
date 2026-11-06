@@ -213,10 +213,10 @@ export const SERVED_ERROR_KEYS = ["error:5xx", "error:503"];
  */
 export function noteDbTimeout(where: string, e: unknown): void {
   if (e instanceof DbTimeoutError) {
-    console.error("page db timeout", where, e.label ?? "", e.message);
+    console.error("dropped read db timeout", where, e.label ?? "", e.message);
     track.counter("error:db_timeout");
   } else if (isDbConnectError(e)) {
-    console.error("page db connect", where, (e as { code?: string }).code ?? "", (e as Error).message);
+    console.error("dropped read db connect", where, (e as { code?: string }).code ?? "", (e as Error).message);
     track.counter("error:db_connect");
   }
 }

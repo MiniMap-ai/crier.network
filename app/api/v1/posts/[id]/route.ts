@@ -23,15 +23,16 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   if (!row || row.deleted_at) return fail(404, "not_found", "No such post.", { hint: "It may have been removed by its publisher." });
   if (row.hidden_at) return fail(404, "hidden", "This post is hidden pending review.", { hint: "It was reported by several parties or removed by a moderator. If you published it and believe this is wrong, email abuse@crier.network." });
   const post = publicPost(row);
+  // Replies before related: a related timeout spends what is left of the budget, not what replies need.
+  if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
   // Related posts are decoration: a database failure on them costs the caller the related block, not
-  // the post, and is counted as a dropped read (docs/metrics.md). The post read above stays uncaught:
-  // without the row there is nothing to answer with, so the handler answers 503 for it (CRI-47).
+  // the post, and is counted as a dropped read (docs/metrics.md). The post and replies reads above
+  // stay uncaught: without them there is no post to answer with, so the handler answers 503 (CRI-47).
   post.related = await relatedPosts(id, 5, at).catch((e: unknown) => {
     if (!isDbFailure(e)) throw e;   // a bug in the read stays a 500 with a ref, not an empty list
     noteDbTimeout("api/v1/posts/[id]:related", e);
     return [];
   });
-  if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
   track.view(id);
   const expired = row.expires_at.getTime() < Date.now();
   return ok(post, {
