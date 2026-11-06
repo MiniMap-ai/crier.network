@@ -4,6 +4,7 @@ import type { Budget } from "./db";
 import { embedQuery, rerank } from "./cohere";
 import { HttpError, cursorOf, encodeCursor } from "./http";
 import { isKeysetCursor, isOffsetCursor } from "./cursor";
+import { DATE_TIME_HINT, DATE_TIME_MESSAGE, isSearchDateTime } from "./dates";
 import { POST_ID_RE } from "./ids";
 import { NO_SORT } from "./live-sql";
 import { KINDS, POST_COLUMNS, PostRow, PublicPost, publicPost } from "./posts";
@@ -20,8 +21,8 @@ export const SearchQuerySchema = z.object({
   tags: z.string().trim().optional(),          // "a,b" -> any of
   near: z.string().trim().regex(/^-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?$/, "near must be 'lat,lng'").optional(),
   radius_km: z.coerce.number().min(0.1).max(500).optional(),
-  after: z.string().trim().optional(),
-  before: z.string().trim().optional(),
+  after: z.string().trim().refine(isSearchDateTime, { message: DATE_TIME_MESSAGE }).optional(),
+  before: z.string().trim().refine(isSearchDateTime, { message: DATE_TIME_MESSAGE }).optional(),
   verified: z.string().trim().optional(),      // "true"
   publisher: z.string().trim().max(40).optional(),
   include_expired: z.string().trim().optional(),
@@ -41,11 +42,10 @@ export function parseSearchQuery(input: Record<string, string | undefined> | URL
   for (const [k, v] of entries) if (v !== undefined && v !== "") obj[k] = String(v);
   const parsed = SearchQuerySchema.safeParse(obj);
   if (!parsed.success) {
-    throw new HttpError(400, "invalid_query", "Search parameters did not validate.", "See /llms.txt for the query grammar.", parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })));
+    const onDate = parsed.error.issues.some((i) => i.path[0] === "after" || i.path[0] === "before");
+    throw new HttpError(400, "invalid_query", "Search parameters did not validate.", onDate ? DATE_TIME_HINT : "See /llms.txt for the query grammar.", parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })));
   }
   const q = parsed.data;
-  if (q.after && Number.isNaN(Date.parse(q.after))) throw new HttpError(400, "invalid_query", "after must be an ISO 8601 date-time.");
-  if (q.before && Number.isNaN(Date.parse(q.before))) throw new HttpError(400, "invalid_query", "before must be an ISO 8601 date-time.");
   if (q.kind) {
     for (const k of q.kind.split(",")) if (!(KINDS as readonly string[]).includes(k.trim())) {
       throw new HttpError(400, "invalid_query", `Unknown kind "${k.trim()}".`, `kind must be one of ${KINDS.join(", ")}.`);
