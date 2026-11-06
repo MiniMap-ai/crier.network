@@ -66,7 +66,8 @@ test("a query that never resolves rejects with DbTimeoutError and is cancelled",
   assert.equal((err as DbTimeout).code, "db_timeout");
   assert.match((err as DbTimeout).message, /never/);
   assert.equal(q.cancelled, 1, "the pending query must be cancelled so its pool slot comes back");
-  assert.ok(elapsed >= DB_TIMEOUT_MS, `rejected after ${elapsed} ms, before the budget`);
+  // A timer may fire a millisecond before Date.now() agrees it is due; the budget is not short by it.
+  assert.ok(elapsed >= DB_TIMEOUT_MS - 1, `rejected after ${elapsed} ms, before the budget`);
   assert.ok(elapsed < DB_TIMEOUT_MS + 2000, `rejected after ${elapsed} ms, far past the budget`);
 });
 
