@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { ADAPTERS, describeAdapter } from "@/lib/syndication/adapters";
 import { newSourceId, runSource, syndicationPublisher } from "@/lib/syndication/runner";
-import type { SourceRow } from "@/lib/syndication/types";
+import { asFetched, type SourceRow } from "@/lib/syndication/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,7 +54,7 @@ export const POST = handler(async (req) => {
   let sample: unknown[] = []; let error: string | undefined;
   try {
     const now = new Date();
-    const items = await ADAPTERS[source.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal });
+    const { items } = asFetched(await ADAPTERS[source.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal, fetchUntil: now.getTime() + 20000 }));
     sample = items.slice(0, 5).map((i) => ({ uid: i.uid, title: i.title, starts_at: i.starts_at, location: i.location, url: i.url }));
     if (items.length === 0 && !force) error = "The source fetched but yielded no items in the horizon.";
   } catch (e) { error = (e as Error).message; }

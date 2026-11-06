@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { NWS_END_GRACE_MS, nws, nwsExpiry, nwsTimezone } from "../lib/syndication/adapters.ts";
+import { asFetched } from "../lib/syndication/types.ts";
 import type { SourceRow } from "../lib/syndication/types.ts";
 
 /**
@@ -52,7 +53,7 @@ async function relay(features: ReturnType<typeof feature>[]) {
   const real = globalThis.fetch;
   globalThis.fetch = (async () => new Response(JSON.stringify({ features }), { headers: { "Content-Type": "application/geo+json" } })) as typeof fetch;
   try {
-    return await nws(source(), { now: NOW, horizonEnd: new Date("2026-10-29T12:30:00Z"), signal: AbortSignal.timeout(30_000) });
+    return asFetched(await nws(source(), { now: NOW, horizonEnd: new Date("2026-10-29T12:30:00Z"), signal: AbortSignal.timeout(30_000) })).items;
   } finally {
     globalThis.fetch = real;
   }
