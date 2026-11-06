@@ -3,7 +3,7 @@
  * No raw addresses, no per-person history. See docs/metrics.md for definitions.
  */
 import { after } from "next/server";
-import { DbTimeoutError, budget, isDbConnectError, retryIfConnectionLost, sideWrite, sql, withTimeout } from "./db";
+import { DbTimeoutError, budget, isDbConnectError, sideWrite, sql, withTimeout } from "./db";
 import type { SearchQuery } from "./search";
 import { drainSearches, foldDemand, normalizeQuery, recordSearch, roundNear } from "./search-log";
 import type { DemandRow, SearchSource } from "./search-log";
@@ -38,11 +38,12 @@ import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, 
  * so their flushes started on the fresh client and committed; the one `relatedPosts` timeout's flush
  * was already in flight and was lost — `error:db_timeout` 3, `error:side_write_timeout` +1. Two
  * things close that gap now: the guard drains the old client instead of destroying it
- * (lib/db-timeout.ts), so a flush in flight commits where it is; and a flush that still loses its
- * connection is tried once more on the fresh client with the same batch, inside what is left of its
- * wait. What can still be lost is a flush the database would not take within FLUSH_WAIT_MS at all,
- * and that loss is counted, so `error:side_write_timeout` remains the number that says how far the
- * rest can be trusted.
+ * (lib/db-timeout.ts), so a flush in flight commits where it is; and a flush that loses its
+ * connection before its COMMIT is on the wire is tried once more on the fresh client with the same
+ * batch, inside what is left of its wait. What can still be lost is a flush the database would not
+ * take within FLUSH_WAIT_MS at all, or one whose connection went away during COMMIT itself, which
+ * is counted as lost rather than risked twice; both losses are counted, so `error:side_write_timeout`
+ * remains the number that says how far the rest can be trusted.
  */
 
 const pendingCounters = new Map<string, number>();
@@ -97,11 +98,15 @@ async function flush() {
   try {
     // Bounded like every other wait, on the flush's own budget rather than the read budget. begin()
     // cannot be cancelled once it is in flight — the server-side statement_timeout is what ends it
-    // there — but this is what stops us waiting on it inside the caller's remaining time. One
-    // budget for both attempts: a flush whose connection went away under it runs once more on the
-    // client that replaced it, with the same batch and whatever is left of the wait.
+    // there — but this is what stops us waiting on it inside the caller's remaining time.
     const at = budget(FLUSH_WAIT_MS);
-    await retryIfConnectionLost(() => withTimeout(sql().begin(async (tx) => {
+    // Set once every statement is in and COMMIT is next. A connection lost before that point applied
+    // nothing — the server rolls an open transaction back when its client goes — so the same batch
+    // can go once more, on the client that replaced it and on what is left of the same wait. One
+    // lost during COMMIT may or may not have applied, and is not retried: these are increments, and
+    // a batch counted as lost is a smaller lie than a view or a cron tick counted twice.
+    let committing = false;
+    const attempt = () => withTimeout(sql().begin(async (tx) => {
       await tx`select set_config('statement_timeout', ${String(FLUSH_TIMEOUT_MS)}, true), set_config('lock_timeout', ${String(FLUSH_LOCK_TIMEOUT_MS)}, true)`;
       if (counters.length) {
         await tx`insert into daily_counters (day, key, n)
@@ -120,7 +125,15 @@ async function flush() {
       // Last, and inside a savepoint of its own: a view bump that meets a lock must not be able to
       // take the tick above it down with it. See lib/side-writes.ts.
       await applyCounts(tx, counts);
-    }), at("metrics:flush")));
+      committing = true;
+    }), at("metrics:flush"));
+    try {
+      await attempt();
+    } catch (e) {
+      if (!isDbConnectError(e) || committing) throw e;
+      console.warn("metrics flush lost its connection before COMMIT; trying once more", (e as { code?: string }).code ?? "", (e as Error).message);
+      await attempt();
+    }
   } catch (e) {
     // Everything drained above went with the transaction, the losses already counted included. Note
     // them again, plus this flush, so the number survives to the next one rather than vanishing in

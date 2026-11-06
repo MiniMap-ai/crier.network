@@ -43,10 +43,12 @@ const RESET_AFTER_TIMEOUTS = int("CRIER_DB_RESET_AFTER_TIMEOUTS", 5);
 const RESET_AFTER_MS = int("CRIER_DB_RESET_AFTER_MS", DB_TIMEOUT_MS);
 /**
  * How long a replaced client is given to finish what it was doing before its sockets are destroyed.
- * Longer than any bounded wait on the request path, so a query somebody is waiting on reaches its
- * own deadline first and this only ever reaches a statement nothing was waiting on.
+ * Longer than any bounded wait on the request path — either budget, whichever is configured larger;
+ * the metrics flush's own wait (lib/metrics.ts) has to stay under them — so a query somebody is
+ * waiting on reaches its own deadline first and this only ever reaches a statement nothing was
+ * waiting on.
  */
-const DRAIN_TIMEOUT_S = Math.ceil(DB_TIMEOUT_MS / 1000) + 2;
+const DRAIN_TIMEOUT_S = Math.ceil(Math.max(DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS) / 1000) + 2;
 
 /**
  * A read gave up before the database answered. Distinguishable on purpose: handlers turn it into a
@@ -205,8 +207,11 @@ export function budget(totalMs: number = DB_TIMEOUT_MS): Budget {
  *
  * This is the page's fallback. The App Router gives a page no way to answer 503, so when its one
  * necessary read fails the page is a 500 (app/error.tsx); before this, a connection dropped under
- * getPostRow was that 500 with nothing tried in between (CRI-70). The metrics flush uses it too, so
- * a flush that was on a connection when it went away carries the same batch to the next one.
+ * getPostRow was that 500 with nothing tried in between (CRI-70).
+ *
+ * Reads only. A write whose connection went away during COMMIT may have applied, and running it
+ * again would apply it twice; the metrics flush does its own retry for that reason, and stops at
+ * COMMIT (lib/metrics.ts).
  */
 export async function retryIfConnectionLost<T>(attempt: () => Promise<T>): Promise<T> {
   try {

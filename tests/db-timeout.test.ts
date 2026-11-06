@@ -9,7 +9,7 @@ process.env.CRIER_DB_RESET_AFTER_TIMEOUTS = "3";
 // between, so the two shapes the guard has to tell apart are both reachable here.
 process.env.CRIER_DB_RESET_AFTER_MS = "100";
 
-const { DB_TIMEOUT_MS, DbTimeoutError, __resetDbHealth, retryIfConnectionLost, withTimeout, withTimeoutOr } = await import("../lib/db-timeout.ts");
+const { DB_SIDE_TIMEOUT_MS, DB_TIMEOUT_MS, DbTimeoutError, __resetDbHealth, retryIfConnectionLost, withTimeout, withTimeoutOr } = await import("../lib/db-timeout.ts");
 
 type FakeQuery<T> = PromiseLike<T> & {
   execute: () => void;
@@ -132,9 +132,12 @@ test("the replaced client is drained, not destroyed", async () => {
   assert.equal(client.ended.length, 1);
   // postgres.js's `end({ timeout })` lets what is in flight finish for that many seconds before it
   // destroys the sockets; `timeout: 0` destroys them now, failing every query still on them with
-  // CONNECTION_DESTROYED. Every wait on the request path is bounded by DB_TIMEOUT_MS and cancels
-  // itself at its deadline, so a drain at least that long never reaches a query anyone is waiting on.
-  assert.ok(client.ended[0].timeout >= DB_TIMEOUT_MS / 1000, `drain of ${client.ended[0].timeout} s is shorter than the read budget`);
+  // CONNECTION_DESTROYED. Every wait on the request path is bounded by one of the two budgets and
+  // cancels itself at its deadline, so a drain at least as long as the larger of them never reaches
+  // a query anyone is waiting on — whichever of the two is configured larger (here the side budget
+  // is left at its default, far above the 60 ms read budget this file sets).
+  const longestWait = Math.max(DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS) / 1000;
+  assert.ok(client.ended[0].timeout >= longestWait, `drain of ${client.ended[0].timeout} s is shorter than the longest bounded wait, ${longestWait} s`);
   assert.ok(client.ended[0].timeout > 0, "a timeout of 0 is a destroy, which is what served the 500s");
   forgetClient();
 });

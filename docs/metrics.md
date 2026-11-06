@@ -216,9 +216,11 @@ failed *because* of the recycle, whose flushes ran after it.
 
 With the CRI-70 fix the guard drains the old client instead of destroying it
 (`lib/db-timeout.ts`), so a flush in flight commits where it is, and a flush
-that still loses its connection is tried once more on the fresh client with the
-same batch. What can still be lost is a flush the database would not take
-within its wait at all, and that is counted. So the rule for reading the error
+that loses its connection before its COMMIT is on the wire is tried once more on
+the fresh client with the same batch. What can still be lost is a flush the
+database would not take within its wait at all, or one whose connection went
+away during COMMIT itself, which is counted as lost rather than risked twice.
+Both are counted. So the rule for reading the error
 counters as a clean-day gate (CRI-57): on a day with `error:side_write_timeout`
 at or near zero, `error:db_timeout` and `error:db_connect` are complete; on a
 day where it is not, each unit is one flush whose contents are unknown, and the
