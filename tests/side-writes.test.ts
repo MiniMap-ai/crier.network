@@ -219,7 +219,8 @@ test("a side write that never answers is bounded, cancelled, counted and warned 
   const elapsed = Date.now() - started;
 
   assert.equal(cancelled, 1, "the query is cancelled so its pool slot comes back");
-  assert.ok(elapsed >= DB_SIDE_TIMEOUT_MS, `gave up after ${elapsed} ms, before the ${DB_SIDE_TIMEOUT_MS} ms budget`);
+  // A timer may fire a millisecond before Date.now() agrees it is due; the budget is not short by it.
+  assert.ok(elapsed >= DB_SIDE_TIMEOUT_MS - 1, `gave up after ${elapsed} ms, before the ${DB_SIDE_TIMEOUT_MS} ms budget`);
   assert.equal(warnings.length, 1);
   assert.match(warnings[0], /side write failed deliveries:polled/);
   assert.match(warnings[0], /\d+ ms after it was queued/, "elapsed time is what tells a frozen timer from a slow query");
