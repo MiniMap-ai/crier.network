@@ -17,7 +17,7 @@
  */
 import { unstable_cache } from "next/cache";
 import { POSTS_TAG, postTag } from "./cache-tags";
-import { DB_SIDE_TIMEOUT_MS, DB_TIMEOUT_MS, budget } from "./db";
+import { DB_SIDE_TIMEOUT_MS, DB_TIMEOUT_MS, budget, retryIfConnectionLost } from "./db";
 import { PublicPost, getPostRow, indexable, publicPost, relatedPosts, repliesFor } from "./posts";
 import { metricsSnapshot } from "./metrics";
 import { search } from "./search";
@@ -38,11 +38,16 @@ async function loadPostPage(id: string): Promise<PostPageView | null> {
   // /p/<id> makes two cached reads: this one and cachedRelated. Between them they have to stay
   // inside the route's maxDuration, so this one takes the read budget less what related is allowed.
   const at = budget(DB_TIMEOUT_MS - DB_SIDE_TIMEOUT_MS);
-  const row = await getPostRow(id, undefined, at);
-  if (!row) return null;
-  const post = publicPost(row);
-  const replies = post.reply_count > 0 || post.kind === "thread" ? (await repliesFor(id, 50, undefined, at)).posts : [];
-  return { post, deleted: !!row.deleted_at, hidden: !!row.hidden_at, syndicated: row.syndicated, indexable: indexable(row), replies };
+  // The read the page cannot render without: a lost connection gets one more try on what is left of
+  // the budget, since a page cannot answer 503. Only a cache miss reaches a caller; a stale entry is
+  // served while this revalidates in the background.
+  return retryIfConnectionLost(async () => {
+    const row = await getPostRow(id, undefined, at);
+    if (!row) return null;
+    const post = publicPost(row);
+    const replies = post.reply_count > 0 || post.kind === "thread" ? (await repliesFor(id, 50, undefined, at)).posts : [];
+    return { post, deleted: !!row.deleted_at, hidden: !!row.hidden_at, syndicated: row.syndicated, indexable: indexable(row), replies };
+  });
 }
 
 /**

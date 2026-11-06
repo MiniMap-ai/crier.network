@@ -195,6 +195,29 @@ than an exact count: if the database is unreachable for an hour, the losses in
 that hour are counted once it is back, and losses in a flush that itself fails
 are carried forward rather than dropped. Near zero is the expectation.
 
+### When a counter is real
+
+A count reaches `daily_counters` only when the flush carrying it commits. The
+flush runs after its request's response, on whichever client `sql()` hands it
+at that moment. If it fails, everything it carried goes with it, and one
+`error:side_write_timeout` is carried forward in its place.
+
+That is why the two CRI-70 incidents of 2026-11-05 left different evidence.
+Both times the pool guard destroyed the client with flushes in flight. At 03:50
+fourteen were, the five `error:db_timeout` that caused the recycle among them:
+`error:side_write_timeout` 14, `error:db_timeout` 0. At 21:27 one was:
+`error:db_timeout` 3, `error:side_write_timeout` +1. The `error:5xx` and
+`error:db_connect` rows came from the requests the recycle itself failed, whose
+flushes ran after it.
+
+The guard now drains the old client instead of destroying it, and a flush that
+loses its connection before COMMIT is on the wire is retried once on the fresh
+one. A flush lost during COMMIT, or one the database would not take within its
+wait, is counted as lost rather than risked twice. So, for reading the error
+counters as a clean-day gate (CRI-57): on a day with `error:side_write_timeout`
+at or near zero they are complete; otherwise each unit is one flush whose
+contents are unknown, and the runtime log answers for that window.
+
 ### What these counters cannot see
 
 `error:5xx` is a 500 a handler returned, or a page Next answered 500 for.

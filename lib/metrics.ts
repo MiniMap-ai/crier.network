@@ -28,6 +28,10 @@ import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, 
  * handler — Vercel's "Task timed out after N seconds", which is what the 2026-09-10 wedge produced —
  * is counted by nothing here, because no code of ours ran. Those are only visible in Vercel's
  * runtime logs; the daily check reads them there.
+ *
+ * A count is real only once the flush carrying it commits; a flush that dies takes its batch with
+ * it and leaves one `error:side_write_timeout` behind. docs/metrics.md, "When a counter is real",
+ * has what that meant for CRI-70's evidence.
  */
 
 const pendingCounters = new Map<string, number>();
@@ -83,7 +87,12 @@ async function flush() {
     // Bounded like every other wait, on the flush's own budget rather than the read budget. begin()
     // cannot be cancelled once it is in flight — the server-side statement_timeout is what ends it
     // there — but this is what stops us waiting on it inside the caller's remaining time.
-    await withTimeout(sql().begin(async (tx) => {
+    const at = budget(FLUSH_WAIT_MS);
+    // Set once COMMIT is next. A connection lost before that applied nothing, so the batch goes once
+    // more on the fresh client; one lost during COMMIT may have applied, so it is counted as lost
+    // rather than risked twice.
+    let committing = false;
+    const attempt = () => withTimeout(sql().begin(async (tx) => {
       await tx`select set_config('statement_timeout', ${String(FLUSH_TIMEOUT_MS)}, true), set_config('lock_timeout', ${String(FLUSH_LOCK_TIMEOUT_MS)}, true)`;
       if (counters.length) {
         await tx`insert into daily_counters (day, key, n)
@@ -102,7 +111,15 @@ async function flush() {
       // Last, and inside a savepoint of its own: a view bump that meets a lock must not be able to
       // take the tick above it down with it. See lib/side-writes.ts.
       await applyCounts(tx, counts);
-    }), { ms: FLUSH_WAIT_MS, label: "metrics:flush" });
+      committing = true;
+    }), at("metrics:flush"));
+    try {
+      await attempt();
+    } catch (e) {
+      if (!isDbConnectError(e) || committing) throw e;
+      console.warn("metrics flush lost its connection before COMMIT; trying once more", (e as { code?: string }).code ?? "", (e as Error).message);
+      await attempt();
+    }
   } catch (e) {
     // Everything drained above went with the transaction, the losses already counted included. Note
     // them again, plus this flush, so the number survives to the next one rather than vanishing in
@@ -190,13 +207,18 @@ export const track = {
 export const SERVED_ERROR_KEYS = ["error:5xx", "error:503"];
 
 /**
- * A database wait a page could render around — related posts, a listing — timed out, and the page
- * went out without that section. Not an error the caller saw, so only the cause is counted.
+ * A read a page could render around — related posts, a listing — timed out or lost its connection,
+ * and the page went out without that section. Not an error the caller saw, so only the cause is
+ * counted.
  */
 export function noteDbTimeout(where: string, e: unknown): void {
-  if (!(e instanceof DbTimeoutError)) return;
-  console.error("page db timeout", where, e.label ?? "", e.message);
-  track.counter("error:db_timeout");
+  if (e instanceof DbTimeoutError) {
+    console.error("page db timeout", where, e.label ?? "", e.message);
+    track.counter("error:db_timeout");
+  } else if (isDbConnectError(e)) {
+    console.error("page db connect", where, (e as { code?: string }).code ?? "", (e as Error).message);
+    track.counter("error:db_connect");
+  }
 }
 
 /**
