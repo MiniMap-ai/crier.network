@@ -28,13 +28,16 @@ jobs:
           fetch-depth: 0
 
       # Skipped, not failed, until the secret exists, and a failed run never turns the PR red: the
-      # review is advisory, so a key or model problem shows as a warning on this job, not as CI.
-      - if: ${{ env.ANTHROPIC_API_KEY != '' }}
+      # review is advisory, so a key or model problem is a warning annotation on this job, not CI.
+      - id: review
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
         continue-on-error: true
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ env.ANTHROPIC_API_KEY }}
-          show_full_output: true
+          # Full output puts tool results in a log anyone with read access can see, so it is off
+          # unless the COMMENT_REVIEW_DEBUG repository variable is "true".
+          show_full_output: ${{ vars.COMMENT_REVIEW_DEBUG == 'true' }}
           prompt: |
             Review only the comments and documentation this pull request adds or changes. Do not review
             logic, naming or style. Read the change with `git diff origin/${{ github.base_ref }}...HEAD`
@@ -60,3 +63,6 @@ jobs:
           claude_args: |
             --max-turns 12
             --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),mcp__github_inline_comment__create_inline_comment"
+
+      - if: ${{ steps.review.outcome == 'failure' }}
+        run: echo "::warning title=Comment review did not run::The reviewer step failed; its log is above. Set the COMMENT_REVIEW_DEBUG repository variable to true to print its full output on the next run."
