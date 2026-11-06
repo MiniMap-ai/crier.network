@@ -10,7 +10,10 @@
  * to that instance until the platform kills it.
  *
  * Everything on the request path goes through withTimeout. It lives in its own module, free of
- * imports, so it can be unit-tested without a database or a bundler.
+ * imports, so it can be unit-tested without a database or a bundler. When reads do nothing but time
+ * out for longer than one of them is allowed to wait, the client is replaced and the old one drained
+ * (noteTimeout); when a read loses its connection instead of its budget, retryIfConnectionLost runs
+ * it once more on the client that replaced it.
  *
  * A bound is not enough on its own for a write nobody awaits. `void withTimeoutOr(...)` on the
  * request path leaves the promise and this module's timer unregistered, so Fluid compute may
@@ -29,8 +32,21 @@ function int(name: string, fallback: number): number {
 export const DB_TIMEOUT_MS = int("CRIER_DB_TIMEOUT_MS", 8000);
 /** Budget for a read the caller can do without: related posts, replies, board counts. */
 export const DB_SIDE_TIMEOUT_MS = int("CRIER_DB_SIDE_TIMEOUT_MS", 2500);
-/** Consecutive timeouts, with no read succeeding in between, before the pool is thrown away. */
+/** Consecutive timeouts, with no read succeeding in between, before the pool is replaced. */
 const RESET_AFTER_TIMEOUTS = int("CRIER_DB_RESET_AFTER_TIMEOUTS", 5);
+/**
+ * How long that run has to have lasted as well, measured from the first timeout in it. A single
+ * burst of concurrent requests cannot reach this: every read in the burst lands inside the budget
+ * they share. A wedged pool reaches it on the next request to arrive, because that request spends
+ * its whole budget and gets nothing. See noteTimeout.
+ */
+const RESET_AFTER_MS = int("CRIER_DB_RESET_AFTER_MS", DB_TIMEOUT_MS);
+/**
+ * How long a replaced client is given to finish what it was doing before its sockets are destroyed.
+ * Longer than any bounded wait on the request path, so a query somebody is waiting on reaches its
+ * own deadline first and this only ever reaches a statement nothing was waiting on.
+ */
+const DRAIN_TIMEOUT_S = Math.ceil(DB_TIMEOUT_MS / 1000) + 2;
 
 /**
  * A read gave up before the database answered. Distinguishable on purpose: handlers turn it into a
@@ -75,24 +91,51 @@ type Pending<T> = PromiseLike<T> & { execute?: () => unknown; cancel?: () => unk
 type PoolClient = { end: (opts: { timeout: number }) => unknown };
 
 let consecutiveTimeouts = 0;
+/** When the first timeout of the current run landed; undefined while reads are answering. */
+let runStartedAt: number | undefined;
 
 function noteHealthy() {
   consecutiveTimeouts = 0;
+  runStartedAt = undefined;
 }
 
+/**
+ * A read timed out. Enough of them in a row, for long enough, and the pool is replaced.
+ *
+ * Both conditions are needed. postgres.js will not retire a connection whose query never answers —
+ * max_lifetime waits for the in-flight query — so a pool whose sockets are alive but silent would
+ * serve failures for the rest of the instance's life without this. But five timeouts in a row is
+ * not evidence of that on its own: a burst of concurrent requests arriving on a cold instance pays
+ * one TLS and SCRAM handshake per socket, and if the pooler is slow to open them, five reads can
+ * reach their deadlines within the same second with the connections still coming up. That is the
+ * shape of both incidents of 2026-11-05 (CRI-70): five timeouts inside three seconds, Postgres
+ * idle, nothing else on the platform busy. Five in a row is what any one burst looks like, whether
+ * it is a decorative read's 2.5 s deadline doing the counting or the page's own 5.5 s one. A run
+ * that outlives a whole read budget is different: a request that arrived after the trouble began
+ * has had its entire allowance and got nothing, and no single burst can produce that, because
+ * everything in a burst lands inside the budget it shares.
+ *
+ * The replaced client is drained, not destroyed. The next caller builds a fresh one; whatever is in
+ * flight on the old one finishes, or reaches its own deadline and is cancelled, before its sockets
+ * close. Destroying it — `end({ timeout: 0 })`, what this did through both incidents — failed every
+ * query still on it with CONNECTION_DESTROYED, which turned degraded latency on five decorative reads into
+ * served 500s on the primary read of every concurrent page, and took the metrics flush with it, so
+ * the timeouts that caused the recycle were never counted. The counters are the only record of why
+ * a recycle happened; they must not ride the thing being recycled.
+ */
 function noteTimeout() {
+  const now = Date.now();
+  runStartedAt ??= now;
   if (++consecutiveTimeouts < RESET_AFTER_TIMEOUTS) return;
-  consecutiveTimeouts = 0;
-  // Every read in a row has timed out, so this pool is wedged rather than merely slow. postgres.js
-  // will not retire a connection whose query never answers — max_lifetime waits for the in-flight
-  // query — so without this the instance would serve failures for the rest of its life. Drop the
-  // client and let the next caller build a fresh one.
+  if (now - runStartedAt < RESET_AFTER_MS) return;
+  const age = now - runStartedAt;
+  noteHealthy();
   const holder = globalThis as { __crier_sql?: PoolClient };
-  const dead = holder.__crier_sql;
+  const stale = holder.__crier_sql;
   holder.__crier_sql = undefined;
-  if (!dead) return;
-  console.error(`db: ${RESET_AFTER_TIMEOUTS} consecutive read timeouts; recycling the connection pool`);
-  try { void Promise.resolve(dead.end({ timeout: 0 })).catch(() => {}); } catch { /* best effort */ }
+  if (!stale) return;
+  console.error(`db: ${RESET_AFTER_TIMEOUTS} consecutive read timeouts over ${age} ms; replacing the connection pool, draining the old one`);
+  try { void Promise.resolve(stale.end({ timeout: DRAIN_TIMEOUT_S })).catch(() => {}); } catch { /* best effort */ }
 }
 
 /**
@@ -150,7 +193,32 @@ export function budget(totalMs: number = DB_TIMEOUT_MS): Budget {
   return (label: string) => ({ ms: Math.max(MIN_BUDGET_MS, until - Date.now()), label });
 }
 
+/**
+ * Run a read once more if the first attempt died with its connection rather than with its budget.
+ *
+ * A connection the pooler closed under a query, or one this module replaced, fails that query with
+ * a class-08 or postgres.js connection code, not a timeout: nothing was slow, the socket went away.
+ * The next `sql()` call hands out a live connection, so the second attempt is the same read on a
+ * different socket, inside whatever is left of the same budget — reads are safe to retry, as the
+ * API's own hint tells callers. A timeout is not retried: the budget is spent, and the first attempt
+ * has already been cancelled.
+ *
+ * This is the page's fallback. The App Router gives a page no way to answer 503, so when its one
+ * necessary read fails the page is a 500 (app/error.tsx); before this, a connection dropped under
+ * getPostRow was that 500 with nothing tried in between (CRI-70). The metrics flush uses it too, so
+ * a flush that was on a connection when it went away carries the same batch to the next one.
+ */
+export async function retryIfConnectionLost<T>(attempt: () => Promise<T>): Promise<T> {
+  try {
+    return await attempt();
+  } catch (e) {
+    if (!isDbConnectError(e)) throw e;
+    console.warn("db read lost its connection; trying once more", (e as { code?: string }).code ?? "", (e as Error).message);
+    return await attempt();
+  }
+}
+
 /** Test seam: forget how many reads have timed out in a row. */
 export function __resetDbHealth() {
-  consecutiveTimeouts = 0;
+  noteHealthy();
 }

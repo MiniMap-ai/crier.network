@@ -3,7 +3,7 @@
  * No raw addresses, no per-person history. See docs/metrics.md for definitions.
  */
 import { after } from "next/server";
-import { DbTimeoutError, budget, isDbConnectError, sideWrite, sql, withTimeout } from "./db";
+import { DbTimeoutError, budget, isDbConnectError, retryIfConnectionLost, sideWrite, sql, withTimeout } from "./db";
 import type { SearchQuery } from "./search";
 import { drainSearches, foldDemand, normalizeQuery, recordSearch, roundNear } from "./search-log";
 import type { DemandRow, SearchSource } from "./search-log";
@@ -28,6 +28,21 @@ import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, 
  * handler — Vercel's "Task timed out after N seconds", which is what the 2026-09-10 wedge produced —
  * is counted by nothing here, because no code of ours ran. Those are only visible in Vercel's
  * runtime logs; the daily check reads them there.
+ *
+ * When a counter is real: a count reaches `daily_counters` only when the flush carrying it commits,
+ * and the flush runs after its request's response, on whichever client `sql()` hands it then. That
+ * ordering is what decided which half of 2026-11-05's evidence survived (CRI-70). At 03:50 the pool
+ * guard destroyed the client while fourteen flushes were queued on it, five `error:db_timeout`
+ * among them: every one failed with CONNECTION_DESTROYED and `error:side_write_timeout` took 14,
+ * `error:db_timeout` nothing. At 21:27 the three `getPostRow` page failures ended after the recycle,
+ * so their flushes started on the fresh client and committed; the one `relatedPosts` timeout's flush
+ * was already in flight and was lost — `error:db_timeout` 3, `error:side_write_timeout` +1. Two
+ * things close that gap now: the guard drains the old client instead of destroying it
+ * (lib/db-timeout.ts), so a flush in flight commits where it is; and a flush that still loses its
+ * connection is tried once more on the fresh client with the same batch, inside what is left of its
+ * wait. What can still be lost is a flush the database would not take within FLUSH_WAIT_MS at all,
+ * and that loss is counted, so `error:side_write_timeout` remains the number that says how far the
+ * rest can be trusted.
  */
 
 const pendingCounters = new Map<string, number>();
@@ -82,8 +97,11 @@ async function flush() {
   try {
     // Bounded like every other wait, on the flush's own budget rather than the read budget. begin()
     // cannot be cancelled once it is in flight — the server-side statement_timeout is what ends it
-    // there — but this is what stops us waiting on it inside the caller's remaining time.
-    await withTimeout(sql().begin(async (tx) => {
+    // there — but this is what stops us waiting on it inside the caller's remaining time. One
+    // budget for both attempts: a flush whose connection went away under it runs once more on the
+    // client that replaced it, with the same batch and whatever is left of the wait.
+    const at = budget(FLUSH_WAIT_MS);
+    await retryIfConnectionLost(() => withTimeout(sql().begin(async (tx) => {
       await tx`select set_config('statement_timeout', ${String(FLUSH_TIMEOUT_MS)}, true), set_config('lock_timeout', ${String(FLUSH_LOCK_TIMEOUT_MS)}, true)`;
       if (counters.length) {
         await tx`insert into daily_counters (day, key, n)
@@ -102,7 +120,7 @@ async function flush() {
       // Last, and inside a savepoint of its own: a view bump that meets a lock must not be able to
       // take the tick above it down with it. See lib/side-writes.ts.
       await applyCounts(tx, counts);
-    }), { ms: FLUSH_WAIT_MS, label: "metrics:flush" });
+    }), at("metrics:flush")));
   } catch (e) {
     // Everything drained above went with the transaction, the losses already counted included. Note
     // them again, plus this flush, so the number survives to the next one rather than vanishing in
@@ -190,13 +208,19 @@ export const track = {
 export const SERVED_ERROR_KEYS = ["error:5xx", "error:503"];
 
 /**
- * A database wait a page could render around — related posts, a listing — timed out, and the page
- * went out without that section. Not an error the caller saw, so only the cause is counted.
+ * A read a page could render around — related posts, a listing — failed, and the page went out
+ * without that section. Not an error the caller saw, so only the cause is counted: `error:db_timeout`
+ * for a wait that ran out of budget, `error:db_connect` for a connection that went away under it.
+ * Anything else is not a database failure and is left to the page's own catch.
  */
-export function noteDbTimeout(where: string, e: unknown): void {
-  if (!(e instanceof DbTimeoutError)) return;
-  console.error("page db timeout", where, e.label ?? "", e.message);
-  track.counter("error:db_timeout");
+export function noteDroppedRead(where: string, e: unknown): void {
+  if (e instanceof DbTimeoutError) {
+    console.error("page db timeout", where, e.label ?? "", e.message);
+    track.counter("error:db_timeout");
+  } else if (isDbConnectError(e)) {
+    console.error("page db connect", where, (e as { code?: string }).code ?? "", (e as Error).message);
+    track.counter("error:db_connect");
+  }
 }
 
 /**

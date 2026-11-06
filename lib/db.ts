@@ -12,7 +12,7 @@ declare global {
 }
 
 // Every wait on this client is bounded; see db-timeout.ts for why postgres.js cannot do it for us.
-export { DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS, DbTimeoutError, budget, isDbConnectError, withTimeout, withTimeoutOr } from "./db-timeout";
+export { DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS, DbTimeoutError, budget, isDbConnectError, retryIfConnectionLost, withTimeout, withTimeoutOr } from "./db-timeout";
 export type { Budget } from "./db-timeout";
 
 /**

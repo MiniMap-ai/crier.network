@@ -195,6 +195,35 @@ than an exact count: if the database is unreachable for an hour, the losses in
 that hour are counted once it is back, and losses in a flush that itself fails
 are carried forward rather than dropped. Near zero is the expectation.
 
+### When a counter is real
+
+A count reaches `daily_counters` only when the flush carrying it commits. The
+flush runs after its request's response, on whichever client `sql()` hands it
+at that moment, and everything it carries — counters, actors, stats, the search
+log, views — goes with it if it fails; only the loss itself is carried forward,
+as one `error:side_write_timeout` per lost flush.
+
+That ordering is why the two incidents of 2026-11-05 (CRI-70) left different
+evidence. At 03:50 the pool guard destroyed the client while fourteen flushes
+were queued on it, the five `error:db_timeout` that caused the recycle among
+them: all fourteen failed with `CONNECTION_DESTROYED`, so the day recorded
+`error:side_write_timeout` 14 and `error:db_timeout` 0. At 21:27 the three
+`getPostRow` page failures ended after the recycle, so their flushes started on
+the fresh client and committed, while the one `relatedPosts` timeout's flush was
+already in flight and was lost: `error:db_timeout` 3, `error:side_write_timeout`
++1. In both, `error:5xx` and `error:db_connect` were counted by requests that
+failed *because* of the recycle, whose flushes ran after it.
+
+With the CRI-70 fix the guard drains the old client instead of destroying it
+(`lib/db-timeout.ts`), so a flush in flight commits where it is, and a flush
+that still loses its connection is tried once more on the fresh client with the
+same batch. What can still be lost is a flush the database would not take
+within its wait at all, and that is counted. So the rule for reading the error
+counters as a clean-day gate (CRI-57): on a day with `error:side_write_timeout`
+at or near zero, `error:db_timeout` and `error:db_connect` are complete; on a
+day where it is not, each unit is one flush whose contents are unknown, and the
+runtime log is the record for that window.
+
 ### What these counters cannot see
 
 `error:5xx` is a 500 a handler returned, or a page Next answered 500 for.

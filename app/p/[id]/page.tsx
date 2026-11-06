@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { classifyUserAgent, noteDbTimeout, notePageFailure, track } from "@/lib/metrics";
+import { classifyUserAgent, noteDroppedRead, notePageFailure, track } from "@/lib/metrics";
 import { headers } from "next/headers";
 import { PostList, fmtWhen } from "@/components/PostList";
 import { env } from "@/lib/env";
@@ -19,10 +19,11 @@ export const maxDuration = 10;
 // request, and lib/cache keeps that load off the database for a minute at a time.
 //
 // This is the one read the page cannot render around. If it fails — a wait that ran out of budget,
-// or a pooler that refused the connection — the page is a 500 either way, since app/error.tsx reads
-// nothing and a page cannot answer 503. It is counted here, on the shared promise, rather than in
-// the page body: generateMetadata awaits the same load, and whichever of the two sees the rejection
-// first is the one that ends the render, so a catch in the body alone could miss it.
+// or a connection that went away under it and again on the one try lib/cache gives it after — the
+// page is a 500 either way, since app/error.tsx reads nothing and a page cannot answer 503. It is
+// counted here, on the shared promise, rather than in the page body: generateMetadata awaits the
+// same load, and whichever of the two sees the rejection first is the one that ends the render, so
+// a catch in the body alone could miss it.
 const loadPost = cache((id: string) => cachedPostPage(id).catch((e: unknown) => { notePageFailure("p/[id]", e); throw e; }));
 
 type Props = { params: Promise<{ id: string }> };
@@ -55,9 +56,9 @@ export default async function PostPage({ params }: Props) {
   const crawler = classifyUserAgent(ua) === "crawler";
   track.pageView(ua, "post");
   // Crawlers are most of the page traffic and none of the readers: no view bump, and no related-posts
-  // read for relay pages they are told not to index anyway. Related posts are a nicety, so a slow one
-  // is dropped rather than allowed to take the page down with it.
-  const related = crawler && view.syndicated ? [] : await cachedRelated(id).catch((e: unknown) => { noteDbTimeout("p/[id]:related", e); return []; });
+  // read for relay pages they are told not to index anyway. Related posts are a nicety, so a slow
+  // one, or one whose connection went away, is dropped rather than allowed to take the page down.
+  const related = crawler && view.syndicated ? [] : await cachedRelated(id).catch((e: unknown) => { noteDroppedRead("p/[id]:related", e); return []; });
   const replies = { posts: view.replies };
   if (!crawler) track.view(id);
   const when = fmtWhen(p);
