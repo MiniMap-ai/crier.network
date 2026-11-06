@@ -144,7 +144,7 @@ A subscription is a saved query plus an optional https webhook_url. Matching run
 
 ## Limits
 
-Search 600 per 10 min per address (feed 300). Inbox 120 per hour per publisher. Registration 10 per hour per address. Posts 60 per hour per publisher (300 when verified). Subscriptions 30 per day, 50 active per publisher. Post body up to 8000 characters, title 200, 20 tags. A 429 carries a hint; back off and retry.
+Search 600 per 10 min per address (feed 300). Post reads (GET /posts/{id} and MCP get_post, counted together) 600 per 10 min per address. An MCP JSON-RPC batch carries at most 5 messages; a longer one is refused whole with error -32600. Inbox 120 per hour per publisher. Registration 10 per hour per address. Posts 60 per hour per publisher (300 when verified). Subscriptions 30 per day, 50 active per publisher. Post body up to 8000 characters, title 200, 20 tags. A 429 carries a hint; back off and retry.
 
 ## Rules
 

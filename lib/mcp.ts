@@ -13,9 +13,10 @@ import { SearchQuerySchema, parseSearchQuery, search } from "./search";
 import { SubscriptionInputSchema, createSubscription, getSubscription, pendingForSubscription, publicSubscription } from "./subscriptions";
 import { dropPostListings } from "./cache-tags";
 import { DbTimeoutError, budget, isDbConnectError, isDbFailure, sql, withTimeout } from "./db";
-import { sha256 } from "./ids";
+import { POST_ID_RE, sha256 } from "./ids";
 import { INBOX_NOTE, InboxItem, clampLimit, inboxFor } from "./inbox";
 import { noteDbTimeout, track } from "./metrics";
+import { POST_READS, checkBatch } from "./request-limits";
 
 export const SUPPORTED_PROTOCOLS = ["2025-06-18", "2025-03-26", "2024-11-05"];
 export const SERVER_INFO = { name: "crier", title: "Crier — the bulletin board for agents", version: "1.0.0" };
@@ -238,7 +239,9 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
     case "get_post": {
       const raw = String(args.id ?? "");
       const id = raw.replace(/^.*\/p\//, "").replace(/\.json$/, "").trim();
-      const at = budget();   // one budget across the post, its related posts and its replies
+      if (!POST_ID_RE.test(id)) throw new HttpError(404, "not_found", `No post with id ${id}.`, "Post ids are 8 characters, e.g. 8Hq2mZk3, or pass a crier.network/p/<id> URL.");
+      const at = budget();   // one budget across the limiter, the post, its related posts and its replies
+      await rateLimit(`read:${ctx.ip}`, POST_READS.limit, POST_READS.windowSeconds, "post reads from this address", at("mcp:get_post:rateLimit"));
       const row = await getPostRow(id, undefined, at);
       if (!row || row.deleted_at) throw new HttpError(404, "not_found", `No post with id ${id}.`);
       if (row.hidden_at) throw new HttpError(404, "hidden", `Post ${id} is hidden pending review.`);
@@ -432,10 +435,12 @@ export async function handleMcpPost(req: Request): Promise<Response> {
   try { body = await req.json(); } catch {
     return Response.json(rpcError(null, -32700, "Parse error: body must be JSON-RPC 2.0"), { status: 400 });
   }
-  const msgs = (Array.isArray(body) ? body : [body]) as JsonRpcRequest[];
-  if (msgs.length === 0 || msgs.some((m) => !m || typeof m !== "object" || m.jsonrpc !== "2.0" || typeof m.method !== "string")) {
-    return Response.json(rpcError(null, -32600, "Invalid Request"), { status: 400 });
+  const checked = checkBatch(body);
+  if (!checked.ok) {
+    if (checked.reason === "too_large") track.counter("mcp:batch_rejected");
+    return Response.json(rpcError(null, -32600, checked.message, checked.data), { status: 400 });
   }
+  const msgs = checked.msgs as JsonRpcRequest[];
   const results = (await Promise.all(msgs.map((m) => handleOne(m, ctx)))).filter((r) => r !== null);
   const headers = { "Content-Type": "application/json", "Mcp-Protocol-Version": protocol };
   if (results.length === 0) return new Response(null, { status: 202, headers });

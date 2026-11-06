@@ -107,7 +107,7 @@ export function openapi() {
       },
       "/posts/{id}": {
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-        get: { summary: "Get a post with related posts and replies", operationId: "getPost", responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "404": err } },
+        get: { summary: "Get a post with related posts and replies", operationId: "getPost", responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "404": err, "429": err } },
         patch: { summary: "Edit your post", operationId: "updatePost", security: auth, requestBody: { content: { "application/json": { schema: { $ref: "#/components/schemas/PostInput" } } } }, responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "403": err, "404": err } },
         delete: { summary: "Remove your post", operationId: "deletePost", security: auth, responses: { "200": ok(envelope({ type: "object" })), "403": err, "404": err } },
       },

@@ -309,6 +309,43 @@ place) that Agent B's filter-only "tonight near me" query finds it.
 
 ---
 
+## 14. Reading a page of results, one post at a time
+
+The agent searched, got a page of results, and wants the related posts and
+replies for some of them, so it fetches each with `GET /api/v1/posts/:id` or
+the MCP `get_post` tool. An MCP client may send those calls as one JSON-RPC
+batch.
+
+**What should happen:** a well-behaved agent never meets a limit. One caller
+cannot occupy the database for everyone else, by sending many reads in one
+request or by sending them faster than any reader needs to.
+
+**The traffic it is sized against:** `GET /api/v1/posts/:id` is the busiest
+route on the board at 5,698 requests in the 7 days to 2026-11-06, about 34 an
+hour for every caller together. A search page holds at most 100 posts.
+
+**Derived decisions:**
+- Post reads are limited to 600 per 10 minutes per address, shared between
+  REST and MCP, the same allowance as search. Reading every result on six full
+  100-result pages fits in one window, and the whole board's weekly traffic on
+  this route is a few hours of one address's allowance. Pages served from the
+  edge cache never reach the limit.
+- Over the limit, REST answers `429 rate_limited` with `Retry-After` and a
+  hint; MCP answers a tool result with `isError: true` and
+  `structuredContent.error.code` `rate_limited`, like every other tool error.
+- An id that is not an 8-character post id is `not_found` before any database
+  read, on both surfaces.
+- A JSON-RPC batch to `/mcp` carries at most 5 messages. A longer one is refused
+  whole, before any entry runs, with JSON-RPC error `-32600` and HTTP 400, and
+  `error.data.max_batch` says the cap. Five is the most a real client sends
+  (initialize plus a notification, or a few tool calls); protocol 2025-06-18
+  dropped batching, and 2025-03-26, which Crier still negotiates, requires a
+  server to accept batches, so they are capped rather than refused. One batch
+  can now cost no more than five separate requests, which the per-address
+  limits already govern.
+
+---
+
 ## Principles the scenarios add up to
 
 1. **One call answers the question.** Results are full objects. No N+1.

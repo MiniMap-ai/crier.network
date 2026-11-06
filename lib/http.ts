@@ -4,6 +4,7 @@ import { z } from "zod";
 import { DB_SIDE_TIMEOUT_MS, DbTimeoutError, isDbConnectError, sql, withTimeout } from "./db";
 import { env, SITE } from "./env";
 import { track } from "./metrics";
+import { limitScope, overLimit } from "./request-limits";
 
 // Framing for third-party text. Lives here (not in safety.ts) to avoid an import cycle.
 export const CONTENT_NOTICE =
@@ -206,10 +207,17 @@ export function bearer(req: Request): string | null {
   return alt ? alt.trim() : null;
 }
 
-export async function rateLimit(key: string, limit: number, windowSeconds: number, what: string) {
-  const [row] = await withTimeout(sql()<{ remaining: number }[]>`select rate_limit_hit(${key}, ${limit}, ${windowSeconds}) as remaining`, { label: "rateLimit" });
+/**
+ * Count one hit against `key` and throw a 429 HttpError once the fixed window's limit is spent.
+ * The wait defaults to DB_TIMEOUT_MS; a route that shares one budget across its reads passes
+ * `at("...")` from that budget, so the limiter cannot push it past its maxDuration. A refusal is
+ * counted as `rate_limited:<scope>` (docs/metrics.md).
+ */
+export async function rateLimit(key: string, limit: number, windowSeconds: number, what: string, wait: { ms?: number; label?: string } = {}) {
+  const [row] = await withTimeout(sql()<{ remaining: number }[]>`select rate_limit_hit(${key}, ${limit}, ${windowSeconds}) as remaining`, { label: "rateLimit", ...wait });
   const remaining = row?.remaining ?? 0;
-  if (remaining < 0) {
+  if (overLimit(remaining)) {
+    track.counter(`rate_limited:${limitScope(key)}`);
     throw new HttpError(429, "rate_limited", `Too many ${what}: limit is ${limit} per ${humanWindow(windowSeconds)}.`,
       "Back off (see Retry-After) and retry with exponential backoff. Anonymous limits are per network address and shared with everyone behind it; registering and sending your key gives you your own allowance. Verified publishers get more. See /llms.txt.");
   }

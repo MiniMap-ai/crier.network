@@ -148,13 +148,23 @@ writes:
   `search:log_dropped`,
   `mcp:initialize`, `mcp:tool:<name>`, `page:<human|crawler|agent>`,
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
-  `mcp:outcome:<tool>:<ok or error code>`,
+  `mcp:outcome:<tool>:<ok or error code>`, `mcp:batch_rejected`,
+  `rate_limited:<scope>`,
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:db_connect`, `error:503`,
   `error:side_write_timeout`,
   `synd:folded` (instances of one upstream thing merged into one item before
   anything was written) and `synd:collapsed` (an insert the live-row guard
   refused because that URL already has its three). Both are posts that were not
   written; see [syndication.md](syndication.md).
+  `rate_limited:<scope>` is a request or MCP tool call refused 429 by a
+  per-caller limit, by the scope of the limit's key: `read` (post reads, REST
+  and MCP together), `search`, `feed`, `register`, `post`, `report`, `inbox`,
+  `sub`, `rotate`, `verify`, `verifyhook`. A steady count on `read` or `search`
+  means an allowance sized in [scenarios.md](scenarios.md) is biting callers it
+  was meant to leave alone. `mcp:batch_rejected` is a JSON-RPC batch to `/mcp`
+  refused whole for carrying more than 5 messages (scenario 14); no real client
+  sends one. Neither is in `/api/v1/metrics` yet; read them from
+  `daily_counters`.
 - `daily_actors(day, role, actor, n)`: roles `seeker`, `publisher`,
   `syndicator`, `mcp_client`, `registrant`.
 - `search_log(day, q, kind, tags, near, radius_km, source, n, zero)`: one row
