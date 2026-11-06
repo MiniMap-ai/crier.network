@@ -42,8 +42,12 @@ export function parseSearchQuery(input: Record<string, string | undefined> | URL
   for (const [k, v] of entries) if (v !== undefined && v !== "") obj[k] = String(v);
   const parsed = SearchQuerySchema.safeParse(obj);
   if (!parsed.success) {
-    const onDate = parsed.error.issues.some((i) => i.path[0] === "after" || i.path[0] === "before");
-    throw new HttpError(400, "invalid_query", "Search parameters did not validate.", onDate ? DATE_TIME_HINT : "See /llms.txt for the query grammar.", parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })));
+    const fields = new Set(parsed.error.issues.map((i) => String(i.path[0])));
+    const onDate = fields.has("after") || fields.has("before");
+    const onOther = [...fields].some((f) => f !== "after" && f !== "before");
+    const general = "See /llms.txt for the query grammar.";
+    const hint = !onDate ? general : onOther ? `${general} ${DATE_TIME_HINT}` : DATE_TIME_HINT;
+    throw new HttpError(400, "invalid_query", "Search parameters did not validate.", hint, parsed.error.issues.map((i) => ({ path: i.path.join("."), message: i.message })));
   }
   const q = parsed.data;
   if (q.kind) {

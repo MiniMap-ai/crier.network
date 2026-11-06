@@ -5,17 +5,18 @@
 
 /** Says what a rejected `after` or `before` should have looked like; goes out as the error's hint. */
 export const DATE_TIME_HINT =
-  "after and before take ISO 8601 with a four-digit year: a date (2026-09-12, read as midnight UTC) or a date-time with an offset (2026-09-12T21:00:00-05:00 or 2026-09-12T21:00:00Z).";
+  "after and before take ISO 8601 with a four-digit year: a date (2026-09-12, read as midnight UTC) or a date-time with an offset (2026-09-12T21:00:00-05:00 or 2026-09-12T21:00:00Z); a date-time without an offset is rejected.";
 
-export const DATE_TIME_MESSAGE = "must be an ISO 8601 date or date-time, e.g. 2026-09-12 or 2026-09-12T21:00:00-05:00";
+export const DATE_TIME_MESSAGE = "must be an ISO 8601 date or a date-time with an offset, e.g. 2026-09-12 or 2026-09-12T21:00:00-05:00";
 
-const ISO = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,9})?)?(Z|[+-](\d{2}):?(\d{2}))?)?$/i;
+const ISO = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,9})?)?(Z|[+-](\d{2}):?(\d{2})))?$/i;
 
 /**
  * True when `s` is an ISO 8601 date or date-time that `new Date(s)` turns into a valid Date whose
- * UTC year Postgres accepts (0001 to 9999). Rejects what `Date.parse` alone lets through: bare
- * numbers (V8 reads "1" as January 2001), English dates, and impossible dates it rolls over (February 30).
- * A date-time without an offset is accepted and read in the server's zone.
+ * UTC year Postgres accepts (0001 to 9999). A date means midnight UTC; a date-time must carry `Z`
+ * or an offset, because without one `new Date` would read it in the process zone. Rejects what
+ * `Date.parse` alone lets through: bare numbers (V8 reads "1" as January 2001), English dates, and
+ * impossible dates it rolls over (February 30).
  */
 export function isSearchDateTime(s: string): boolean {
   const m = ISO.exec(s);

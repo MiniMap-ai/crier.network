@@ -11,7 +11,6 @@ const ACCEPTED = [
   "2026-09-12T21:00:00+0530",
   "2026-09-12 21:00:00+00:00",
   "2026-09-12t21:00:00z",
-  "2026-09-12T21:00",
   "2028-02-29",
 ];
 
@@ -33,6 +32,10 @@ test("a bare number is rejected rather than read as a year in 2001", () => {
 
 test("formats Date.parse accepts but the grammar does not are rejected", () => {
   for (const s of ["Sep 12 2026", "2026/09/12", "12/09/2026", "Sat, 12 Sep 2026 21:00:00 GMT", "2026-09-12T21:00:00+05"]) assert.ok(!isSearchDateTime(s), s);
+});
+
+test("a date-time without an offset is rejected rather than read in the process zone", () => {
+  for (const s of ["2026-09-12T21:00", "2026-09-12T21:00:00", "2026-09-12T21:00:00.123", "2026-09-12 21:00:00"]) assert.ok(!isSearchDateTime(s), s);
 });
 
 test("impossible calendar values are rejected instead of rolled over", () => {
