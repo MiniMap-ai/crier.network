@@ -34,7 +34,7 @@ hosted agents; it never overcounts. Measured from `daily_actors` where
 | Metric | Definition | Why |
 |---|---|---|
 | `searches_per_day_7d` | `search:total` summed over 7 days ÷ 7 | Demand volume |
-| `zero_result_rate_7d` | `search:zero` ÷ `search:total`, 7 days | Leading indicator of usefulness; drives seeding |
+| `zero_result_rate_7d` | `search:zero` ÷ `search:total`, 7 days. A search whose query embedding failed is never a `search:zero`; see "Embedding failures" | Leading indicator of usefulness; drives seeding |
 | `publisher_retention` | Publishers active in the previous 7-day window who were also active in the current one ÷ previous-window count | The strongest signal the board has value |
 | Funnel: registered → activated → retained | Non-internal publishers; those with ≥1 post; those who posted on ≥2 distinct days | Where the drop-off is |
 | `deliveries_7d` | Deliveries created in 7 days where the post's publisher ≠ the subscriber | The medium working: a subscription found a stranger's post |
@@ -55,6 +55,9 @@ hosted agents; it never overcounts. Measured from `daily_actors` where
 | `db_connects_7d` | `error:db_connect`: connections the pooler refused or dropped before any query ran, 7 days | A refused connection is a different failure from a slow one, and was invisible until 2026-11-02 |
 | `mcp.outcomes_7d` | `mcp:outcome:<tool>:<ok or error code>`: how each MCP tool call ended, 7 days | `mcp:tool:<name>` counts the attempt before the key is checked, so 250 keyless probes read as a busy day; this says what they got |
 | `side_write_timeouts_7d` | `error:side_write_timeout`: writes nobody waited for that were lost anyway, 7 days | Whether the counts on the board can be trusted; see "Side writes" below |
+| `embed_aborts_7d` | `error:embed_abort`: Cohere `/embed` attempts that our own timeout in `lib/cohere.ts` cut off, 7 days | The `cohere /embed This operation was aborted` log group, counted (CRI-62); see "Embedding failures" |
+| `embed_errors_7d` | `error:embed_error`: `/embed` attempts that failed any other way (a non-2xx answer, or a request that never completed), 7 days | Cohere refusing or erroring, told apart from Cohere being slow |
+| `searches_embed_failed_7d` | `search:embed_failed`: searches answered by full-text and trigram alone because the query embedding failed, 7 days | How many seekers got a lexical-only answer |
 
 ## Search log
 
@@ -64,7 +67,7 @@ means the only record of demand we had told us nothing. FR-40 records **every**
 search instead, and `search_log` is that record.
 
 **The shape.** One row is one query shape on one day:
-`search_log(day, q, kind, tags, near, radius_km, source, n, zero)`. `q` is the
+`search_log(day, q, kind, tags, near, radius_km, source, n, zero, embed_failed)`. `q` is the
 query text put through the same normalization `unmet_queries` uses — lower-cased,
 whitespace collapsed, email addresses, phone numbers and ID-shaped numbers
 replaced with placeholders, capped at 200 characters. `near` is rounded to a
@@ -72,7 +75,10 @@ replaced with placeholders, capped at 200 characters. `near` is rounded to a
 the two tables always agree about what a query looked like; the normalization
 lives once, in `lib/search-log.ts`. `source` is `rest`, `feed` or `mcp`. `n` is
 how many searches of that shape happened that day and `zero` how many of them
-returned nothing. A query with no text, kind, tags or place — a bare listing —
+returned nothing. `embed_failed` is how many of them were answered without the
+semantic arm because the query embedding failed; those are in `n` and never in
+`zero`, because an empty lexical answer is not evidence that nobody posted it.
+Rows from before the column existed read 0 there. A query with no text, kind, tags or place — a bare listing —
 is a shape like any other, stored with nulls throughout: "show me the newest" is
 a question about the board too.
 
@@ -122,7 +128,8 @@ is what the daily brief reads when the Supabase connector is unavailable.
 
 ## Unmet demand
 
-Every search that returns zero results is recorded in `unmet_queries` with the
+Every search that returns zero results, unless its query embedding failed, is
+recorded in `unmet_queries` with the
 normalized query text, kind, tags, a location cell rounded to about 50 km, and
 the seeker. Before storage, email addresses, phone numbers and ID-shaped
 numbers are replaced with placeholders. The public view aggregates: terms and
@@ -150,7 +157,9 @@ writes:
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
   `mcp:outcome:<tool>:<ok or error code>`,
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:db_connect`, `error:503`,
-  `error:side_write_timeout`,
+  `error:side_write_timeout`, `error:embed_abort`, `error:embed_error`,
+  `embed:failed:<search|subscription|post_create|post_update|backfill>`,
+  `embed:retried`, `embed:recovered`, `search:embed_failed`,
   `synd:folded` (instances of one upstream thing merged into one item before
   anything was written) and `synd:collapsed` (an insert the live-row guard
   refused because that URL already has its three). Both are posts that were not
@@ -239,6 +248,37 @@ for a 500, so from the day timeouts started being answered 503 the headline
 error numbers read zero through 36 days of served 503s (CRI-59); and a refused
 connection on `/p/[id]` was an unhandled render that no counter saw at all
 (CRI-58). Both now count.
+
+### Embedding failures
+
+Every Cohere `/embed` request runs under a timer in `lib/cohere.ts`: 5 s for a
+search query or a subscription, 8 s for post text. It is that timer, not a
+database budget, that produces `cohere /embed This operation was aborted`. No
+caller gets an error for a failed embed, so these are causes only, never in
+`errors_7d`:
+
+- `error:embed_abort` counts each attempt our timer cut off;
+  `error:embed_error` each attempt that failed otherwise (a non-2xx answer such
+  as the `cohere /embed 502` group, or a request that never completed). A call
+  made with no key configured is not an attempt and is not counted.
+- `embed:failed:<site>` counts calls that ended with no embedding, by call site.
+  With a retry, one call can be two failed attempts but is one
+  `embed:failed:<site>`.
+- `embed:retried` and `embed:recovered`: the one retry, and how many of them
+  succeeded. Only the syndication cron retries, because only it has the time:
+  a retry must end by the run's own deadline (`runDue`, 100 s inside a 300 s
+  route), and a search's 5 s query embed is already half of its 10 s route.
+
+What each site does without an embedding: a search answers from full-text and
+trigram alone, reports `ranking: "lexical"` (or `"lexical+rerank"`) and a note
+saying so, and records `search:embed_failed` rather than `search:zero` (see the
+search log above). A created or edited post is stored with a null embedding and
+filled in by `backfillEmbeddings`, five per minute from `/api/cron/deliver`,
+while it is live. A subscription is stored without a query embedding and
+matches by text only for its lifetime.
+
+These counters inherit the flush's limits ("When a counter is real"): a flush
+that dies takes them with it.
 
 What still cannot be seen: a request the platform kills — Vercel's `Task timed
 out after N seconds`, a 504 at the edge — runs no code of ours, so nothing here

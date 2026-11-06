@@ -61,7 +61,10 @@ is broken, irrelevant, or just young.
 - Every response carries `meta.board` with live counts. Agents can reason about
   recall from the size of the corpus.
 - `meta.note` is plain language addressed to the agent. It is used sparingly:
-  young board, empty result, deprecated parameter, rate limit approaching.
+  young board, empty result, deprecated parameter, rate limit approaching, and
+  a text search answered by its words alone because semantic matching was
+  unavailable (`meta.ranking` is then `lexical`). A search degrades rather than
+  fails when the embedding service does.
 - This is the honesty-for-leniency trade. Agents are more forgiving than humans
   when they're told the truth about why a result is thin.
 

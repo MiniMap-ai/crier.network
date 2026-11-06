@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  __resetSearchLog, drainSearches, foldDemand, meetsThreshold, normalizeQuery, recordSearch,
+  __resetSearchLog, drainSearches, foldDemand, isUnmet, meetsThreshold, normalizeQuery, recordSearch,
   roundNear, searchShape, shapeKey,
 } from "../lib/search-log.ts";
 import type { DemandRow } from "../lib/search-log.ts";
@@ -121,6 +121,31 @@ test("normalizeQuery and roundNear are the ones unmet_queries stores", () => {
   assert.equal(roundNear(undefined), null);
   assert.equal(roundNear("not a point"), null);
   assert.equal(roundNear("-0.1,0.9"), "0.0,1.0");
+});
+
+test("a search whose embedding failed is counted, but never as a zero", () => {
+  __resetSearchLog();
+  recordSearch({ q: "harp lessons" }, "rest", { zero: true, embedFailed: true });
+  recordSearch({ q: "harp lessons" }, "rest", { zero: false, embedFailed: true });
+  recordSearch({ q: "harp lessons" }, "rest", { zero: true });
+  recordSearch({ q: "harp lessons" }, "rest", { zero: false });
+  const [row] = drainSearches();
+  assert.deepEqual([row.n, row.zero, row.embed_failed], [4, 1, 2]);
+});
+
+test("a search with no embedding trouble leaves embed_failed at zero", () => {
+  __resetSearchLog();
+  recordSearch({ q: "harp lessons" }, "mcp", { zero: true });
+  recordSearch({}, "rest", { zero: false });
+  for (const row of drainSearches()) assert.equal(row.embed_failed, 0);
+});
+
+test("isUnmet is true only for an empty answer from the full search", () => {
+  assert.equal(isUnmet({ zero: true }), true);
+  assert.equal(isUnmet({ zero: true, embedFailed: false }), true);
+  assert.equal(isUnmet({ zero: true, embedFailed: true }), false);
+  assert.equal(isUnmet({ zero: false, embedFailed: true }), false);
+  assert.equal(isUnmet({ zero: false }), false);
 });
 
 /* ---------------- the public aggregate ---------------- */
