@@ -29,21 +29,9 @@ import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, 
  * is counted by nothing here, because no code of ours ran. Those are only visible in Vercel's
  * runtime logs; the daily check reads them there.
  *
- * When a counter is real: a count reaches `daily_counters` only when the flush carrying it commits,
- * and the flush runs after its request's response, on whichever client `sql()` hands it then. That
- * ordering is what decided which half of 2026-11-05's evidence survived (CRI-70). At 03:50 the pool
- * guard destroyed the client while fourteen flushes were queued on it, five `error:db_timeout`
- * among them: every one failed with CONNECTION_DESTROYED and `error:side_write_timeout` took 14,
- * `error:db_timeout` nothing. At 21:27 the three `getPostRow` page failures ended after the recycle,
- * so their flushes started on the fresh client and committed; the one `relatedPosts` timeout's flush
- * was already in flight and was lost — `error:db_timeout` 3, `error:side_write_timeout` +1. Two
- * things close that gap now: the guard drains the old client instead of destroying it
- * (lib/db-timeout.ts), so a flush in flight commits where it is; and a flush that loses its
- * connection before its COMMIT is on the wire is tried once more on the fresh client with the same
- * batch, inside what is left of its wait. What can still be lost is a flush the database would not
- * take within FLUSH_WAIT_MS at all, or one whose connection went away during COMMIT itself, which
- * is counted as lost rather than risked twice; both losses are counted, so `error:side_write_timeout`
- * remains the number that says how far the rest can be trusted.
+ * A count is real only once the flush carrying it commits; a flush that dies takes its batch with
+ * it and leaves one `error:side_write_timeout` behind. docs/metrics.md, "When a counter is real",
+ * has what that meant for CRI-70's evidence.
  */
 
 const pendingCounters = new Map<string, number>();
@@ -100,11 +88,9 @@ async function flush() {
     // cannot be cancelled once it is in flight — the server-side statement_timeout is what ends it
     // there — but this is what stops us waiting on it inside the caller's remaining time.
     const at = budget(FLUSH_WAIT_MS);
-    // Set once every statement is in and COMMIT is next. A connection lost before that point applied
-    // nothing — the server rolls an open transaction back when its client goes — so the same batch
-    // can go once more, on the client that replaced it and on what is left of the same wait. One
-    // lost during COMMIT may or may not have applied, and is not retried: these are increments, and
-    // a batch counted as lost is a smaller lie than a view or a cron tick counted twice.
+    // Set once COMMIT is next. A connection lost before that applied nothing, so the batch goes once
+    // more on the fresh client; one lost during COMMIT may have applied, so it is counted as lost
+    // rather than risked twice.
     let committing = false;
     const attempt = () => withTimeout(sql().begin(async (tx) => {
       await tx`select set_config('statement_timeout', ${String(FLUSH_TIMEOUT_MS)}, true), set_config('lock_timeout', ${String(FLUSH_LOCK_TIMEOUT_MS)}, true)`;
@@ -221,12 +207,11 @@ export const track = {
 export const SERVED_ERROR_KEYS = ["error:5xx", "error:503"];
 
 /**
- * A read a page could render around — related posts, a listing — failed, and the page went out
- * without that section. Not an error the caller saw, so only the cause is counted: `error:db_timeout`
- * for a wait that ran out of budget, `error:db_connect` for a connection that went away under it.
- * Anything else is not a database failure and is left to the page's own catch.
+ * A read a page could render around — related posts, a listing — timed out or lost its connection,
+ * and the page went out without that section. Not an error the caller saw, so only the cause is
+ * counted.
  */
-export function noteDroppedRead(where: string, e: unknown): void {
+export function noteDbTimeout(where: string, e: unknown): void {
   if (e instanceof DbTimeoutError) {
     console.error("page db timeout", where, e.label ?? "", e.message);
     track.counter("error:db_timeout");

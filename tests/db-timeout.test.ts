@@ -111,9 +111,8 @@ test("a run of timeouts that outlives a read budget replaces the pool; a success
   assert.equal(client.ended.length, 0, "a successful read must clear the run of timeouts");
   assert.equal(currentClient(), client);
 
-  // Three in a row with nothing succeeding, the last landing two budgets after the first: a request
-  // that arrived after the trouble began has spent its whole allowance and got nothing. That is a
-  // wedge, so the client is replaced.
+  // Three in a row with nothing succeeding, the last landing two budgets after the first: a wedge,
+  // so the client is replaced.
   await withTimeoutOr(fakeQuery<string>(), null);
   await withTimeoutOr(fakeQuery<string>(), null);
   await withTimeoutOr(fakeQuery<string>(), null);
@@ -130,12 +129,9 @@ test("the replaced client is drained, not destroyed", async () => {
   await withTimeoutOr(fakeQuery<string>(), null);
   await withTimeoutOr(fakeQuery<string>(), null);
   assert.equal(client.ended.length, 1);
-  // postgres.js's `end({ timeout })` lets what is in flight finish for that many seconds before it
-  // destroys the sockets; `timeout: 0` destroys them now, failing every query still on them with
-  // CONNECTION_DESTROYED. Every wait on the request path is bounded by one of the two budgets and
-  // cancels itself at its deadline, so a drain at least as long as the larger of them never reaches
-  // a query anyone is waiting on — whichever of the two is configured larger (here the side budget
-  // is left at its default, far above the 60 ms read budget this file sets).
+  // `end({ timeout })` lets in-flight work finish for that many seconds; `timeout: 0` destroys the
+  // sockets now, which is what served the 500s. Every wait is bounded by one of the two budgets, so
+  // a drain at least as long as the larger one never reaches a query anyone is waiting on.
   const longestWait = Math.max(DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS) / 1000;
   assert.ok(client.ended[0].timeout >= longestWait, `drain of ${client.ended[0].timeout} s is shorter than the longest bounded wait, ${longestWait} s`);
   assert.ok(client.ended[0].timeout > 0, "a timeout of 0 is a destroy, which is what served the 500s");
@@ -145,9 +141,8 @@ test("the replaced client is drained, not destroyed", async () => {
 test("a burst of timeouts inside one read budget does not replace the pool", async () => {
   __resetDbHealth();
   const client = fakeClient();
-  // Five concurrent reads on a cold instance, the shape of both incidents on 2026-11-05: they reach
-  // their deadlines within the same few milliseconds, with the connections still coming up. Five
-  // in a row, and no evidence at all that the pool is wedged rather than slow to open.
+  // Five concurrent reads on a cold instance reach their deadlines within the same few milliseconds
+  // with the connections still coming up: five in a row, and no evidence the pool is wedged.
   await Promise.all([
     withTimeoutOr(fakeQuery<string>(), null, { ms: 20, label: "relatedPosts" }),
     withTimeoutOr(fakeQuery<string>(), null, { ms: 20, label: "relatedPosts" }),
@@ -167,9 +162,8 @@ test("a burst of timeouts inside one read budget does not replace the pool", asy
 test("CRI-70: five soft deadlines beside a primary read that answers leave the primary read alone", async () => {
   __resetDbHealth();
   const client = fakeClient();
-  // What 03:50 looked like from inside the instance: five relatedPosts reads on the side budget
-  // give up together while a page's getPostRow is still waiting, and would have answered. The
-  // guard used to destroy the pool on the fifth, and the primary read with it.
+  // Five relatedPosts reads on the side budget give up together while a page's getPostRow is still
+  // waiting and would have answered. The guard used to destroy the pool on the fifth, and it with it.
   const primary = withTimeout(fakeQuery<{ id: string }>({ value: { id: "n4a2ed3N" }, delayMs: 40 }), { ms: 55, label: "getPostRow" });
   const soft = await Promise.all(Array.from({ length: 5 }, () => withTimeout(fakeQuery<string>(), { ms: 15, label: "relatedPosts" }).then(() => null, (e: unknown) => e)));
   assert.ok(soft.every((e) => e instanceof DbTimeoutError), "each decorative read rejects with its own timeout, which the page counts and renders around");
