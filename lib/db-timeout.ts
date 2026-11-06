@@ -10,10 +10,9 @@
  * to that instance until the platform kills it.
  *
  * Everything on the request path goes through withTimeout. It lives in its own module, free of
- * imports, so it can be unit-tested without a database or a bundler. When reads do nothing but time
- * out for longer than one of them is allowed to wait, the client is replaced and the old one drained
- * (noteTimeout); when a read loses its connection instead of its budget, retryIfConnectionLost runs
- * it once more on the client that replaced it.
+ * imports, so it can be unit-tested without a database or a bundler. noteTimeout replaces the client
+ * when reads have done nothing but time out for longer than one is allowed to wait;
+ * retryIfConnectionLost reruns a read that lost its connection rather than its budget.
  *
  * A bound is not enough on its own for a write nobody awaits. `void withTimeoutOr(...)` on the
  * request path leaves the promise and this module's timer unregistered, so Fluid compute may
@@ -35,18 +34,16 @@ export const DB_SIDE_TIMEOUT_MS = int("CRIER_DB_SIDE_TIMEOUT_MS", 2500);
 /** Consecutive timeouts, with no read succeeding in between, before the pool is replaced. */
 const RESET_AFTER_TIMEOUTS = int("CRIER_DB_RESET_AFTER_TIMEOUTS", 5);
 /**
- * How long that run has to have lasted as well, measured from the first timeout in it. A single
- * burst of concurrent requests cannot reach this: every read in the burst lands inside the budget
- * they share. A wedged pool reaches it on the next request to arrive, because that request spends
- * its whole budget and gets nothing. See noteTimeout.
+ * How long that run must have lasted, from its first timeout. A burst of concurrent requests lands
+ * inside the budget they share and cannot reach this; a wedged pool does on the next request in.
  */
 const RESET_AFTER_MS = int("CRIER_DB_RESET_AFTER_MS", DB_TIMEOUT_MS);
 /**
- * How long a replaced client is given to finish what it was doing before its sockets are destroyed.
- * Longer than any bounded wait on the request path, so a query somebody is waiting on reaches its
- * own deadline first and this only ever reaches a statement nothing was waiting on.
+ * Seconds a replaced client gets to finish in-flight work before its sockets are destroyed. Longer
+ * than either budget, so a query someone is waiting on reaches its own deadline first. The flush's
+ * wait in lib/metrics.ts has to stay under this too.
  */
-const DRAIN_TIMEOUT_S = Math.ceil(DB_TIMEOUT_MS / 1000) + 2;
+const DRAIN_TIMEOUT_S = Math.ceil(Math.max(DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS) / 1000) + 2;
 
 /**
  * A read gave up before the database answered. Distinguishable on purpose: handlers turn it into a
@@ -85,12 +82,9 @@ export function isDbConnectError(e: unknown): boolean {
 }
 
 /**
- * Did the database fail this read, as opposed to the read being wrong? True for the two classes the
- * handlers answer 503 for: a wait that ran out of budget, and a connection that was refused or went
- * away under the query. A caller that can answer without the read — the related posts beside a post
- * on GET /api/v1/posts/:id and MCP get_post — drops it on these and on nothing else. Anything else is
- * an error in the read itself, and that has to stay a 500 with a ref in the logs: served as an empty
- * list it would be a bug nobody sees and no counter counts.
+ * Did the database fail this read — its budget ran out, or its connection was refused or went away —
+ * rather than the read being wrong? A caller that can answer without the read drops it on these and
+ * on nothing else, so an error in the read itself stays an error.
  */
 export function isDbFailure(e: unknown): boolean {
   return e instanceof DbTimeoutError || isDbConnectError(e);
@@ -112,28 +106,15 @@ function noteHealthy() {
 }
 
 /**
- * A read timed out. Enough of them in a row, for long enough, and the pool is replaced.
+ * A read timed out. RESET_AFTER_TIMEOUTS in a row spanning RESET_AFTER_MS, and the client is
+ * replaced: postgres.js never retires a connection whose query never answers, so a pool whose
+ * sockets are alive but silent would otherwise fail for the rest of the instance's life. The count
+ * alone is not evidence of that — five concurrent reads on a cold instance can hit their deadlines
+ * in the same second while their connections are still coming up, which is how CRI-70 was served —
+ * so the run has to outlive a full read budget as well, which no single burst can.
  *
- * Both conditions are needed. postgres.js will not retire a connection whose query never answers —
- * max_lifetime waits for the in-flight query — so a pool whose sockets are alive but silent would
- * serve failures for the rest of the instance's life without this. But five timeouts in a row is
- * not evidence of that on its own: a burst of concurrent requests arriving on a cold instance pays
- * one TLS and SCRAM handshake per socket, and if the pooler is slow to open them, five reads can
- * reach their deadlines within the same second with the connections still coming up. That is the
- * shape of both incidents of 2026-11-05 (CRI-70): five timeouts inside three seconds, Postgres
- * idle, nothing else on the platform busy. Five in a row is what any one burst looks like, whether
- * it is a decorative read's 2.5 s deadline doing the counting or the page's own 5.5 s one. A run
- * that outlives a whole read budget is different: a request that arrived after the trouble began
- * has had its entire allowance and got nothing, and no single burst can produce that, because
- * everything in a burst lands inside the budget it shares.
- *
- * The replaced client is drained, not destroyed. The next caller builds a fresh one; whatever is in
- * flight on the old one finishes, or reaches its own deadline and is cancelled, before its sockets
- * close. Destroying it — `end({ timeout: 0 })`, what this did through both incidents — failed every
- * query still on it with CONNECTION_DESTROYED, which turned degraded latency on five decorative reads into
- * served 500s on the primary read of every concurrent page, and took the metrics flush with it, so
- * the timeouts that caused the recycle were never counted. The counters are the only record of why
- * a recycle happened; they must not ride the thing being recycled.
+ * The old client is drained, not destroyed: `end({ timeout: 0 })` failed every query still on it
+ * with CONNECTION_DESTROYED, the page's primary read and the metrics flush included.
  */
 function noteTimeout() {
   const now = Date.now();
@@ -206,19 +187,10 @@ export function budget(totalMs: number = DB_TIMEOUT_MS): Budget {
 }
 
 /**
- * Run a read once more if the first attempt died with its connection rather than with its budget.
- *
- * A connection the pooler closed under a query, or one this module replaced, fails that query with
- * a class-08 or postgres.js connection code, not a timeout: nothing was slow, the socket went away.
- * The next `sql()` call hands out a live connection, so the second attempt is the same read on a
- * different socket, inside whatever is left of the same budget — reads are safe to retry, as the
- * API's own hint tells callers. A timeout is not retried: the budget is spent, and the first attempt
- * has already been cancelled.
- *
- * This is the page's fallback. The App Router gives a page no way to answer 503, so when its one
- * necessary read fails the page is a 500 (app/error.tsx); before this, a connection dropped under
- * getPostRow was that 500 with nothing tried in between (CRI-70). The metrics flush uses it too, so
- * a flush that was on a connection when it went away carries the same batch to the next one.
+ * Run a read once more if it died with its connection rather than its budget: a class-08 or
+ * postgres.js connection code means the socket went away, and the next `sql()` hands out a live
+ * one. A timeout is not retried; the budget is spent. Reads only — a write lost during COMMIT may
+ * have applied, so the metrics flush does its own retry and stops at COMMIT (lib/metrics.ts).
  */
 export async function retryIfConnectionLost<T>(attempt: () => Promise<T>): Promise<T> {
   try {

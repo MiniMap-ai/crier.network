@@ -38,10 +38,9 @@ async function loadPostPage(id: string): Promise<PostPageView | null> {
   // /p/<id> makes two cached reads: this one and cachedRelated. Between them they have to stay
   // inside the route's maxDuration, so this one takes the read budget less what related is allowed.
   const at = budget(DB_TIMEOUT_MS - DB_SIDE_TIMEOUT_MS);
-  // This is the read the page cannot render without, so a connection that goes away under it gets
-  // one more try on the budget's remainder — the only fallback a page has, since it cannot answer
-  // 503. A cache miss is the case that matters: a post with an entry is served stale while this
-  // revalidates in the background, and a failure there reaches no caller.
+  // The read the page cannot render without: a lost connection gets one more try on what is left of
+  // the budget, since a page cannot answer 503. Only a cache miss reaches a caller; a stale entry is
+  // served while this revalidates in the background.
   return retryIfConnectionLost(async () => {
     const row = await getPostRow(id, undefined, at);
     if (!row) return null;

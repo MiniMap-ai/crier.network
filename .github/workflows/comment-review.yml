@@ -1,0 +1,56 @@
+# A second reviewer on every pull request, for the part CI cannot measure: whether each comment and
+# doc change says something the code cannot, will still be true after the merge, and lives in one
+# place. It posts inline comments and never blocks; scripts/check-comments.mjs in ci.yml is the
+# blocking half. Needs ANTHROPIC_API_KEY in the repository's Actions secrets.
+name: Comment review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+  id-token: write
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Skipped, not failed, until the secret exists: a missing key must not turn every PR red.
+      - if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Review only the comments and documentation this pull request adds or changes. Do not review
+            logic, naming or style. Read the change with `git diff origin/${{ github.base_ref }}...HEAD`
+            and the rules in CLAUDE.md under "Comments and documentation".
+
+            Apply five tests to every added or changed code comment, docblock, or paragraph under docs/:
+            1. Cover: hide the comment. If nothing is lost, it restates the code and should go.
+            2. Tense: it describes the code as it is now. Dates, "used to", "until now", "before this
+               change" and incident narration belong in the commit, the PR, or docs/; a ticket id may
+               stay only as a pointer.
+            3. Level: it says why, or which constraint, not how step by step. If it explains how, ask
+               for a rename or an extraction instead of a comment.
+            4. Size and place: an inline comment is three lines or fewer; a docblock states the contract
+               without tags that repeat a name or type; a thing said in docs/ is pointed at, not copied.
+            5. Truth: read it against the behaviour in the diff. A comment the code contradicts fails
+               review like a failing test would.
+
+            Also check that when the diff changes behaviour a file under docs/ describes, that file is
+            updated in the same pull request.
+
+            Post one inline comment per problem on the line it concerns, with a concrete rewrite or the
+            place the text should move to. Be brief. If nothing is wrong, post nothing at all.
+          claude_args: |
+            --max-turns 12
+            --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),mcp__github_inline_comment__create_inline_comment"

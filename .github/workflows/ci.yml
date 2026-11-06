@@ -42,6 +42,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # check-comments diffs against the PR's merge base
 
       - uses: actions/setup-node@v4
         with:
@@ -55,6 +57,12 @@ jobs:
 
       - name: Tests
         run: npm test
+
+      # Only the comments this PR adds are judged, never a file's past. CLAUDE.md states the rule;
+      # scripts/check-comments.mjs holds the limits and says where history goes instead.
+      - name: Added comments are within limits
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-comments.mjs origin/${{ github.base_ref }}
 
       # The check that would have caught 2026-09-10's whole class of problem. It executes the SQL
       # rather than parsing it, twice, against a real Postgres: a migration that is not idempotent

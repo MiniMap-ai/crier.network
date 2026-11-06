@@ -9,7 +9,7 @@ process.env.CRIER_DB_RESET_AFTER_TIMEOUTS = "3";
 // between, so the two shapes the guard has to tell apart are both reachable here.
 process.env.CRIER_DB_RESET_AFTER_MS = "100";
 
-const { DB_TIMEOUT_MS, DbTimeoutError, __resetDbHealth, budget, isDbFailure, retryIfConnectionLost, withTimeout, withTimeoutOr } = await import("../lib/db-timeout.ts");
+const { DB_SIDE_TIMEOUT_MS, DB_TIMEOUT_MS, DbTimeoutError, __resetDbHealth, budget, isDbFailure, retryIfConnectionLost, withTimeout, withTimeoutOr } = await import("../lib/db-timeout.ts");
 
 type FakeQuery<T> = PromiseLike<T> & {
   execute: () => void;
@@ -40,9 +40,8 @@ function fakeQuery<T>(opts: { value?: T; delayMs?: number; cancel?: "ok" | "thro
 }
 
 /**
- * Stands in for a query the database fails outright — a connection that went away, a statement it
- * would not take. It rejects only once something waits on it, as a real pending query does; a promise
- * rejected up front with nobody attached yet is an unhandled rejection to Node.
+ * Stands in for a query the database fails outright. It rejects only once something waits on it, as
+ * a real pending query does; a promise rejected up front with nobody attached is an unhandled rejection.
  */
 function failingQuery<T>(err: unknown): FakeQuery<T> {
   const q: FakeQuery<T> = {
@@ -127,9 +126,8 @@ test("a run of timeouts that outlives a read budget replaces the pool; a success
   assert.equal(client.ended.length, 0, "a successful read must clear the run of timeouts");
   assert.equal(currentClient(), client);
 
-  // Three in a row with nothing succeeding, the last landing two budgets after the first: a request
-  // that arrived after the trouble began has spent its whole allowance and got nothing. That is a
-  // wedge, so the client is replaced.
+  // Three in a row with nothing succeeding, the last landing two budgets after the first: a wedge,
+  // so the client is replaced.
   await withTimeoutOr(fakeQuery<string>(), null);
   await withTimeoutOr(fakeQuery<string>(), null);
   await withTimeoutOr(fakeQuery<string>(), null);
@@ -146,11 +144,11 @@ test("the replaced client is drained, not destroyed", async () => {
   await withTimeoutOr(fakeQuery<string>(), null);
   await withTimeoutOr(fakeQuery<string>(), null);
   assert.equal(client.ended.length, 1);
-  // postgres.js's `end({ timeout })` lets what is in flight finish for that many seconds before it
-  // destroys the sockets; `timeout: 0` destroys them now, failing every query still on them with
-  // CONNECTION_DESTROYED. Every wait on the request path is bounded by DB_TIMEOUT_MS and cancels
-  // itself at its deadline, so a drain at least that long never reaches a query anyone is waiting on.
-  assert.ok(client.ended[0].timeout >= DB_TIMEOUT_MS / 1000, `drain of ${client.ended[0].timeout} s is shorter than the read budget`);
+  // `end({ timeout })` lets in-flight work finish for that many seconds; `timeout: 0` destroys the
+  // sockets now, which is what served the 500s. Every wait is bounded by one of the two budgets, so
+  // a drain at least as long as the larger one never reaches a query anyone is waiting on.
+  const longestWait = Math.max(DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS) / 1000;
+  assert.ok(client.ended[0].timeout >= longestWait, `drain of ${client.ended[0].timeout} s is shorter than the longest bounded wait, ${longestWait} s`);
   assert.ok(client.ended[0].timeout > 0, "a timeout of 0 is a destroy, which is what served the 500s");
   forgetClient();
 });
@@ -158,9 +156,8 @@ test("the replaced client is drained, not destroyed", async () => {
 test("a burst of timeouts inside one read budget does not replace the pool", async () => {
   __resetDbHealth();
   const client = fakeClient();
-  // Five concurrent reads on a cold instance, the shape of both incidents on 2026-11-05: they reach
-  // their deadlines within the same few milliseconds, with the connections still coming up. Five
-  // in a row, and no evidence at all that the pool is wedged rather than slow to open.
+  // Five concurrent reads on a cold instance reach their deadlines within the same few milliseconds
+  // with the connections still coming up: five in a row, and no evidence the pool is wedged.
   await Promise.all([
     withTimeoutOr(fakeQuery<string>(), null, { ms: 20, label: "relatedPosts" }),
     withTimeoutOr(fakeQuery<string>(), null, { ms: 20, label: "relatedPosts" }),
@@ -180,9 +177,8 @@ test("a burst of timeouts inside one read budget does not replace the pool", asy
 test("CRI-70: five soft deadlines beside a primary read that answers leave the primary read alone", async () => {
   __resetDbHealth();
   const client = fakeClient();
-  // What 03:50 looked like from inside the instance: five relatedPosts reads on the side budget
-  // give up together while a page's getPostRow is still waiting, and would have answered. The
-  // guard used to destroy the pool on the fifth, and the primary read with it.
+  // Five relatedPosts reads on the side budget give up together while a page's getPostRow is still
+  // waiting and would have answered. The guard used to destroy the pool on the fifth, and it with it.
   const primary = withTimeout(fakeQuery<{ id: string }>({ value: { id: "n4a2ed3N" }, delayMs: 40 }), { ms: 55, label: "getPostRow" });
   const soft = await Promise.all(Array.from({ length: 5 }, () => withTimeout(fakeQuery<string>(), { ms: 15, label: "relatedPosts" }).then(() => null, (e: unknown) => e)));
   assert.ok(soft.every((e) => e instanceof DbTimeoutError), "each decorative read rejects with its own timeout, which the page counts and renders around");
@@ -259,9 +255,6 @@ test("a timeout, a query error and a plain error are not connection failures", a
 // ---------- what a caller may drop a decorative read over ----------
 
 test("a timeout or a lost connection is the database failing; a query error or a plain error is not", () => {
-  // GET /api/v1/posts/:id and MCP get_post serve the post without its related block on these two,
-  // counting the cause, and on nothing else: an error in the read itself has to stay a 500 with a ref
-  // in the logs rather than become an empty list nobody notices.
   assert.ok(isDbFailure(new DbTimeoutError(2500, "relatedPosts")));
   assert.ok(isDbFailure(Object.assign(new Error("write CONNECTION_DESTROYED aws-0-us-east-1.pooler.supabase.com:6543"), { code: "CONNECTION_DESTROYED" })));
   assert.ok(isDbFailure(Object.assign(new Error("Failed to connect to database: {:error, :timeout}"), { code: "08006" })));
@@ -273,8 +266,8 @@ test("a timeout or a lost connection is the database failing; a query error or a
 
 test("the related read beside a post is dropped when the database fails it; the post read is not", async () => {
   __resetDbHealth();
-  // The shape of GET /api/v1/posts/:id and MCP get_post: one budget across the post and its related
-  // posts, the post read bare, the related read behind the catch both callers use.
+  // One budget across the post and its related posts, the post read bare and the related read behind
+  // the catch GET /api/v1/posts/:id and MCP get_post use; `dropped` stands in for noteDbTimeout.
   const dropped: unknown[] = [];
   const fetchPost = async (post: FakeQuery<{ id: string }>, related: FakeQuery<string[]>) => {
     const at = budget(60);
@@ -282,18 +275,13 @@ test("the related read beside a post is dropped when the database fails it; the 
     const rel = await withTimeout(related, at("relatedPosts")).catch((e: unknown) => { if (!isDbFailure(e)) throw e; dropped.push(e); return []; });
     return { ...row, related: rel };
   };
-  // Related never answers: the post is served without it, and the cause is there to be counted.
-  assert.deepEqual(await fetchPost(fakeQuery({ value: { id: "8Hq2mZk3" }, delayMs: 1 }), fakeQuery()), { id: "8Hq2mZk3", related: [] });
-  assert.equal(dropped.length, 1);
+  const post = () => fakeQuery({ value: { id: "8Hq2mZk3" }, delayMs: 1 });
+  assert.deepEqual(await fetchPost(post(), fakeQuery()), { id: "8Hq2mZk3", related: [] }, "a related read that never answers is dropped");
   assert.ok(dropped[0] instanceof DbTimeoutError, "what is counted is the timeout itself");
-  // Related died with its connection: same answer, same count.
-  assert.deepEqual(await fetchPost(fakeQuery({ value: { id: "8Hq2mZk3" }, delayMs: 1 }), failingQuery(lostConnection("CONNECTION_DESTROYED"))), { id: "8Hq2mZk3", related: [] });
+  assert.deepEqual(await fetchPost(post(), failingQuery(lostConnection("CONNECTION_DESTROYED"))), { id: "8Hq2mZk3", related: [] }, "a related read that lost its connection is dropped");
   assert.equal(dropped.length, 2);
-  // Related failed for a reason of its own: that is a bug, and it reaches the handler as one.
-  await assert.rejects(fetchPost(fakeQuery({ value: { id: "8Hq2mZk3" }, delayMs: 1 }), failingQuery(Object.assign(new Error("invalid input syntax"), { code: "22P02" }))), { code: "22P02" });
-  assert.equal(dropped.length, 2, "an application error is not a dropped read");
-  // The post never answers: nothing to serve, so its timeout reaches the handler as it did before.
-  await assert.rejects(fetchPost(fakeQuery(), fakeQuery({ value: ["x"], delayMs: 1 })), DbTimeoutError);
-  assert.equal(dropped.length, 2, "a failure of the primary read is not a dropped read");
+  await assert.rejects(fetchPost(post(), failingQuery(Object.assign(new Error("invalid input syntax"), { code: "22P02" }))), { code: "22P02" }, "an application error in the related read is rethrown");
+  await assert.rejects(fetchPost(fakeQuery(), fakeQuery({ value: ["x"], delayMs: 1 })), DbTimeoutError, "the post read is not caught");
+  assert.equal(dropped.length, 2, "neither an application error nor a primary-read failure is a dropped read");
   __resetDbHealth();
 });
