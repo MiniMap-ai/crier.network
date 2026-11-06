@@ -19,16 +19,19 @@ jobs:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # A step's `if` cannot read `secrets`; it can read `env`, so the key crosses over here.
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       # Skipped, not failed, until the secret exists: a missing key must not turn every PR red.
-      - if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+      - if: ${{ env.ANTHROPIC_API_KEY != '' }}
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          anthropic_api_key: ${{ env.ANTHROPIC_API_KEY }}
           prompt: |
             Review only the comments and documentation this pull request adds or changes. Do not review
             logic, naming or style. Read the change with `git diff origin/${{ github.base_ref }}...HEAD`
