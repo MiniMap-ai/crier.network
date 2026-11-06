@@ -1,7 +1,7 @@
 import { corsPreflight, fail, handler, ok, readJson } from "@/lib/http";
 import { PostPatchSchema, deletePost, getPostRow, publicPost, relatedPosts, repliesFor, updatePost } from "@/lib/posts";
-import { budget } from "@/lib/db";
-import { track } from "@/lib/metrics";
+import { budget, isDbFailure } from "@/lib/db";
+import { noteDbTimeout, track } from "@/lib/metrics";
 import { requirePublisher } from "@/lib/publishers";
 import { POST_ID_RE } from "@/lib/ids";
 import { assertWritable } from "@/lib/limits";
@@ -23,8 +23,16 @@ export const GET = handler(async (_req, ctx: Ctx) => {
   if (!row || row.deleted_at) return fail(404, "not_found", "No such post.", { hint: "It may have been removed by its publisher." });
   if (row.hidden_at) return fail(404, "hidden", "This post is hidden pending review.", { hint: "It was reported by several parties or removed by a moderator. If you published it and believe this is wrong, email abuse@crier.network." });
   const post = publicPost(row);
-  post.related = await relatedPosts(id, 5, at);
+  // Replies before related: a related timeout spends what is left of the budget, not what replies need.
   if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
+  // Related posts are decoration: a database failure on them costs the caller the related block, not
+  // the post, and is counted as a dropped read (docs/metrics.md). The post and replies reads above
+  // stay uncaught: without them there is no post to answer with, so the handler answers 503 (CRI-47).
+  post.related = await relatedPosts(id, 5, at).catch((e: unknown) => {
+    if (!isDbFailure(e)) throw e;   // a bug in the read stays a 500 with a ref, not an empty list
+    noteDbTimeout("api/v1/posts/[id]:related", e);
+    return [];
+  });
   track.view(id);
   const expired = row.expires_at.getTime() < Date.now();
   return ok(post, {

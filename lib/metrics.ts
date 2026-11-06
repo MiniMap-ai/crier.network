@@ -207,16 +207,16 @@ export const track = {
 export const SERVED_ERROR_KEYS = ["error:5xx", "error:503"];
 
 /**
- * A read a page could render around — related posts, a listing — timed out or lost its connection,
- * and the page went out without that section. Not an error the caller saw, so only the cause is
- * counted.
+ * A read the caller could do without — related posts, a listing — timed out or lost its connection,
+ * and the page, API response or tool result went out without that section. Not an error the caller
+ * saw, so only the cause is counted.
  */
 export function noteDbTimeout(where: string, e: unknown): void {
   if (e instanceof DbTimeoutError) {
-    console.error("page db timeout", where, e.label ?? "", e.message);
+    console.error("dropped read db timeout", where, e.label ?? "", e.message);
     track.counter("error:db_timeout");
   } else if (isDbConnectError(e)) {
-    console.error("page db connect", where, (e as { code?: string }).code ?? "", (e as Error).message);
+    console.error("dropped read db connect", where, (e as { code?: string }).code ?? "", (e as Error).message);
     track.counter("error:db_connect");
   }
 }

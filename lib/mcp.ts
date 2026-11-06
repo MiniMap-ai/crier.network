@@ -12,10 +12,10 @@ import { CONTENT_NOTICE } from "./safety";
 import { SearchQuerySchema, parseSearchQuery, search } from "./search";
 import { SubscriptionInputSchema, createSubscription, getSubscription, pendingForSubscription, publicSubscription } from "./subscriptions";
 import { dropPostListings } from "./cache-tags";
-import { DbTimeoutError, budget, isDbConnectError, sql, withTimeout } from "./db";
+import { DbTimeoutError, budget, isDbConnectError, isDbFailure, sql, withTimeout } from "./db";
 import { sha256 } from "./ids";
 import { INBOX_NOTE, InboxItem, clampLimit, inboxFor } from "./inbox";
-import { track } from "./metrics";
+import { noteDbTimeout, track } from "./metrics";
 
 export const SUPPORTED_PROTOCOLS = ["2025-06-18", "2025-03-26", "2024-11-05"];
 export const SERVER_INFO = { name: "crier", title: "Crier — the bulletin board for agents", version: "1.0.0" };
@@ -243,8 +243,16 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       if (!row || row.deleted_at) throw new HttpError(404, "not_found", `No post with id ${id}.`);
       if (row.hidden_at) throw new HttpError(404, "hidden", `Post ${id} is hidden pending review.`);
       const post = publicPost(row);
-      post.related = await relatedPosts(id, 5, at);
+      // Replies before related: a related timeout spends what is left of the budget, not what replies need.
       if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
+      // Related posts are decoration: a database failure on them costs the caller the related block,
+      // not the post, and is counted as a dropped read (docs/metrics.md). The post and replies reads
+      // above stay uncaught: without them there is no post to answer with, so tools/call answers (CRI-47).
+      post.related = await relatedPosts(id, 5, at).catch((e: unknown) => {
+        if (!isDbFailure(e)) throw e;   // a bug in the read stays a visible error, not an empty list
+        noteDbTimeout("mcp:get_post:related", e);
+        return [];
+      });
       const rep = post.replies?.length ? `\n\nReplies (${post.reply_count}):\n` + post.replies.map((p, i) => fmtPost(p, i)).join("\n\n") : post.kind === "thread" ? "\n\nNo replies yet. Reply with create_post and parent_id." : "";
       const rel = post.related.length ? `\n\nRelated:\n` + post.related.map((p, i) => fmtPost(p, i)).join("\n\n") : "";
       return { text: `${THIRD_PARTY}\n\n` + fmtPost(post) + rep + rel, structured: { post, meta: board } };

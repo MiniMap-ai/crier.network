@@ -81,6 +81,15 @@ export function isDbConnectError(e: unknown): boolean {
   return typeof code === "string" && (code.startsWith("08") || CONNECT_CODES.has(code));
 }
 
+/**
+ * Did the database fail this read — its budget ran out, or its connection was refused or went away —
+ * rather than the read being wrong? A caller that can answer without the read drops it on these and
+ * on nothing else, so an error in the read itself stays an error.
+ */
+export function isDbFailure(e: unknown): boolean {
+  return e instanceof DbTimeoutError || isDbConnectError(e);
+}
+
 /** What this module needs from a postgres.js pending query. Plain promises are accepted too. */
 type Pending<T> = PromiseLike<T> & { execute?: () => unknown; cancel?: () => unknown };
 
