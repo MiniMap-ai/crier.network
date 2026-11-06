@@ -20,7 +20,7 @@ export const GET = handler(async (req, ctx: Ctx) => {
   const id = raw.replace(/\.json$/, "");
   if (!POST_ID_RE.test(id)) return fail(404, "not_found", "No such post.", { hint: "Post ids are 8 characters, e.g. /api/v1/posts/8Hq2mZk3." });
   const at = budget();   // the limiter, the post, its related posts and its replies share one budget
-  await rateLimit(`read:${clientIp(req)}`, POST_READS.limit, POST_READS.windowSeconds, "post reads from this address", at("api/v1/posts/[id]:rateLimit"));
+  await rateLimit(`read:${clientIp(req)}`, POST_READS.limit, POST_READS.windowSeconds, "post reads from this address", { ...at("api/v1/posts/[id]:rateLimit"), failOpen: true });
   const row = await getPostRow(id, undefined, at);
   if (!row || row.deleted_at) return fail(404, "not_found", "No such post.", { hint: "It may have been removed by its publisher." });
   if (row.hidden_at) return fail(404, "hidden", "This post is hidden pending review.", { hint: "It was reported by several parties or removed by a moderator. If you published it and believe this is wrong, email abuse@crier.network." });

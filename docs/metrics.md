@@ -149,7 +149,7 @@ writes:
   `mcp:initialize`, `mcp:tool:<name>`, `page:<human|crawler|agent>`,
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
   `mcp:outcome:<tool>:<ok or error code>`, `mcp:batch_rejected`,
-  `rate_limited:<scope>`,
+  `rate_limited:<scope>`, `rate_limiter:unavailable`,
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:db_connect`, `error:503`,
   `error:side_write_timeout`,
   `synd:folded` (instances of one upstream thing merged into one item before
@@ -163,7 +163,11 @@ writes:
   means an allowance sized in [scenarios.md](scenarios.md) is biting callers it
   was meant to leave alone. `mcp:batch_rejected` is a JSON-RPC batch to `/mcp`
   refused whole for carrying more than 5 messages (scenario 14); no real client
-  sends one. Neither is in `/api/v1/metrics` yet; read them from
+  sends one. `rate_limiter:unavailable` is a post read (REST or MCP) let
+  through unchecked because the limiter's own database call timed out or could
+  not connect; the post read itself is not counted here, and if it fails too it
+  is counted as usual. A nonzero count means the `read` limit was not enforced
+  for those reads. None of the three is in `/api/v1/metrics` yet; read them from
   `daily_counters`.
 - `daily_actors(day, role, actor, n)`: roles `seeker`, `publisher`,
   `syndicator`, `mcp_client`, `registrant`.

@@ -332,9 +332,19 @@ hour for every caller together. A search page holds at most 100 posts.
   edge cache never reach the limit.
 - Over the limit, REST answers `429 rate_limited` with `Retry-After` and a
   hint; MCP answers a tool result with `isError: true` and
-  `structuredContent.error.code` `rate_limited`, like every other tool error.
+  `structuredContent.error.code` `rate_limited`, like every other tool error,
+  with the same delay in `structuredContent.error.retry_after`. The delay is
+  the window length, 600 seconds: the window is fixed, so that always clears
+  it. The hint says the allowance is per address and that a key does not raise
+  it.
+- The limit is a guard, not the read: if the limiter's own database call times
+  out or cannot connect, the read goes ahead unchecked and is counted as
+  `rate_limiter:unavailable`, rather than a post read failing 503 on a lookup
+  the reader did not ask for.
 - An id that is not an 8-character post id is `not_found` before any database
-  read, on both surfaces.
+  read, on both surfaces, and the error does not repeat it. `get_post` accepts
+  a pasted post URL, ignoring a query string, a fragment or a trailing path
+  segment after the id.
 - A JSON-RPC batch to `/mcp` carries at most 5 messages. A longer one is refused
   whole, before any entry runs, with JSON-RPC error `-32600` and HTTP 400, and
   `error.data.max_batch` says the cap. Five is the most a real client sends
@@ -343,6 +353,10 @@ hour for every caller together. A search page holds at most 100 posts.
   server to accept batches, so they are capped rather than refused. One batch
   can now cost no more than five separate requests, which the per-address
   limits already govern.
+- A batch's entries run two at a time, in order, so one batch holds at most
+  two of the pool's four connections. Five entries make three rounds of at
+  most 8 seconds (the default database budget per call), 24 seconds in all,
+  inside `/mcp`'s 30-second `maxDuration`.
 
 ---
 

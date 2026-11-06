@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MCP_MAX_BATCH, POST_READS, checkBatch, limitScope, overLimit } from "../lib/request-limits.ts";
+import { MCP_BATCH_CONCURRENCY, MCP_MAX_BATCH, POST_READS, checkBatch, limitRefusal, limitScope, mapConcurrent, overLimit, postIdFromInput } from "../lib/request-limits.ts";
 
 const call = (id: number, name = "get_post") => ({ jsonrpc: "2.0", id, method: "tools/call", params: { name, arguments: { id: "8Hq2mZk3" } } });
 const batchOf = (n: number) => Array.from({ length: n }, (_, i) => call(i + 1));
@@ -67,4 +67,69 @@ test("a batch with one entry that is not JSON-RPC 2.0 is an invalid request", ()
 
 test("a notification without an id is a valid message", () => {
   assert.ok(checkBatch([{ jsonrpc: "2.0", method: "notifications/initialized" }, call(1)]).ok);
+});
+
+test("a refusal's retry_after is the window length, which always clears a fixed window", () => {
+  const r = limitRefusal("read:abc", POST_READS.limit, POST_READS.windowSeconds, "post reads from this address");
+  assert.equal(r.retryAfter, 600);
+  assert.equal(limitRefusal("post:pub_x", 60, 3600, "posts from this publisher").retryAfter, 3600);
+  assert.equal(r.message, "Too many post reads from this address: limit is 600 per 10 minutes.");
+});
+
+test("an address-keyed limit's hint says it is shared per address and never offers a key", () => {
+  for (const scope of ["read", "search", "feed", "register", "report"]) {
+    const { hint } = limitRefusal(`${scope}:abc`, 10, 600, "things");
+    assert.match(hint, /per network address and shared with everyone behind it/, scope);
+    assert.doesNotMatch(hint, /your own allowance/, scope);
+  }
+});
+
+test("a publisher-keyed limit's hint says it is per publisher, and only posts mention verification", () => {
+  for (const scope of ["post", "inbox", "sub", "rotate", "verify", "verifyhook"]) {
+    const { hint } = limitRefusal(`${scope}:pub_x`, 10, 3600, "things");
+    assert.match(hint, /per publisher/, scope);
+    assert.doesNotMatch(hint, /network address/, scope);
+    assert.equal(/Verified publishers get more/.test(hint), scope === "post", scope);
+  }
+});
+
+test("a refusal hint names both places the delay is given", () => {
+  assert.match(limitRefusal("read:abc", 10, 600, "things").hint, /Retry-After.*retry_after/);
+});
+
+test("mapConcurrent keeps input order however the calls finish", async () => {
+  const delays = [30, 5, 20, 1, 10];
+  const out = await mapConcurrent(delays, 2, (ms, i) => new Promise<string>((r) => setTimeout(() => r(`#${i}`), ms)));
+  assert.deepEqual(out, ["#0", "#1", "#2", "#3", "#4"]);
+});
+
+test("a full batch never has more than two entries in flight", async () => {
+  let inFlight = 0;
+  let peak = 0;
+  await mapConcurrent(Array.from({ length: MCP_MAX_BATCH }, (_, i) => i), MCP_BATCH_CONCURRENCY, async (i) => {
+    inFlight++;
+    peak = Math.max(peak, inFlight);
+    await new Promise((r) => setTimeout(r, 5 + (i % 3) * 5));
+    inFlight--;
+  });
+  assert.equal(MCP_BATCH_CONCURRENCY, 2);
+  assert.equal(peak, 2);
+});
+
+test("mapConcurrent on an empty list resolves to an empty list", async () => {
+  assert.deepEqual(await mapConcurrent([], 2, async () => 1), []);
+});
+
+test("a pasted post URL yields its id with any query, fragment or trailing path dropped", () => {
+  for (const raw of [
+    "8Hq2mZk3",
+    " 8Hq2mZk3 ",
+    "8Hq2mZk3.json",
+    "https://crier.network/p/8Hq2mZk3",
+    "https://crier.network/p/8Hq2mZk3?utm_source=chat&ref=https://x.example/p/zzz",
+    "https://crier.network/p/8Hq2mZk3#replies",
+    "crier.network/p/8Hq2mZk3/",
+    "https://crier.network/p/8Hq2mZk3/related?x=1",
+    "https://crier.network/p/8Hq2mZk3.json?x=1",
+  ]) assert.equal(postIdFromInput(raw), "8Hq2mZk3", raw);
 });
