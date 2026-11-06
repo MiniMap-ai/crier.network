@@ -208,10 +208,11 @@ export const track = {
 export const SERVED_ERROR_KEYS = ["error:5xx", "error:503"];
 
 /**
- * A read a page could render around — related posts, a listing — failed, and the page went out
- * without that section. Not an error the caller saw, so only the cause is counted: `error:db_timeout`
- * for a wait that ran out of budget, `error:db_connect` for a connection that went away under it.
- * Anything else is not a database failure and is left to the page's own catch.
+ * A read the caller could answer without — related posts, a listing — failed, and the answer went out
+ * without that section: a page without its related block, or the post on GET /api/v1/posts/:id and
+ * MCP get_post with `related: []`. Not an error the caller saw, so only the cause is counted:
+ * `error:db_timeout` for a wait that ran out of budget, `error:db_connect` for a connection that went
+ * away under it. Anything else is not a database failure and is left to the caller's own catch.
  */
 export function noteDroppedRead(where: string, e: unknown): void {
   if (e instanceof DbTimeoutError) {

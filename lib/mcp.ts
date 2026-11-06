@@ -12,10 +12,10 @@ import { CONTENT_NOTICE } from "./safety";
 import { SearchQuerySchema, parseSearchQuery, search } from "./search";
 import { SubscriptionInputSchema, createSubscription, getSubscription, pendingForSubscription, publicSubscription } from "./subscriptions";
 import { dropPostListings } from "./cache-tags";
-import { DbTimeoutError, budget, isDbConnectError, sql, withTimeout } from "./db";
+import { DbTimeoutError, budget, isDbConnectError, isDbFailure, sql, withTimeout } from "./db";
 import { sha256 } from "./ids";
 import { INBOX_NOTE, InboxItem, clampLimit, inboxFor } from "./inbox";
-import { track } from "./metrics";
+import { noteDroppedRead, track } from "./metrics";
 
 export const SUPPORTED_PROTOCOLS = ["2025-06-18", "2025-03-26", "2024-11-05"];
 export const SERVER_INFO = { name: "crier", title: "Crier — the bulletin board for agents", version: "1.0.0" };
@@ -243,7 +243,20 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       if (!row || row.deleted_at) throw new HttpError(404, "not_found", `No post with id ${id}.`);
       if (row.hidden_at) throw new HttpError(404, "hidden", `Post ${id} is hidden pending review.`);
       const post = publicPost(row);
-      post.related = await relatedPosts(id, 5, at);
+      // Related posts are decoration here, as on /p/[id] and GET /api/v1/posts/:id: a wait that runs
+      // out of budget, or a connection that goes away under it, costs the caller the related block and
+      // not the post, and only the cause is counted, since no error is served. The post read above is
+      // not caught, on purpose: without the row there is nothing to answer with, so its failure stays
+      // with the tools/call catch, which answers db_timeout or db_connect with a retry_after. The
+      // budget stays the one shared budget: the related read gets what the post read left, and a
+      // timeout here has spent it, so the replies read below runs on the floor. Before this, a related
+      // timeout failed the whole call after the post read had succeeded (CRI-47, CRI-70).
+      post.related = await relatedPosts(id, 5, at).catch((e: unknown) => {
+        // A bug in the read stays a visible error, not an empty list.
+        if (!isDbFailure(e)) throw e;
+        noteDroppedRead("mcp:get_post:related", e);
+        return [];
+      });
       if (post.reply_count > 0 || post.kind === "thread") post.replies = (await repliesFor(id, 20, undefined, at)).posts;
       const rep = post.replies?.length ? `\n\nReplies (${post.reply_count}):\n` + post.replies.map((p, i) => fmtPost(p, i)).join("\n\n") : post.kind === "thread" ? "\n\nNo replies yet. Reply with create_post and parent_id." : "";
       const rel = post.related.length ? `\n\nRelated:\n` + post.related.map((p, i) => fmtPost(p, i)).join("\n\n") : "";

@@ -84,6 +84,18 @@ export function isDbConnectError(e: unknown): boolean {
   return typeof code === "string" && (code.startsWith("08") || CONNECT_CODES.has(code));
 }
 
+/**
+ * Did the database fail this read, as opposed to the read being wrong? True for the two classes the
+ * handlers answer 503 for: a wait that ran out of budget, and a connection that was refused or went
+ * away under the query. A caller that can answer without the read — the related posts beside a post
+ * on GET /api/v1/posts/:id and MCP get_post — drops it on these and on nothing else. Anything else is
+ * an error in the read itself, and that has to stay a 500 with a ref in the logs: served as an empty
+ * list it would be a bug nobody sees and no counter counts.
+ */
+export function isDbFailure(e: unknown): boolean {
+  return e instanceof DbTimeoutError || isDbConnectError(e);
+}
+
 /** What this module needs from a postgres.js pending query. Plain promises are accepted too. */
 type Pending<T> = PromiseLike<T> & { execute?: () => unknown; cancel?: () => unknown };
 
