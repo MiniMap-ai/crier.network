@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { ADAPTERS, describeAdapter } from "@/lib/syndication/adapters";
 import { newSourceId, runSource, syndicationPublisher } from "@/lib/syndication/runner";
+import { sourceField } from "@/lib/syndication/source-schema";
 import { asFetched, type SourceRow } from "@/lib/syndication/types";
 
 export const runtime = "nodejs";
@@ -23,18 +24,18 @@ export const GET = handler(async (req) => {
 });
 
 const CreateSchema = z.object({
-  name: z.string().trim().min(1).max(120),
+  name: sourceField.name,
   adapter: z.enum(["ticketmaster", "ical", "rss", "localist", "nws"]),
-  config: z.record(z.string(), z.unknown()).default({}),
-  homepage: z.url().optional(),
-  license: z.string().trim().min(10).max(500),   // why we may redistribute this
-  default_kind: z.enum(["event", "offer", "request", "announcement"]).default("event"),
-  tags: z.array(z.string().trim().toLowerCase().min(2).max(40)).max(10).default([]),
-  run_every_minutes: z.number().int().min(15).max(10080).default(360),
-  max_per_run: z.number().int().min(1).max(500).default(100),
-  horizon_days: z.number().int().min(1).max(90).default(30),
+  config: sourceField.config.default({}),
+  homepage: sourceField.homepage.optional(),
+  license: sourceField.license,   // why we may redistribute this
+  default_kind: sourceField.default_kind.default("event"),
+  tags: sourceField.tags.default([]),
+  run_every_minutes: sourceField.run_every_minutes.default(360),
+  max_per_run: sourceField.max_per_run.default(100),
+  horizon_days: sourceField.horizon_days.default(30),
   added_by: z.string().trim().max(60).default("operator"),
-  notes: z.string().trim().max(1000).optional(),
+  notes: sourceField.notes.optional(),
   dry_run: z.boolean().default(false),   // fetch and return a sample without saving
 });
 
