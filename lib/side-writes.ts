@@ -12,9 +12,9 @@
  * what it says.
  *
  * **Rule two: a counter is not a write.** Views and retrievals are `+1`s, so they accumulate in
- * this process and ride the metrics flush's single transaction rather than each opening a
- * connection of its own — the same trade lib/search-log.ts makes for query shapes, and the reason
- * a page view costs the database one write instead of four.
+ * this process and the metrics flush applies them in one statement, in a transaction of its own,
+ * rather than each opening a connection of its own — the same trade lib/search-log.ts makes for
+ * query shapes, and the reason a page view costs the database one write instead of four.
  *
  * Like lib/db-timeout.ts and lib/search-log.ts, this module has no imports at all, so the rules
  * above can be tested without a database, a bundler or a Next runtime. What it cannot know about
@@ -130,50 +130,36 @@ export function hasPendingCounts(counts: PendingCounts): boolean {
 }
 
 /**
- * What this module needs from a postgres.js transaction: the tagged template, and `savepoint`.
- * Structural, so the flush's counter half can be tested with a recorder instead of a database.
+ * What this module needs from a postgres.js transaction: the tagged template. Structural, so the
+ * flush's per-post half can be tested with a recorder instead of a database.
  */
-export type Tx = {
-  // `unknown` rather than a promise: postgres.js overloads its tagged template with a helper form,
-  // and pinning the return here would pick the wrong overload. What comes back is awaited and
-  // discarded, so nothing is lost by not naming it.
-  (strings: TemplateStringsArray, ...args: unknown[]): unknown;
-  savepoint(fn: (sp: Tx) => Promise<unknown>): Promise<unknown>;
-};
+// `unknown` rather than a promise: postgres.js overloads its tagged template with a helper form,
+// and pinning the return here would pick the wrong overload. What comes back is awaited and
+// discarded, so nothing is lost by not naming it.
+export type Tx = (strings: TemplateStringsArray, ...args: unknown[]) => unknown;
 
 /**
- * Apply the batched counters — one statement each, inside a savepoint, and counted and logged here
- * when they fail, so the caller's transaction is still usable. Never in the same transaction as the
- * daily counters: an update of `posts` can run to its statement timeout, and every counter row that
- * transaction had locked would wait with it (lib/flush-batch.ts).
+ * Apply the batched views and retrievals in one statement, so the caller's transaction holds at
+ * most one statement timeout of work. Throws on failure; the caller owns the transaction and counts
+ * and logs the loss. Never in the transaction that writes the daily counters: an update of `posts`
+ * can run to its statement timeout, and every counter row locked before it would wait with it
+ * (docs/metrics.md, "Lock order").
  *
- * `for update skip locked` keeps today's rule that a counter never waits on a row lock: a page view
+ * `for update skip locked` keeps the rule that a counter never waits on a row lock: a page view
  * must not queue behind a syndication update. A row skipped because it is locked loses that one
- * batch's bump, exactly as it did when each bump was its own statement.
+ * batch's bump.
  */
-export async function applyCounts(tx: Tx, counts: PendingCounts): Promise<boolean> {
-  if (!hasPendingCounts(counts)) return true;
-  try {
-    await tx.savepoint(async (sp) => {
-      if (counts.views.length) {
-        const ids = counts.views.map((v) => v[0]);
-        await sp`update posts p set views = p.views + v.n
-                   from unnest(${ids}::text[], ${counts.views.map((v) => v[1])}::bigint[]) as v(id, n)
-                  where p.id = v.id
-                    and p.id in (select id from posts where id = any(${ids}::text[]) for update skip locked)`;
-      }
-      if (counts.retrievals.length) {
-        const ids = counts.retrievals.map((r) => r[0]);
-        await sp`update posts p set retrievals = p.retrievals + r.n
-                   from unnest(${ids}::text[], ${counts.retrievals.map((r) => r[1])}::bigint[]) as r(id, n)
-                  where p.id = r.id
-                    and p.id in (select id from posts where id = any(${ids}::text[]) for update skip locked)`;
-      }
-    });
-    return true;
-  } catch (e) {
-    noteSideWriteLost();
-    console.warn("side write failed", "flush:counts", `${counts.views.length} views, ${counts.retrievals.length} retrievals;`, (e as Error).message);
-    return false;
+export async function applyCounts(tx: Tx, counts: PendingCounts): Promise<void> {
+  if (!hasPendingCounts(counts)) return;
+  const byId = new Map<string, { views: number; retrievals: number }>();
+  for (const [id, n] of counts.views) byId.set(id, { views: n, retrievals: 0 });
+  for (const [id, n] of counts.retrievals) {
+    const cur = byId.get(id);
+    if (cur) cur.retrievals += n; else byId.set(id, { views: 0, retrievals: n });
   }
+  const ids = [...byId.keys()].sort();
+  await tx`update posts p set views = p.views + c.v, retrievals = p.retrievals + c.r
+             from unnest(${ids}::text[], ${ids.map((id) => byId.get(id)!.views)}::bigint[], ${ids.map((id) => byId.get(id)!.retrievals)}::bigint[]) as c(id, v, r)
+            where p.id = c.id
+              and p.id in (select id from posts where id = any(${ids}::text[]) for update skip locked)`;
 }
