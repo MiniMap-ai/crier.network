@@ -4,8 +4,8 @@
 -- ceiling the runner will not honour, and a row over the cap is refused rather than clamped.
 set local lock_timeout = '10s';
 
-update sources set max_per_run = 100 where max_per_run > 100;
-update sources set horizon_days = 30 where horizon_days > 30;
+update sources set max_per_run = least(greatest(max_per_run, 1), 100) where max_per_run not between 1 and 100;
+update sources set horizon_days = least(greatest(horizon_days, 1), 30) where horizon_days not between 1 and 30;
 
 alter table sources drop constraint if exists sources_relay_caps;
 alter table sources add constraint sources_relay_caps
