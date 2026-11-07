@@ -12,7 +12,7 @@ import { PostInput, PostInputSchema, createPost, deletePost, getPostRow, normali
 import { PublisherRow } from "../publishers";
 import { ADAPTERS } from "./adapters";
 import { collapseInstances } from "./collapse";
-import { Fetched, Item, SourceRow, asFetched } from "./types";
+import { Fetched, Item, SourceRow, asFetched, runLimit } from "./types";
 import { runWindow } from "./budget";
 import { redactUrl } from "./walk";
 
@@ -159,7 +159,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         await s`delete from source_items where source_id = ${source.id} and uid = ${item.uid}`;
         continue;
       }
-      if (counts.created + counts.updated >= source.max_per_run) { counts.skipped++; continue; }
+      if (counts.created + counts.updated >= runLimit(source)) { counts.skipped++; continue; }
       let input: PostInput;
       try { input = toInput(source, item, now); } catch { counts.skipped++; continue; }
       const hash = hashInput(input);

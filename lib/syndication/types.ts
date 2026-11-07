@@ -40,6 +40,14 @@ export type Item = {
   metadata?: Record<string, unknown>;
 };
 
+/** The relay policy's ceiling on writes per source per run, whatever the row says. */
+export const MAX_PER_RUN_CAP = 100;
+
+/** How many posts one run of this source may create or update: the row's value, capped by policy. */
+export function runLimit(source: Pick<SourceRow, "max_per_run">): number {
+  return Math.max(0, Math.min(source.max_per_run, MAX_PER_RUN_CAP));
+}
+
 /**
  * `signal` aborts any fetch still running when the run's fetch budget is spent; `fetchUntil` is
  * that same moment in epoch ms, for an adapter that pages and should not start a page it cannot

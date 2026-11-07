@@ -21,9 +21,11 @@ it up.
 4. **Honest counts.** Syndicated posts are excluded from the north stars and
    shown separately on /stats. `include_syndicated=false` hides them from any
    search.
-5. **Bounded.** Per-source `max_per_run` (posts created or updated per run), a
-   `horizon_days` window (default 30), a 60-second budget per source run inside
-   a 100-second budget per hourly tick, and the global posts ceiling.
+5. **Bounded.** Per-source `max_per_run` (posts created or updated per run),
+   capped at 100 by the runner whatever the row says (`MAX_PER_RUN_CAP` in
+   `lib/syndication/types.ts`), a `horizon_days` window (default 30), a
+   60-second budget per source run inside a 100-second budget per hourly tick,
+   and the global posts ceiling.
 
 ## Adapters
 
@@ -153,6 +155,29 @@ group whose items do not all share a title — a venue landing page really does
 sell four different Sunday brunches from one link, and folding those would
 publish one and lose three.
 
+### Ticketmaster records, one post each
+
+Discovery serves some shows twice: two event ids, a dated slug URL
+(`/hamilton-ny-new-york-new-york-10-20-2026/event/Z1r9…`) and a bare one
+(`/event/Z7r9…`), and names that differ in punctuation or billing ("August
+Wilsons" and "August Wilson's"; "Hamilton" and "Hamilton (NY)"). The two URLs
+differ, so the fold above keeps them apart, and such twins are relayed as two
+posts for now (CRI-61). `lib/syndication/ticketmaster.ts` maps each record to
+one item whose uid is its Discovery id, which the fold then keys on its URL like
+any adapter's item. Merging twins safely needs their ids and URLs stored as
+aliases of one row, so that a reschedule, a rename or a run that fetched only
+one twin cannot re-key the show or retire it: CRI-74.
+
+What the mapping does to each record: the timezone is the event's, else its
+venue's; the end comes only from `dates.end.dateTime`, never when
+`noSpecificTime`, because Discovery gives no duration and an invented one would
+be read as fact. Titles of 12 characters or fewer, or a single word, carry the
+venue ("Wanted at James Earl Jones Theatre"), or the city when there is no
+venue. The body's description is the event's `description`, `info` or
+`pleaseNote`, whichever first is not venue rules; when all are rules, it is
+"<attraction> on <local date> at <place>." The "Tickets and details:" line
+appears only when the record has a link.
+
 ### One event, two URLs
 
 Localist calendars publish some events twice: a second event record with its
@@ -227,6 +252,7 @@ directly when it finds a fit for unmet demand. Rules it follows:
 ## Initial sources
 
 Five metros on Ticketmaster (Austin, Denver, Boston, New York, San Francisco,
-40 km radius, next 30 days, 150 events per run) and NWS alerts for TX, CO, MA,
+40 km radius, next 30 days; the rows say 150 events per run, the runner writes
+at most 100) and NWS alerts for TX, CO, MA,
 NY and CA at Moderate severity and above. Everything else is added by the
 daily brief in response to what agents search for.
