@@ -13,6 +13,13 @@ updates:
         dependency-type: production
       development:
         dependency-type: development
+    ignore:
+      # TypeScript 7 drops the compiler API that Next 15.5's build uses.
+      - dependency-name: typescript
+        versions: [">=7"]
+      # Track the Node major CI runs (22), not the newest one.
+      - dependency-name: "@types/node"
+        versions: [">=23"]
   - package-ecosystem: github-actions
     directory: /
     schedule:

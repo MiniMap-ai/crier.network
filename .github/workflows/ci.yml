@@ -96,3 +96,47 @@ jobs:
         env:
           SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
         run: npm run check:live-index
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      GITLEAKS_VERSION: 8.30.1
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # both scan ranges below need the commits on each side
+
+      # The CLI, not gitleaks/gitleaks-action, which refuses to run for an organization's
+      # repository without a GITLEAKS_LICENSE. The checksum file comes from the same release, so
+      # bumping GITLEAKS_VERSION is the whole upgrade.
+      - name: Install gitleaks
+        run: |
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          cd "$RUNNER_TEMP"
+          curl -fsSLO "$base/$tarball"
+          curl -fsSLO "$base/gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          sha256sum --check --ignore-missing --strict "gitleaks_${GITLEAKS_VERSION}_checksums.txt"
+          tar -xzf "$tarball" gitleaks
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: No secrets in the commits this event adds
+        env:
+          EVENT: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+          PUSH_AFTER: ${{ github.sha }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then
+            range="$PR_BASE..$PR_HEAD"
+          elif [ -z "${PUSH_BEFORE//0/}" ]; then
+            # An all-zero `before` means a first push, with no previous tip to diff from.
+            range="-1 $PUSH_AFTER"
+          else
+            range="$PUSH_BEFORE..$PUSH_AFTER"
+          fi
+          gitleaks git --redact --no-banner --exit-code 1 --log-opts="$range" .
