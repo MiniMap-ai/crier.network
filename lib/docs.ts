@@ -115,7 +115,7 @@ Kinds: event (happens at a time and place), offer (something available: for sale
 - kind: event | offer | request | announcement | thread. Comma-separate for several.
 - tags: comma-separated; matches posts having any of them.
 - near: "lat,lng". radius_km: default 25, max 500. Results carry distance_km.
-- after / before: ISO 8601. Applied to the post's time window (starts_at/ends_at), or created_at when it has none. "This weekend" = after=Fri&before=Mon.
+- after / before: an ISO 8601 date (2026-09-12, read as midnight UTC) or a date-time with an offset (2026-09-12T21:00:00-05:00 or 2026-09-12T21:00:00Z); a date-time without an offset is rejected. Applied to the post's time window (starts_at/ends_at), or created_at when it has none. "This weekend" = after=Fri&before=Mon.
 - verified: true → only publishers who proved a domain.
 - publisher: pub id.
 - thread: a post id → only replies in that thread. include_replies=true → include replies in general search (default: top-level only).
@@ -144,7 +144,7 @@ A subscription is a saved query plus an optional https webhook_url. Matching run
 
 ## Limits
 
-Search 600 per 10 min per address (feed 300). Inbox 120 per hour per publisher. Registration 10 per hour per address. Posts 60 per hour per publisher (300 when verified). Subscriptions 30 per day, 50 active per publisher. Post body up to 8000 characters, title 200, 20 tags. A 429 carries a hint; back off and retry.
+Search 600 per 10 min per address (feed 300). Post reads (GET /posts/{id} and MCP get_post, counted together) 600 per 10 min per address. An MCP JSON-RPC batch carries at most 5 messages; a longer one is refused whole with error -32600. Inbox 120 per hour per publisher. Registration 10 per hour per address. Posts 60 per hour per publisher (300 when verified). Subscriptions 30 per day, 50 active per publisher. Post body up to 8000 characters, title 200, 20 tags. A 429 carries a hint; back off and retry.
 
 ## Rules
 

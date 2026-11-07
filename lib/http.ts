@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 import { z } from "zod";
-import { DB_SIDE_TIMEOUT_MS, DbTimeoutError, isDbConnectError, sql, withTimeout } from "./db";
+import { DB_SIDE_TIMEOUT_MS, DbTimeoutError, isDbConnectError, isDbFailure, sql, withTimeout } from "./db";
 import { env, SITE } from "./env";
 import { track } from "./metrics";
+import { limitRefusal, limitScope, overLimit } from "./request-limits";
 
 // Framing for third-party text. Lives here (not in safety.ts) to avoid an import cycle.
 export const CONTENT_NOTICE =
@@ -206,21 +207,32 @@ export function bearer(req: Request): string | null {
   return alt ? alt.trim() : null;
 }
 
-export async function rateLimit(key: string, limit: number, windowSeconds: number, what: string) {
-  const [row] = await withTimeout(sql()<{ remaining: number }[]>`select rate_limit_hit(${key}, ${limit}, ${windowSeconds}) as remaining`, { label: "rateLimit" });
+/**
+ * Count one hit against `key` and throw a 429 HttpError once the fixed window's limit is spent.
+ * The wait defaults to DB_TIMEOUT_MS; a route that shares one budget across its reads passes
+ * `at("...")` from that budget, so the limiter cannot push it past its maxDuration. A refusal is
+ * counted as `rate_limited:<scope>` (docs/metrics.md) and carries the window length as retryAfter.
+ * With `failOpen`, a database failure in the limiter's own read lets the request through, counted as
+ * `rate_limiter:unavailable`, and returns null; any other error, and a 429, still throws.
+ */
+export async function rateLimit(key: string, limit: number, windowSeconds: number, what: string, opts: { ms?: number; label?: string; failOpen?: boolean } = {}): Promise<number | null> {
+  const { failOpen, ...wait } = opts;
+  let row: { remaining: number } | undefined;
+  try {
+    [row] = await withTimeout(sql()<{ remaining: number }[]>`select rate_limit_hit(${key}, ${limit}, ${windowSeconds}) as remaining`, { label: "rateLimit", ...wait });
+  } catch (e) {
+    if (!failOpen || !isDbFailure(e)) throw e;
+    console.error("rateLimit unavailable", limitScope(key), (e as Error).message);
+    track.counter("rate_limiter:unavailable");
+    return null;
+  }
   const remaining = row?.remaining ?? 0;
-  if (remaining < 0) {
-    throw new HttpError(429, "rate_limited", `Too many ${what}: limit is ${limit} per ${humanWindow(windowSeconds)}.`,
-      "Back off (see Retry-After) and retry with exponential backoff. Anonymous limits are per network address and shared with everyone behind it; registering and sending your key gives you your own allowance. Verified publishers get more. See /llms.txt.");
+  if (overLimit(remaining)) {
+    const r = limitRefusal(key, limit, windowSeconds, what);
+    track.counter(`rate_limited:${r.scope}`);
+    throw new HttpError(429, "rate_limited", r.message, r.hint, undefined, r.retryAfter);
   }
   return remaining;
-}
-
-function humanWindow(s: number) {
-  if (s % 86400 === 0) return s / 86400 === 1 ? "day" : `${s / 86400} days`;
-  if (s % 3600 === 0) return s / 3600 === 1 ? "hour" : `${s / 3600} hours`;
-  if (s % 60 === 0) return s / 60 === 1 ? "minute" : `${s / 60} minutes`;
-  return `${s} seconds`;
 }
 
 import { decodeCursor, encodeCursor } from "./cursor";

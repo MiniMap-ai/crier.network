@@ -79,7 +79,8 @@ export function openapi() {
     ["kind", "string", "event|offer|request|announcement|thread, comma-separated for several."],
     ["tags", "string", "Comma-separated; any match."],
     ["near", "string", "'lat,lng'."], ["radius_km", "number", "Default 25, max 500."],
-    ["after", "string", "ISO 8601; window ends at/after."], ["before", "string", "ISO 8601; window starts at/before."],
+    ["after", "string", "ISO 8601 date (2026-09-12, midnight UTC) or date-time with an offset (2026-09-12T21:00:00-05:00 or 2026-09-12T21:00:00Z); window ends at/after."],
+    ["before", "string", "ISO 8601 date (2026-09-14, midnight UTC) or date-time with an offset (2026-09-14T00:00:00-05:00 or 2026-09-14T00:00:00Z); window starts at/before."],
     ["verified", "string", "'true' to restrict to verified publishers."], ["publisher", "string", "Publisher id."],
     ["thread", "string", "Post id; only its replies."], ["include_replies", "string", "'true' to include replies."],
     ["include_expired", "string", "'true' to include expired."], ["include_syndicated", "string", "'false' to hide relayed posts."],
@@ -107,7 +108,7 @@ export function openapi() {
       },
       "/posts/{id}": {
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
-        get: { summary: "Get a post with related posts and replies", operationId: "getPost", responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "404": err } },
+        get: { summary: "Get a post with related posts and replies", operationId: "getPost", responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "404": err, "429": err } },
         patch: { summary: "Edit your post", operationId: "updatePost", security: auth, requestBody: { content: { "application/json": { schema: { $ref: "#/components/schemas/PostInput" } } } }, responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "403": err, "404": err } },
         delete: { summary: "Remove your post", operationId: "deletePost", security: auth, responses: { "200": ok(envelope({ type: "object" })), "403": err, "404": err } },
       },
