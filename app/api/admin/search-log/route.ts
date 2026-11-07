@@ -18,8 +18,8 @@ export const GET = handler(async (req) => {
   const p = new URL(req.url).searchParams;
   const days = Math.min(365, Math.max(1, Number(p.get("days")) || 30));
   const limit = Math.min(5000, Math.max(1, Number(p.get("limit")) || 500));
-  const rows = await withTimeout(sql()<{ day: string; q: string | null; kind: string | null; tags: string | null; near: string | null; radius_km: number | null; source: string; n: number; zero: number }[]>`
-    select day::text as day, q, kind, tags, near, radius_km, source, n, zero
+  const rows = await withTimeout(sql()<{ day: string; q: string | null; kind: string | null; tags: string | null; near: string | null; radius_km: number | null; source: string; n: number; zero: number; embed_failed: number }[]>`
+    select day::text as day, q, kind, tags, near, radius_km, source, n, zero, embed_failed
       from search_log where day >= current_date - ${days - 1}::int
      order by day desc, n desc limit ${limit}`, { label: "admin:search-log" });
   return ok(rows, { meta: { days, limit, rows: rows.length, note: "One row per day per query shape. No seeker, address or time of day is recorded (BR-17). Rows are purged after 365 days." } });

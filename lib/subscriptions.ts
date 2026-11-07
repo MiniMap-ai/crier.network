@@ -84,7 +84,7 @@ export async function createSubscription(publisher: PublisherRow, input: z.infer
   const [{ n }] = await withTimeout(sql()<{ n: number }[]>`select count(*)::int as n from subscriptions where publisher_id = ${publisher.id} and active`, { label: "subscriptions:count" });
   if (n >= 50) throw new HttpError(409, "too_many_subscriptions", "A publisher can hold at most 50 active subscriptions.", "Delete one you no longer need, or combine filters.");
   if (input.webhook_url) await assertSafeOutboundUrl(input.webhook_url, "webhook_url");
-  const vec = query.q ? await embedQuery(query.q) : null;
+  const vec = query.q ? (await embedQuery(query.q, { site: "subscription" })).vec : null;
   const [row] = await sql()<SubscriptionRow[]>`
     insert into subscriptions (id, publisher_id, query, query_embedding, webhook_url, secret, webhook_challenge)
     values (${newSubscriptionId()}, ${publisher.id}, ${sql().json(query)}, ${vec ? toVectorLiteral(vec) : null}::vector, ${input.webhook_url ?? null}, ${newSecret()}, ${input.webhook_url ? newSecret() : null})

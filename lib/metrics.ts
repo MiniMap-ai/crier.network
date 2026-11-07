@@ -5,7 +5,7 @@
 import { after } from "next/server";
 import { DbTimeoutError, budget, isDbConnectError, sideWrite, sql, withTimeout } from "./db";
 import type { SearchQuery } from "./search";
-import { drainSearches, foldDemand, normalizeQuery, recordSearch, roundNear } from "./search-log";
+import { drainSearches, foldDemand, isUnmet, normalizeQuery, recordSearch, roundNear } from "./search-log";
 import type { DemandRow, SearchSource } from "./search-log";
 import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, hasPendingCounts, noteRetrievals, noteSideWriteLost, noteView } from "./side-writes";
 
@@ -107,7 +107,7 @@ async function flush() {
       for (const [col, n] of stats) await tx`select bump_stat(${col}, ${n})`;
       // One upsert per distinct shape: the shapes were collapsed in process, so a thousand searches
       // for the same thing on the same day cost one statement here and occupy one row there.
-      for (const g of searches) await tx`select bump_search(${g.q}, ${g.kind}, ${g.tags}, ${g.near}, ${g.radius_km}, ${g.source}, ${g.n}, ${g.zero})`;
+      for (const g of searches) await tx`select bump_search(${g.q}, ${g.kind}, ${g.tags}, ${g.near}, ${g.radius_km}, ${g.source}, ${g.n}, ${g.zero}, ${g.embed_failed})`;
       // Last, and inside a savepoint of its own: a view bump that meets a lock must not be able to
       // take the tick above it down with it. See lib/side-writes.ts.
       await applyCounts(tx, counts);
@@ -171,17 +171,19 @@ export const track = {
    * distinctness counters and `unmet_queries` only — the search log never sees it (BR-17).
    * `internal` is our own accounts: they are excluded from the demand record for the same reason
    * they are excluded from traction, because seeding the board is not demand for it.
+   * `embedFailed` is SearchResult.embed_failed: such a search is counted, but never as a zero (isUnmet).
    */
-  search(q: SearchQuery, results: number, seeker: string, source: SearchSource, internal = false) {
+  search(q: SearchQuery, results: number, seeker: string, source: SearchSource, internal = false, embedFailed = false) {
     this.counter("search:total");
     this.counter(`search:source:${source}`);
     if (q.q) this.counter("search:text");
+    if (embedFailed) this.counter("search:embed_failed");
     this.actor("seeker", seeker);
     // FR-40: every search, including a bare listing — "show me the newest" is a query too.
-    const logged = recordSearch(q, source, { zero: results === 0, internal });
+    const logged = recordSearch(q, source, { zero: results === 0, embedFailed, internal });
     if (logged === "recorded") scheduleFlush();
     else if (logged === "dropped") this.counter("search:log_dropped");
-    if (results === 0) {
+    if (isUnmet({ zero: results === 0, embedFailed })) {
       this.counter("search:zero");
       // A row, not a counter: it carries the shape of the query that found nothing, which is the
       // daily agent's demand signal. So it is registered rather than batched.
@@ -313,7 +315,10 @@ export async function metricsSnapshot() {
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:db_timeout' and day >= current_date - 6) as db_timeouts_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:503' and day >= current_date - 6) as errors_503_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:db_connect' and day >= current_date - 6) as db_connects_7d,
-      (select coalesce(sum(n), 0)::int from daily_counters where key = ${SIDE_WRITE_TIMEOUT_KEY} and day >= current_date - 6) as side_write_timeouts_7d`, at("metrics:core"));
+      (select coalesce(sum(n), 0)::int from daily_counters where key = ${SIDE_WRITE_TIMEOUT_KEY} and day >= current_date - 6) as side_write_timeouts_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:embed_abort' and day >= current_date - 6) as embed_aborts_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:embed_error' and day >= current_date - 6) as embed_errors_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'search:embed_failed' and day >= current_date - 6) as searches_embed_failed_7d`, at("metrics:core"));
 
   const series = await withTimeout(s<{ day: string; searches: number; zero: number; posts: number; registrations: number; deliveries: number; mcp_init: number; mcp_calls: number; page_human: number; page_crawler: number; page_agent: number; publishers: number; seekers: number }[]>`
     with days as (select generate_series(current_date - 29, current_date, '1 day')::date as day)
@@ -412,6 +417,9 @@ export async function metricsSnapshot() {
       // Writes nobody waited for that were lost anyway: a count that never reached `posts.views`,
       // a `last_polled_at` left stale. Counted on the next successful flush, so it is a floor.
       side_write_timeouts_7d: core.side_write_timeouts_7d,
+      // Causes, not served errors; docs/metrics.md, "Embedding failures".
+      embed_aborts_7d: core.embed_aborts_7d, embed_errors_7d: core.embed_errors_7d,
+      searches_embed_failed_7d: core.searches_embed_failed_7d,
     },
     north_stars: {
       weekly_active_publishers: metrics.weekly_active_publishers,

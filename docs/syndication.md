@@ -21,10 +21,11 @@ it up.
 4. **Honest counts.** Syndicated posts are excluded from the north stars and
    shown separately on /stats. `include_syndicated=false` hides them from any
    search.
-5. **Bounded.** Per-source `max_per_run`, capped at 100 by the runner whatever
-   the row says (`MAX_PER_RUN_CAP` in `lib/syndication/types.ts`), a
-   `horizon_days` window (default 30), a 100-second budget per hourly tick, and
-   the global posts ceiling.
+5. **Bounded.** Per-source `max_per_run` (posts created or updated per run),
+   capped at 100 by the runner whatever the row says (`MAX_PER_RUN_CAP` in
+   `lib/syndication/types.ts`), a `horizon_days` window (default 30), a
+   60-second budget per source run inside a 100-second budget per hourly tick,
+   and the global posts ceiling.
 
 ## Adapters
 
@@ -33,7 +34,7 @@ it up.
 | `ticketmaster` | Discovery API: concerts, sports, theatre around a point. Needs `TICKETMASTER_API_KEY`. Terms require attribution and a link, which every post carries. | `{lat, lng, radius_km, city, segment?}` |
 | `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, venue calendars. Recurring series are not expanded. | `{url, timezone?, location_name?, lat?, lng?}` |
 | `rss` | Any RSS/Atom feed of notices. Items become announcements with a TTL. | `{url, ttl_days?, location_name?, lat?, lng?}` |
-| `localist` | Localist calendars (most universities). Public JSON API. Placeholder venues are dropped, not published. | `{base, location_name?, lat?, lng?}` |
+| `localist` | Localist calendars (most universities). Public JSON API, paged, at most 500 rows a run. Placeholder venues are dropped, not published; one event published twice is relayed once. | `{base, location_name?, lat?, lng?}` |
 | `nws` | National Weather Service active alerts for a state (public domain). Zone alerts get a centroid from the zone geometry. | `{area, min_severity?}` |
 
 ### What an adapter may call a place
@@ -41,6 +42,12 @@ it up.
 An upstream sentinel is not a fact: Ticketmaster's "Undefined" and Localist's "Sign in to download
 the location" / "TBD" are dropped on an exact trimmed match, never a pattern — the same feeds carry
 the real "Lincoln Park Campus (Room TBD)". "Online Event" stays, because it is true.
+
+`localist` reads the venue from `location_name`, then `location`, then `address`, then the
+geocoded `geo.street` and `geo.city`, skipping placeholders in each. `room_number` rides the body's
+"Where:" line but is never the venue on its own. Most Localist posts with no venue have none to
+give: on the Loyola feed of 2026-11-06, 291 of 642 events were gated behind sign-in, 90 were online
+with no name, and 2 named a place only in `address` or `geo.street`.
 
 Where upstream gives no coordinates, `localist` falls back to `config.lat`/`config.lng` as `ical`
 and `rss` do, except on online events.
@@ -59,7 +66,65 @@ adapter, folds the instances of one upstream thing into one item, then:
   same source is still relaying that post.
 
 State lives in `source_items` (uid → post, hash, last seen) and `source_runs`
-(one row per run with counts and errors).
+(one row per run with counts and errors). A run's `status` is `ok`, `partial`
+(the fetch stopped early, everything it read was written, and `error` says
+where it stopped), or `error` (the fetch failed before anything was read, or
+something threw while writing; a fetch failure names the URL, the elapsed
+milliseconds and the HTTP status when there was one). Credentials in a URL are
+redacted before it reaches either column.
+
+`partial` is not a failure. `sources.last_error` carries the note of a partial
+run as it does the error of a failed one, so read `last_status`, not whether
+`last_error` is set: a rule such as "stop a source that errored twice in a row"
+counts `status = 'error'` only.
+
+### Budgets
+
+Sources run one after another inside `runDue(100_000)`, under the cron route's
+`maxDuration` of 300 s. Each run gets at most 60 s of that
+(`lib/syndication/budget.ts`), capped by what is left of the tick; the fetch
+may use all of it but the last 15 s, which are kept for writing what was read.
+No source starts in the tick's last 10 s, so two sources that each use their
+whole minute fill a tick; the sources it does not reach go first in the next,
+because `dueSources` takes the longest-waiting first. The tick's 100 s leaves
+the route's 300 s for the last run's in-flight write and sweep, which the
+window does not cut off.
+
+The bound is on the run, not on a request. Until CRI-51 the adapter call had a
+fixed 25 s deadline and an abort threw away every page already read: the
+Localist sources failed one run in four to eight at 25,079–25,096 ms with
+`fetched=0`, while their successful runs took 17.5 s to 39.1 s.
+
+`localist` pages through `lib/syndication/walk.ts`. It stops at the end of the
+feed, at 500 rows, or when too little of the fetch budget is left to start a
+page. A page that fails after the first ends the walk with the rows already
+held, and the run is `partial`. Only a failure on the first page fails the run.
+
+`max_per_run` is not a fetch cap. It bounds the posts a run creates or updates;
+the rows read past it are what keep already-relayed posts current and stop
+them being counted missing. Loyola carries ~400 live posts on `max_per_run`
+100 because of this, and reading only 100 rows would shrink it to the next five
+days of events.
+
+### What a short walk vouches for
+
+A walk that stops before the feed ends has not seen the rest of the feed, so
+the missing-item sweep must not count those items as missing. The adapter
+returns `coveredBefore`, the start of the last row it read, and the sweep spares
+every post known to start at or after it. A `source_items` row with no post, or
+whose post is gone, has nothing to spare and is counted as before. Before this,
+the five-page walk on Loyola's 642-event feed counted the tail it never read as
+missing.
+
+Localist serves one row per instance in start order; on 2026-11-07 that held for
+all 644 Loyola rows and the first 300 of DePaul's. The adapter checks it rather
+than assuming it: if the rows it read are out of order, `coveredBefore` is the
+epoch and the run counts no post as missing. A row with no parseable start is
+skipped when finding the last start.
+
+An event removed upstream that starts past `coveredBefore` is not counted until
+the window reaches it, which happens as the feed's start moves forward with the
+clock; it is retired three runs after that, provided it has not started yet.
 
 ### One post per upstream thing
 
@@ -90,55 +155,48 @@ group whose items do not all share a title — a venue landing page really does
 sell four different Sunday brunches from one link, and folding those would
 publish one and lose three.
 
-### One post per Ticketmaster show, however many Discovery records
+### Ticketmaster records, one post each
 
 Discovery serves some shows twice: two event ids, a dated slug URL
 (`/hamilton-ny-new-york-new-york-10-20-2026/event/Z1r9…`) and a bare one
-(`/event/Z7r9…`), names that differ in punctuation or billing ("August Wilsons"
-and "August Wilson's"; "Hamilton" and "Hamilton (NY)"), and `dates.timezone` on
-only one of them. Keyed on the URL, each became a post: 60 duplicate pairs live,
-and every bare-URL post without a timezone (CRI-61).
+(`/event/Z7r9…`), and names that differ in punctuation or billing ("August
+Wilsons" and "August Wilson's"; "Hamilton" and "Hamilton (NY)"). The two URLs
+differ, so the fold above keeps them apart, and such twins are relayed as two
+posts for now (CRI-61). `lib/syndication/ticketmaster.ts` maps each record to
+one item whose uid is its Discovery id, which the fold then keys on its URL like
+any adapter's item. Merging twins safely needs their ids and URLs stored as
+aliases of one row, so that a reschedule, a rename or a run that fetched only
+one twin cannot re-key the show or retire it: CRI-74.
 
-`lib/syndication/ticketmaster.ts` merges them before the fold. Records sharing a
-venue id and start instant are the same show when one name, as words (case,
-accents and apostrophes dropped, other punctuation a break), is the other with
-more words on the end, or when they share an attraction id and have the same
-words in another order. That is the CRI-61 reproduction query's rule, held to
-whole words; a shared attraction alone does not merge, because a house
-company's attraction can sit on two stages' shows at one venue and hour.
-Matching is transitive within the slot.
+What the mapping does to each record: the timezone is the event's, else its
+venue's; the end comes only from `dates.end.dateTime`, never when
+`noSpecificTime`, because Discovery gives no duration and an invented one would
+be read as fact. Titles of 12 characters or fewer, or a single word, carry the
+venue ("Wanted at James Earl Jones Theatre"), or the city when there is no
+venue. The body's description is the event's `description`, `info` or
+`pleaseNote`, whichever first is not venue rules; when all are rules, it is
+"<attraction> on <local date> at <place>." The "Tickets and details:" line
+appears only when the record has a link.
 
-The merged item is the lead record: the one with the dated slug URL, else the
-lowest Discovery id. Both are fixed fields of the records themselves, so the
-lead does not move with a record's timezone, its status or what else a run
-fetched. The lead's title, URL and body are published; the timezone comes from
-the event, else its venue, else the twin; the end only from
-`dates.end.dateTime`, because Discovery gives no duration and an invented one
-would be read as fact; the description from whichever record has one; and the
-show is cancelled only when every record is.
+### One event, two URLs
 
-Its identity is the lead's normalized URL, the same identity the fold gives
-every adapter's items, so nothing in the runner or the fold knows about the
-merge. What follows from that:
+Localist calendars publish some events twice: a second event record with its
+own id and a slug with a numeric suffix (`tree-and-campus-lighting` and
+`tree-and-campus-lighting-4468`), often one with the venue and one gated. The
+two have different ids and different URLs, so neither the uid nor the fold above
+can see they are one thing (CRI-67).
 
-- **Existing pairs clear without a backfill.** The lead's post keeps being
-  updated. The twin is still fetched, but merged into the lead, so its URL is
-  no item's uid: its row is counted missing like any vanished item, and its
-  post retired after three runs that finish under the cap (`skipped === 0`)
-  while its event is still in the future; otherwise it expires with the event.
-- **One way a duplicate can still appear.** A run that fetches only the
-  non-lead twin, because paging cut the lead off, relays the twin under its
-  own URL, as any unmerged record is. Closing that needs the twins' URLs
-  stored as aliases of one row; that is a follow-up ticket, not this mechanism.
-- **The first run after a mapping change updates in place.** Every existing
-  post keeps its uid, and the new titles, bodies and timezones change its hash,
-  so each is updated, at most 100 per source per run.
-
-Titles of 12 characters or fewer, or a single word, carry the venue
-("Wanted at James Earl Jones Theatre"). The body's description is the event's
-`description`, `info` or `pleaseNote`, whichever first is not venue rules; when
-all are rules, it is "<attraction> on <local date> at <place>." The
-"Tickets and details:" line appears only when the record has a link.
+`dropLocalistRepeats` in `lib/syndication/adapters.ts` drops an instance whose
+title (case and spacing aside) and start instant match an instance of an older
+event, unless both name a venue and neither name begins the other. Because an
+empty or gated venue matches any, the end, the room and `experience` must not
+disagree either: two sections in two rooms, two slots that end apart, or one
+online and one in person stay two events. The older
+event, the lower id, is kept, so the choice is stable between runs (Localist
+ids rose with `created_at` across all 526 Loyola events). Different
+starts never merge, so a series stays one row per occurrence, and two named
+campuses at one hour stay two sessions. The copies already on the board are
+retired by the missing-item sweep like any item that stops arriving.
 
 ### The live-row guard
 

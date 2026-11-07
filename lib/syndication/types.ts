@@ -1,4 +1,5 @@
 import type { Kind } from "../posts";
+import { FetchFailure } from "./walk.ts";
 
 export type SourceRow = {
   id: string;
@@ -47,21 +48,48 @@ export function runLimit(source: Pick<SourceRow, "max_per_run">): number {
   return Math.max(0, Math.min(source.max_per_run, MAX_PER_RUN_CAP));
 }
 
-export type AdapterContext = { now: Date; horizonEnd: Date; signal: AbortSignal };
-export type Adapter = (source: SourceRow, ctx: AdapterContext) => Promise<Item[]>;
+/**
+ * `signal` aborts any fetch still running when the run's fetch budget is spent; `fetchUntil` is
+ * that same moment in epoch ms, for an adapter that pages and should not start a page it cannot
+ * finish. Absent, the adapter has no deadline but the signal.
+ */
+export type AdapterContext = { now: Date; horizonEnd: Date; signal: AbortSignal; fetchUntil?: number };
+
+/**
+ * What an adapter read. `note` says why a walk ended before the feed did, for `source_runs.error`.
+ * `coveredBefore` is set when the feed was not read to its end: items starting before it were all
+ * in the pages read, and the runner judges only those as missing.
+ */
+export type Fetched = { items: Item[]; note?: string; coveredBefore?: string };
+export type Adapter = (source: SourceRow, ctx: AdapterContext) => Promise<Item[] | Fetched>;
+
+/** Either return shape as Fetched. */
+export function asFetched(r: Item[] | Fetched): Fetched {
+  return Array.isArray(r) ? { items: r } : r;
+}
 
 export const UA = "Crier-Syndication/1.0 (+https://crier.network/llms.txt; hello@crier.network)";
 
-export async function fetchText(url: string, ctx: AdapterContext, headers: Record<string, string> = {}): Promise<string> {
-  const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "*/*", ...headers }, signal: ctx.signal, redirect: "follow" });
-  if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
-  return res.text();
+/** GET with the run's signal. Every failure, an abort included, is a FetchFailure naming the URL, elapsed ms and status. */
+async function get<T>(url: string, ctx: AdapterContext, headers: Record<string, string>, read: (res: Response) => Promise<T>): Promise<T> {
+  const t0 = Date.now();
+  let status: number | undefined;
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": UA, ...headers }, signal: ctx.signal, redirect: "follow" });
+    status = res.status;
+    if (!res.ok) throw new FetchFailure({ url, status, ms: Date.now() - t0 });
+    return await read(res);
+  } catch (e) {
+    throw FetchFailure.from(e, { url, status, ms: Date.now() - t0 });
+  }
 }
 
-export async function fetchJson<T>(url: string, ctx: AdapterContext, headers: Record<string, string> = {}): Promise<T> {
-  const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json", ...headers }, signal: ctx.signal, redirect: "follow" });
-  if (!res.ok) throw new Error(`${url.replace(/apikey=[^&]+/, "apikey=…")} -> HTTP ${res.status}`);
-  return (await res.json()) as T;
+export function fetchText(url: string, ctx: AdapterContext, headers: Record<string, string> = {}): Promise<string> {
+  return get(url, ctx, { Accept: "*/*", ...headers }, (res) => res.text());
+}
+
+export function fetchJson<T>(url: string, ctx: AdapterContext, headers: Record<string, string> = {}): Promise<T> {
+  return get(url, ctx, { Accept: "application/json", ...headers }, async (res) => (await res.json()) as T);
 }
 
 /** Strip HTML, decode common entities, collapse whitespace, truncate on a word boundary. */

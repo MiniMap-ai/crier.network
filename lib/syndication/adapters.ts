@@ -1,8 +1,8 @@
 import { RECURRENCE_CAP } from "./collapse.ts";
 import { icalDate, icalText, parseFeed, parseICal } from "./feeds.ts";
-import { mergeRepresentations, representation } from "./ticketmaster.ts";
-import type { Representation } from "./ticketmaster.ts";
+import { ticketmasterItem } from "./ticketmaster.ts";
 import { fetchJson, fetchText, inHorizon, plainText, runLimit } from "./types.ts";
+import { walkNote, walkPages } from "./walk.ts";
 // Split out: node's type stripping erases `import type` but cannot spot types inside a mixed list.
 import type { Adapter, AdapterContext, Item, SourceRow } from "./types.ts";
 
@@ -17,7 +17,7 @@ const point = (lat: unknown, lng: unknown): { lat: number; lng: number } | undef
 /* ---------------- Ticketmaster Discovery API ----------------
    config: { lat, lng, radius_km, city (label), segment? ("Music" | "Sports" | "Arts & Theatre" | ...) }
    Terms require attribution and a link back; every post says "Source: Ticketmaster" and links the event.
-   Mapping and the merge of duplicate Discovery records live in ./ticketmaster.ts. */
+   Each record maps to one item in ./ticketmaster.ts. */
 export const ticketmaster: Adapter = async (source, ctx) => {
   const key = process.env.TICKETMASTER_API_KEY;
   if (!key) throw new Error("TICKETMASTER_API_KEY is not set");
@@ -26,7 +26,7 @@ export const ticketmaster: Adapter = async (source, ctx) => {
   if (lat === undefined || lng === undefined) throw new Error("config.lat and config.lng are required");
   const radius = Math.min(150, num(c.radius_km) ?? 40);
   const fmt = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, "Z");
-  const reps: Representation[] = [];
+  const items: Item[] = [];
   const pageSize = 200;
   const maxPages = Math.ceil(runLimit(source) / pageSize);
   for (let page = 0; page < maxPages && page * pageSize < 1000; page++) {
@@ -39,12 +39,11 @@ export const ticketmaster: Adapter = async (source, ctx) => {
     const data = await fetchJson<TM>(`https://app.ticketmaster.com/discovery/v2/events.json?${params}`, ctx);
     const events = data._embedded?.events ?? [];
     for (const e of events) {
-      const r = representation(e, source);
-      if (r) reps.push(r);
+      const item = ticketmasterItem(e, source);
+      if (item) items.push(item);
     }
     if (events.length < pageSize || (data.page?.totalPages ?? 0) <= page + 1) break;
   }
-  const items = mergeRepresentations(reps);
   return items.filter((i) => inHorizon(i.starts_at, ctx));
 };
 
@@ -121,6 +120,15 @@ const LOCALIST_NO_PLACE = new Set(["sign in to download the location", "tbd"]);
 /** True, but not a place. */
 const LOCALIST_ONLINE = "online event";
 
+/** Rows per `/api/2/events` page; 100 is the most Localist serves. */
+export const LOCALIST_PAGE_SIZE = 100;
+
+/**
+ * Rows read per run: five pages. A fetch bound, not a write bound: `max_per_run` caps the posts a
+ * run creates or updates, and the rows read past it are what keep the posts already relayed alive.
+ */
+export const LOCALIST_MAX_ROWS = 500;
+
 /** The first candidate that names a place, or "" if none does. */
 function localistPlace(...candidates: unknown[]): string {
   for (const c of candidates) {
@@ -130,48 +138,150 @@ function localistPlace(...candidates: unknown[]): string {
   return "";
 }
 
+/**
+ * The venue an event names in any of the fields Localist puts one in: `location_name`, then
+ * `location`, then `address`, then the geocoded street and city. A room is not a venue and is not
+ * read here.
+ */
+export function localistVenue(e: Record<string, unknown>): string {
+  const geo = (e.geo ?? {}) as Record<string, unknown>;
+  const street = localistPlace(geo.street);
+  return localistPlace(e.location_name, e.location, e.address) || (street ? [street, localistPlace(geo.city)].filter(Boolean).join(", ") : "");
+}
+
+/** One instance of a Localist event, as the repeat check sees it. An absent field matches anything. */
+export type LocalistInstance = { id: string; title: string; start: string; venue: string; room?: string; end?: string; experience?: string };
+
+const normText = (t: string) => t.trim().toLowerCase().replace(/\s+/g, " ");
+
+/** Same venue, or one of them names none, or one name begins the other: "Regis Hall" and "Regis Hall MPR". */
+function sameVenue(a: string, b: string): boolean {
+  const x = normText(a), y = normText(b);
+  if (!x || !y || x === y) return true;
+  const [short, long] = x.length < y.length ? [x, y] : [y, x];
+  return long.startsWith(short) && /^[\s,(-]/.test(long.slice(short.length));
+}
+
+/**
+ * Whether two instances with one title and one start can be one event. A venue left empty or gated
+ * matches any, so the end, the room and the in-person or online mode must not disagree either: two
+ * sections in different rooms, or one online and one in person, are two events.
+ */
+function sameEvent(a: LocalistInstance, b: LocalistInstance): boolean {
+  const ends = (x?: string, y?: string) => !x || !y || Date.parse(x) === Date.parse(y);
+  const modes = (x?: string, y?: string) => !x || !y || x === y;
+  return sameVenue(a.venue, b.venue) && sameVenue(a.room ?? "", b.room ?? "") && ends(a.end, b.end) && modes(a.experience, b.experience);
+}
+
+/** Localist ids are decimal strings; shorter is smaller. */
+const byId = (a: { id: string }, b: { id: string }) => a.id.length - b.id.length || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
+/**
+ * Drop instances that repeat another event's instance: the same title at the same instant, with
+ * nothing in `sameEvent` disagreeing, published as a second event under its own id and URL. The
+ * oldest event (the lowest id) is kept, so the choice does not move between runs. Two venues that
+ * are both named and differ ("Lake Shore Campus", "Water Tower Campus") are two sessions and both
+ * stay, as does anything at a different start: a series stays one row per occurrence. Order is
+ * preserved.
+ */
+export function dropLocalistRepeats<T extends LocalistInstance>(xs: T[]): T[] {
+  const kept = new Map<string, T[]>();
+  const out = new Set<T>();
+  for (const x of [...xs].sort(byId)) {
+    const at = Date.parse(x.start);
+    const key = `${normText(x.title)}\u0000${Number.isNaN(at) ? x.start : at}`;
+    const group = kept.get(key) ?? [];
+    if (group.some((k) => k.id === x.id || sameEvent(k, x))) continue;
+    group.push(x);
+    kept.set(key, group);
+    out.add(x);
+  }
+  return xs.filter((x) => out.has(x));
+}
+
 export const localist: Adapter = async (source, ctx) => {
   const base = str(source.config.base).replace(/\/$/, "");
   if (!base) throw new Error("config.base is required");
-  type L = { events: { event: Record<string, unknown> }[]; page?: { total?: number } };
-  const items: Item[] = [];
-  for (let page = 1; page <= 5; page++) {
-    const data = await fetchJson<L>(`${base}/api/2/events?days=${source.horizon_days}&pp=100&page=${page}`, ctx);
-    for (const { event: e } of data.events ?? []) {
-      const id = String(e.id ?? ""); if (!id) continue;
-      const geo = (e.geo ?? {}) as Record<string, unknown>;
-      const place = localistPlace(e.location_name, e.location);
-      const room = localistPlace(e.room_number);
-      // Read the name too: DePaul marks online events "inperson".
-      const online = str(e.experience) === "virtual" || place.toLowerCase() === LOCALIST_ONLINE;
-      // An online event is not at the campus, so it gets neither of the source's fallbacks.
-      const named = place || (online ? "" : str(source.config.location_name).trim());
-      const where = [named, room].filter(Boolean).join(", ");
-      // Upstream has coordinates for about a quarter of events; config.lat/lng covers the rest, as in ical and rss.
-      const at = point(geo.latitude, geo.longitude) ?? (online ? undefined : point(source.config.lat, source.config.lng));
-      const instances = ((e.event_instances ?? []) as { event_instance: Record<string, unknown> }[]).map((x) => x.event_instance);
-      // Five was a brake on how many rows one event could become; the fold is the brake now, so take
-      // enough instances to fill the recurrence list it builds (the representative plus the rest).
-      for (const inst of instances.slice(0, RECURRENCE_CAP + 1)) {
-        const start = str(inst.start); if (!start) continue;
-        items.push({
-          uid: `${id}:${start}`,
-          title: plainText(str(e.title), 200),
-          body: [plainText(str(e.description_text) || str(e.description), 500), where ? `Where: ${where}` : "", `Details: ${str(e.localist_url)}`, `Source: ${source.name}, relayed by Crier.`].filter(Boolean).join("\n"),
-          url: str(e.localist_url) || undefined,
-          kind: "event",
-          starts_at: start,
-          ends_at: str(inst.end) || undefined,
-          location: { name: named || undefined, lat: at?.lat, lng: at?.lng },
-          tags: [...source.tags, ...Object.values((e.filters ?? {}) as Record<string, { name: string }[]>).flat().map((f) => f?.name ?? "")].map((t) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-")).filter((t) => t.length >= 2 && t.length <= 40).slice(0, 20),
-          metadata: { source: "localist", all_day: !!inst.all_day, free: e.free },
-        });
-      }
+  type L = { events?: { event: Record<string, unknown> }[]; page?: { total?: number } };
+  const urlOf = (page: number) => `${base}/api/2/events?days=${source.horizon_days}&pp=${LOCALIST_PAGE_SIZE}&page=${page}`;
+  const walk = await walkPages({
+    pageSize: LOCALIST_PAGE_SIZE,
+    limit: LOCALIST_MAX_ROWS,
+    until: ctx.fetchUntil ?? Infinity,
+    urlOf,
+    fetchPage: async (page) => {
+      const data = await fetchJson<L>(urlOf(page), ctx);
+      return { rows: (data.events ?? []).map((x) => x.event), totalPages: num(data.page?.total) };
+    },
+  });
+
+  type Instance = LocalistInstance & { e: Record<string, unknown>; inst: Record<string, unknown> };
+  const instances: Instance[] = [];
+  for (const e of walk.rows) {
+    const id = String(e.id ?? ""); if (!id) continue;
+    const venue = localistVenue(e);
+    const room = localistPlace(e.room_number);
+    const experience = str(e.experience) || undefined;
+    // Five was a brake on how many rows one event could become; the fold is the brake now, so take
+    // enough instances to fill the recurrence list it builds (the representative plus the rest).
+    for (const x of ((e.event_instances ?? []) as { event_instance: Record<string, unknown> }[]).slice(0, RECURRENCE_CAP + 1)) {
+      const inst = x.event_instance;
+      const start = str(inst.start); if (!start) continue;
+      instances.push({ id, title: plainText(str(e.title), 200), start, venue, room, end: str(inst.end) || undefined, experience, e, inst });
     }
-    if ((data.events ?? []).length < 100) break;
   }
-  return items.filter((i) => inHorizon(i.starts_at, ctx));
+
+  const items: Item[] = [];
+  for (const { id, title, start, venue: place, room, e, inst } of dropLocalistRepeats(instances)) {
+    const geo = (e.geo ?? {}) as Record<string, unknown>;
+    // Read the name too: DePaul marks online events "inperson".
+    const online = str(e.experience) === "virtual" || place.toLowerCase() === LOCALIST_ONLINE;
+    // An online event is not at the campus, so it gets neither of the source's fallbacks.
+    const named = place || (online ? "" : str(source.config.location_name).trim());
+    const where = [named, room].filter(Boolean).join(", ");
+    // Upstream has coordinates for about a quarter of events; config.lat/lng covers the rest, as in ical and rss.
+    const at = point(geo.latitude, geo.longitude) ?? (online ? undefined : point(source.config.lat, source.config.lng));
+    items.push({
+      uid: `${id}:${start}`,
+      title,
+      body: [plainText(str(e.description_text) || str(e.description), 500), where ? `Where: ${where}` : "", `Details: ${str(e.localist_url)}`, `Source: ${source.name}, relayed by Crier.`].filter(Boolean).join("\n"),
+      url: str(e.localist_url) || undefined,
+      kind: "event",
+      starts_at: start,
+      ends_at: str(inst.end) || undefined,
+      location: { name: named || undefined, lat: at?.lat, lng: at?.lng },
+      tags: [...source.tags, ...Object.values((e.filters ?? {}) as Record<string, { name: string }[]>).flat().map((f) => f?.name ?? "")].map((t) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-")).filter((t) => t.length >= 2 && t.length <= 40).slice(0, 20),
+      metadata: { source: "localist", all_day: !!inst.all_day, free: e.free },
+    });
+  }
+
+  return {
+    items: items.filter((i) => inHorizon(i.starts_at, ctx)),
+    note: walkNote(walk),
+    coveredBefore: walk.stop === "end" ? undefined : localistCoveredBefore(walk.rows),
+  };
 };
+
+/** The epoch: a walk that can vouch for nothing spares every post from the missing-item sweep. */
+const COVERS_NOTHING = new Date(0).toISOString();
+
+/**
+ * Where a walk that stopped early stops vouching for the feed: the last parseable start among the
+ * rows read. Localist serves one row per instance in start order, so every event starting before
+ * that was in the pages read. The order is checked, not assumed: rows out of order, or none with a
+ * start, vouch for nothing.
+ */
+export function localistCoveredBefore(rows: Record<string, unknown>[]): string {
+  let last = -Infinity;
+  for (const row of rows) {
+    const inst = ((row.event_instances ?? []) as { event_instance: Record<string, unknown> }[])[0]?.event_instance;
+    const at = Date.parse(str(inst?.start));
+    if (Number.isNaN(at)) continue;
+    if (at < last) return COVERS_NOTHING;
+    last = at;
+  }
+  return Number.isFinite(last) ? new Date(last).toISOString() : COVERS_NOTHING;
+}
 
 /* ---------------- NWS active alerts (public domain) ----------------
    config: { area: "TX" (state or marine zone), min_severity?: "Severe" | "Moderate" | "Extreme" } */

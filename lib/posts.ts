@@ -188,7 +188,12 @@ function validateWindow(input: { starts_at?: string; ends_at?: string }) {
   }
 }
 
-export async function createPost(publisher: PublisherRow, input: PostInput): Promise<{ post: PublicPost; created: boolean; notes: string[] }> {
+/**
+ * Create a post or reply. If Cohere fails, the post is stored without an embedding and
+ * backfillEmbeddings fills it in on a later cron tick. `embedDeadline` (epoch ms) allows one embed
+ * retry that finishes by then; pass it only where the route has that time to spare.
+ */
+export async function createPost(publisher: PublisherRow, input: PostInput, opts: { embedDeadline?: number } = {}): Promise<{ post: PublicPost; created: boolean; notes: string[] }> {
   validateWindow(input);
   // Flags are computed on the text as sent (so hidden_unicode can fire); what is stored is the stripped text.
   const flags = contentFlags(input.title, input.body);
@@ -209,7 +214,7 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
   const id = newPostId();
   const expires_at = computeExpiry(input);
   const tags = [...new Set(input.tags)];
-  const [vec] = (await hasBudget("embeds_per_day")) ? await embedDocuments([postEmbeddingText({ ...input, tags, place_name: input.location?.name ?? null })]) : [null];
+  const [vec] = (await hasBudget("embeds_per_day")) ? await embedDocuments([postEmbeddingText({ ...input, tags, place_name: input.location?.name ?? null })], { site: "post_create", deadline: opts.embedDeadline }) : [null];
   if (vec && !parentId) {
     // Near-duplicate check: same content posted recently by anyone. A note, never a block. One
     // simple-protocol statement with the planner held to the live vector index; lib/live-sql.ts says why.
@@ -253,7 +258,11 @@ export async function createPost(publisher: PublisherRow, input: PostInput): Pro
   return { post: publicPost(full!), created: true, notes };
 }
 
-export async function updatePost(publisher: PublisherRow, id: string, patch: z.infer<typeof PostPatchSchema>): Promise<PublicPost> {
+/**
+ * Edit a post. A text change re-embeds it; if Cohere fails, the embedding is cleared rather than
+ * left describing the old text, and backfillEmbeddings fills it in. `embedDeadline` as in createPost.
+ */
+export async function updatePost(publisher: PublisherRow, id: string, patch: z.infer<typeof PostPatchSchema>, opts: { embedDeadline?: number } = {}): Promise<PublicPost> {
   const existing = await getPostRow(id);
   if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
@@ -281,7 +290,7 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: z.i
   const textChanged = patch.title !== undefined || patch.body !== undefined || patch.tags !== undefined || patch.location !== undefined || patch.kind !== undefined;
   let vecLiteral: string | null | undefined = undefined;
   if (textChanged) {
-    const [vec] = await embedDocuments([postEmbeddingText({ ...merged })]);
+    const [vec] = await embedDocuments([postEmbeddingText({ ...merged })], { site: "post_update", deadline: opts.embedDeadline });
     vecLiteral = vec ? toVectorLiteral(vec) : null;
   }
   await sql()`
@@ -364,7 +373,7 @@ export async function backfillEmbeddings(limit = 5): Promise<number> {
     select id, kind, title, body, tags, place_name from posts where embedding is null and live order by created_at asc limit ${limit}`;
   if (rows.length === 0) return 0;
   if (!(await hasBudget("embeds_per_day"))) return 0;
-  const vecs = await embedDocuments(rows.map((r) => postEmbeddingText(r)));
+  const vecs = await embedDocuments(rows.map((r) => postEmbeddingText(r)), { site: "backfill" });
   let n = 0;
   for (let i = 0; i < rows.length; i++) {
     const v = vecs[i];
