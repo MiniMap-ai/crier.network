@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { localist } from "../lib/syndication/adapters.ts";
+import { asFetched } from "../lib/syndication/types.ts";
 import type { SourceRow } from "../lib/syndication/types.ts";
 
 /**
@@ -15,15 +16,19 @@ const NO_GEO = { latitude: null, longitude: null, street: null, city: null, stat
 
 type RawEvent = Record<string, unknown>;
 
+let made = 0;
+
+/** Each fixture is its own event an hour after the last, so none is taken for a repeat of another. */
 function event(over: RawEvent): RawEvent {
+  const n = made++;
   return {
-    id: 53932118963466,
+    id: 53932118963466 + n,
     title: "Mindful Recess: Support for Mindful Living",
     description_text: "Drop in.",
     localist_url: "https://events.luc.edu/event/mindful-recess",
     experience: "inperson",
     geo: NO_GEO,
-    event_instances: [{ event_instance: { start: START, end: null, all_day: false } }],
+    event_instances: [{ event_instance: { start: new Date(Date.parse(START) + n * 3600e3).toISOString(), end: null, all_day: false } }],
     ...over,
   };
 }
@@ -47,7 +52,7 @@ async function relay(events: RawEvent[], config: Record<string, unknown> = {}) {
       headers: { "Content-Type": "application/json" },
     })) as typeof fetch;
   try {
-    return await localist(source(config), { now: NOW, horizonEnd: new Date("2026-10-14T12:00:00Z"), signal: AbortSignal.timeout(30_000) });
+    return asFetched(await localist(source(config), { now: NOW, horizonEnd: new Date("2026-10-14T12:00:00Z"), signal: AbortSignal.timeout(30_000) })).items;
   } finally {
     globalThis.fetch = real;
   }

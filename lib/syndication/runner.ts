@@ -5,13 +5,16 @@
  */
 import { createHash } from "node:crypto";
 import { sql } from "../db";
+import { withTimeout } from "../db-timeout";
 import { newPostId } from "../ids";
 import { track } from "../metrics";
 import { PostInput, PostInputSchema, createPost, deletePost, getPostRow, normalizeSourceKey, updatePost } from "../posts";
 import { PublisherRow } from "../publishers";
 import { ADAPTERS } from "./adapters";
 import { collapseInstances } from "./collapse";
-import { Item, SourceRow } from "./types";
+import { Fetched, Item, SourceRow, asFetched } from "./types";
+import { runWindow } from "./budget";
+import { redactUrl } from "./walk";
 
 const SYNDICATION_NAME = "Crier Syndication";
 const RETIRE_AFTER_MISSING_RUNS = 3;
@@ -110,14 +113,20 @@ async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: 
   return "adopted";
 }
 
-export type RunResult = { source: string; status: "ok" | "error"; fetched: number; created: number; updated: number; retired: number; skipped: number; folded: number; collapsed: number; error?: string; ms: number };
+export type RunResult = { source: string; status: "ok" | "partial" | "error"; fetched: number; created: number; updated: number; retired: number; skipped: number; folded: number; collapsed: number; error?: string; ms: number };
 
+/**
+ * Fetch one source and write what it yields, inside the run window lib/syndication/budget.ts gives
+ * it under `deadline` (epoch ms). A fetch cut short by that window keeps what it read: the run is
+ * "partial", with `source_runs.error` saying where it stopped and after how long.
+ */
 export async function runSource(source: SourceRow, publisher: PublisherRow, deadline: number): Promise<RunResult> {
   const s = sql();
   const started = Date.now();
+  const window = runWindow(started, deadline);
   const [run] = await s<{ id: number }[]>`insert into source_runs (source_id) values (${source.id}) returning id`;
   const counts = { fetched: 0, created: 0, updated: 0, retired: 0, skipped: 0, folded: 0, collapsed: 0 };
-  const finish = async (status: "ok" | "error", error?: string): Promise<RunResult> => {
+  const finish = async (status: RunResult["status"], error?: string): Promise<RunResult> => {
     await s`update source_runs set finished_at = now(), status = ${status}, fetched = ${counts.fetched}, created = ${counts.created}, updated = ${counts.updated}, retired = ${counts.retired}, skipped = ${counts.skipped}, folded = ${counts.folded}, collapsed = ${counts.collapsed}, error = ${error ?? null} where id = ${run.id}`;
     await s`update sources set last_run_at = now(), last_status = ${status}, last_error = ${error ?? null}, last_counts = ${s.json(counts)} where id = ${source.id}`;
     return { source: source.id, status, ...counts, error, ms: Date.now() - started };
@@ -125,10 +134,11 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
   try {
     const now = new Date();
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), Math.max(5000, Math.min(25000, deadline - Date.now() - 5000)));
-    let items: Item[];
-    try { items = await ADAPTERS[source.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal }); }
+    const t = setTimeout(() => ctrl.abort(), Math.max(0, window.fetchUntil - Date.now()));
+    let fetched: Fetched;
+    try { fetched = asFetched(await ADAPTERS[source.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal, fetchUntil: window.fetchUntil })); }
     finally { clearTimeout(t); }
+    let items: Item[] = fetched.items;
     counts.fetched = items.length;
     // One post per upstream thing, not one per instance. This is where the write path stopped
     // disagreeing with the read path; see lib/syndication/collapse.ts for what it will not fold.
@@ -141,7 +151,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     const existing = new Map((await s<{ uid: string; post_id: string | null; hash: string }[]>`select uid, post_id, hash from source_items where source_id = ${source.id}`).map((r) => [r.uid, r]));
 
     for (const item of items) {
-      if (Date.now() > deadline - 3000) { counts.skipped += 1; continue; }
+      if (Date.now() > window.writeUntil) { counts.skipped += 1; continue; }
       seen.add(item.uid);
       const ex = existing.get(item.uid);
       if (item.cancelled) {
@@ -185,9 +195,16 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     }
 
     // Items that were not in this fetch: count a miss; retire after a few consecutive misses (only future-dated ones matter).
+    // A fetch that did not reach the end of the feed spares only posts known to start at or after
+    // `coveredBefore`. A row with no post, or whose post is gone, has nothing to spare and is counted.
     if (counts.skipped === 0) {
-      const missing = await s<{ uid: string; post_id: string | null; missing_runs: number }[]>`
-        update source_items set missing_runs = missing_runs + 1 where source_id = ${source.id} and uid <> all(${[...seen]}::text[]) returning uid, post_id, missing_runs`;
+      const before = fetched.coveredBefore ?? null;
+      const missing = await withTimeout(s<{ uid: string; post_id: string | null; missing_runs: number }[]>`
+        update source_items si set missing_runs = missing_runs + 1
+         where si.source_id = ${source.id} and si.uid <> all(${[...seen]}::text[])
+           and (${before}::timestamptz is null
+                or not exists (select 1 from posts p where p.id = si.post_id and p.starts_at >= ${before}::timestamptz))
+        returning si.uid, si.post_id, si.missing_runs`, { label: "synd:missing" });
       for (const m of missing) {
         if (m.missing_runs < RETIRE_AFTER_MISSING_RUNS) continue;
         if (m.post_id) {
@@ -203,9 +220,9 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         await s`delete from source_items where source_id = ${source.id} and uid = ${m.uid}`;
       }
     }
-    return finish("ok");
+    return fetched.note ? finish("partial", fetched.note) : finish("ok");
   } catch (e) {
-    return finish("error", (e as Error).message.slice(0, 500));
+    return finish("error", redactUrl(String((e as Error)?.message ?? e)).slice(0, 500));
   }
 }
 
