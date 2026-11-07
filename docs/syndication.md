@@ -66,8 +66,15 @@ adapter, folds the instances of one upstream thing into one item, then:
 State lives in `source_items` (uid → post, hash, last seen) and `source_runs`
 (one row per run with counts and errors). A run's `status` is `ok`, `partial`
 (the fetch stopped early, everything it read was written, and `error` says
-where it stopped), or `error` (nothing was read; `error` names the URL, the
-elapsed milliseconds and the HTTP status when there was one).
+where it stopped), or `error` (the fetch failed before anything was read, or
+something threw while writing; a fetch failure names the URL, the elapsed
+milliseconds and the HTTP status when there was one). Credentials in a URL are
+redacted before it reaches either column.
+
+`partial` is not a failure. `sources.last_error` carries the note of a partial
+run as it does the error of a failed one, so read `last_status`, not whether
+`last_error` is set: a rule such as "stop a source that errored twice in a row"
+counts `status = 'error'` only.
 
 ### Budgets
 
@@ -75,6 +82,11 @@ Sources run one after another inside `runDue(100_000)`, under the cron route's
 `maxDuration` of 300 s. Each run gets at most 60 s of that
 (`lib/syndication/budget.ts`), capped by what is left of the tick; the fetch
 may use all of it but the last 15 s, which are kept for writing what was read.
+No source starts in the tick's last 10 s, so two sources that each use their
+whole minute fill a tick; the sources it does not reach go first in the next,
+because `dueSources` takes the longest-waiting first. The tick's 100 s leaves
+the route's 300 s for the last run's in-flight write and sweep, which the
+window does not cut off.
 
 The bound is on the run, not on a request. Until CRI-51 the adapter call had a
 fixed 25 s deadline and an abort threw away every page already read: the
@@ -96,10 +108,21 @@ days of events.
 
 A walk that stops before the feed ends has not seen the rest of the feed, so
 the missing-item sweep must not count those items as missing. The adapter
-returns `coveredBefore`, the start of the last row it read (Localist serves rows
-in start order), and the sweep counts a miss only for posts starting before it.
-Before this, the five-page walk on Loyola's 642-event feed counted the tail it
-never read as missing.
+returns `coveredBefore`, the start of the last row it read, and the sweep spares
+every post known to start at or after it. A `source_items` row with no post, or
+whose post is gone, has nothing to spare and is counted as before. Before this,
+the five-page walk on Loyola's 642-event feed counted the tail it never read as
+missing.
+
+Localist serves one row per instance in start order; on 2026-11-07 that held for
+all 644 Loyola rows and the first 300 of DePaul's. The adapter checks it rather
+than assuming it: if the rows it read are out of order, `coveredBefore` is the
+epoch and the run counts no post as missing. A row with no parseable start is
+skipped when finding the last start.
+
+An event removed upstream that starts past `coveredBefore` is not counted until
+the window reaches it, which happens as the feed's start moves forward with the
+clock; it is retired three runs after that, provided it has not started yet.
 
 ### One post per upstream thing
 
@@ -140,8 +163,12 @@ can see they are one thing (CRI-67).
 
 `dropLocalistRepeats` in `lib/syndication/adapters.ts` drops an instance whose
 title (case and spacing aside) and start instant match an instance of an older
-event, unless both name a venue and neither name begins the other. The older
-event, the lower id, is kept, so the choice is stable between runs. Different
+event, unless both name a venue and neither name begins the other. Because an
+empty or gated venue matches any, the end, the room and `experience` must not
+disagree either: two sections in two rooms, two slots that end apart, or one
+online and one in person stay two events. The older
+event, the lower id, is kept, so the choice is stable between runs (Localist
+ids rose with `created_at` across all 526 Loyola events). Different
 starts never merge, so a series stays one row per occurrence, and two named
 campuses at one hour stay two sessions. The copies already on the board are
 retired by the missing-item sweep like any item that stops arriving.

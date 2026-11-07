@@ -111,6 +111,20 @@ test("a stored URL never carries a key", () => {
   assert.ok(!new FetchFailure({ url: raw, status: 401, ms: 5 }).message.includes("SECRET123"));
 });
 
+test("a failure keeps no key anywhere on the object, its url field included", () => {
+  const raw = "https://app.ticketmaster.com/discovery/v2/events.json?latlong=1,2&apikey=SECRET123";
+  const f = FetchFailure.from(new TypeError(`Failed to parse URL from ${raw}`), { url: raw, ms: 5 });
+  assert.equal(f.url, "https://app.ticketmaster.com/discovery/v2/events.json?latlong=1,2&apikey=…");
+  assert.ok(!JSON.stringify({ ...f, message: f.message }).includes("SECRET123"), "the cause quoted the URL; the message must not");
+});
+
+test("every credential shape a feed URL carries is redacted", () => {
+  assert.equal(redactUrl("https://x.localist.com/api/2/events?access_token=T0K&page=2"), "https://x.localist.com/api/2/events?access_token=…&page=2");
+  assert.equal(redactUrl("https://a.example/feed?api-key=K#top"), "https://a.example/feed?api-key=…#top");
+  assert.equal(redactUrl("https://user:pa55@cal.example/x.ics"), "https://…@cal.example/x.ics");
+  assert.equal(redactUrl(URL_OF(3)), URL_OF(3), "a URL with no credential is unchanged");
+});
+
 test("a run alone in its tick gets the whole run budget, minus the write reserve for fetching", () => {
   const w = runWindow(1_000, 1_000 + 100_000);
   assert.equal(w.end, 1_000 + RUN_BUDGET_MS);

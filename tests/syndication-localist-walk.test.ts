@@ -169,5 +169,25 @@ test("a spent budget starts no page at all after the first", async () => {
 
 test("the covered window is the last row's first instance, in UTC", () => {
   assert.equal(localistCoveredBefore([event(1, "a", "A", "2026-11-10T10:00:00-06:00")]), "2026-11-10T16:00:00.000Z");
-  assert.equal(localistCoveredBefore([]), undefined);
+  assert.equal(localistCoveredBefore([]), new Date(0).toISOString(), "no rows vouch for nothing");
+});
+
+test("a last row with no usable start leaves the window at the last row that has one", () => {
+  const rows = [event(1, "a", "A", "2026-11-10T10:00:00Z"), event(2, "b", "B", "2026-11-11T10:00:00Z"), event(3, "c", "C", "not a date")];
+  assert.equal(localistCoveredBefore(rows), "2026-11-11T10:00:00.000Z");
+});
+
+test("rows out of start order vouch for nothing", () => {
+  const rows = [event(1, "a", "A", "2026-11-12T10:00:00Z"), event(2, "b", "B", "2026-11-11T10:00:00Z"), event(3, "c", "C", "2026-11-13T10:00:00Z")];
+  assert.equal(localistCoveredBefore(rows), new Date(0).toISOString());
+});
+
+test("an empty venue matches any, but a different room, end or mode is another event", () => {
+  const base = { title: "Luc Utsav Practice", start: "2026-11-24T19:00:00-06:00", venue: "" };
+  const pair = (a: object, b: object) => dropLocalistRepeats([{ ...base, id: "1", ...a }, { ...base, id: "2", ...b }]).length;
+  assert.equal(pair({ end: "2026-11-24T21:00:00-06:00" }, { end: "2026-11-24T21:00:00-06:00" }), 1, "both gated, same hours: one event");
+  assert.equal(pair({ room: "Quiet Reading Room (317)" }, {}), 1, "a room on one side only does not split them");
+  assert.equal(pair({ room: "Room 111" }, { room: "Room 204" }), 2, "two sections in two rooms");
+  assert.equal(pair({ end: "2026-11-24T20:00:00-06:00" }, { end: "2026-11-24T21:00:00-06:00" }), 2, "two slots that end apart");
+  assert.equal(pair({ experience: "virtual" }, { experience: "inperson" }), 2, "one online, one in person");
 });

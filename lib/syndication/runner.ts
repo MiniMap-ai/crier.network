@@ -14,6 +14,7 @@ import { ADAPTERS } from "./adapters";
 import { collapseInstances } from "./collapse";
 import { Fetched, Item, SourceRow, asFetched } from "./types";
 import { runWindow } from "./budget";
+import { redactUrl } from "./walk";
 
 const SYNDICATION_NAME = "Crier Syndication";
 const RETIRE_AFTER_MISSING_RUNS = 3;
@@ -133,7 +134,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
   try {
     const now = new Date();
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), window.fetchUntil - Date.now());
+    const t = setTimeout(() => ctrl.abort(), Math.max(0, window.fetchUntil - Date.now()));
     let fetched: Fetched;
     try { fetched = asFetched(await ADAPTERS[source.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal, fetchUntil: window.fetchUntil })); }
     finally { clearTimeout(t); }
@@ -193,14 +194,15 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     }
 
     // Items that were not in this fetch: count a miss; retire after a few consecutive misses (only future-dated ones matter).
-    // A fetch that did not reach the end of the feed vouches only for what starts before `coveredBefore`.
+    // A fetch that did not reach the end of the feed spares only posts known to start at or after
+    // `coveredBefore`. A row with no post, or whose post is gone, has nothing to spare and is counted.
     if (counts.skipped === 0) {
       const before = fetched.coveredBefore ?? null;
       const missing = await withTimeout(s<{ uid: string; post_id: string | null; missing_runs: number }[]>`
         update source_items si set missing_runs = missing_runs + 1
          where si.source_id = ${source.id} and si.uid <> all(${[...seen]}::text[])
            and (${before}::timestamptz is null
-                or exists (select 1 from posts p where p.id = si.post_id and p.starts_at < ${before}::timestamptz))
+                or not exists (select 1 from posts p where p.id = si.post_id and p.starts_at >= ${before}::timestamptz))
         returning si.uid, si.post_id, si.missing_runs`, { label: "synd:missing" });
       for (const m of missing) {
         if (m.missing_runs < RETIRE_AFTER_MISSING_RUNS) continue;
@@ -219,7 +221,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     }
     return fetched.note ? finish("partial", fetched.note) : finish("ok");
   } catch (e) {
-    return finish("error", (e as Error).message.slice(0, 500));
+    return finish("error", redactUrl(String((e as Error)?.message ?? e)).slice(0, 500));
   }
 }
 

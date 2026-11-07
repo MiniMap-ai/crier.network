@@ -173,8 +173,9 @@ function localistPlace(...candidates: unknown[]): string {
 }
 
 /**
- * The venue an event names in any of the fields Localist puts one in: the location's name, then
- * the street address, then the geocoded street. A room is not a venue and is not read here.
+ * The venue an event names in any of the fields Localist puts one in: `location_name`, then
+ * `location`, then `address`, then the geocoded street and city. A room is not a venue and is not
+ * read here.
  */
 export function localistVenue(e: Record<string, unknown>): string {
   const geo = (e.geo ?? {}) as Record<string, unknown>;
@@ -182,8 +183,8 @@ export function localistVenue(e: Record<string, unknown>): string {
   return localistPlace(e.location_name, e.location, e.address) || (street ? [street, localistPlace(geo.city)].filter(Boolean).join(", ") : "");
 }
 
-/** One instance of a Localist event, as the repeat check sees it. */
-export type LocalistInstance = { id: string; title: string; start: string; venue: string };
+/** One instance of a Localist event, as the repeat check sees it. An absent field matches anything. */
+export type LocalistInstance = { id: string; title: string; start: string; venue: string; room?: string; end?: string; experience?: string };
 
 const normText = (t: string) => t.trim().toLowerCase().replace(/\s+/g, " ");
 
@@ -195,15 +196,27 @@ function sameVenue(a: string, b: string): boolean {
   return long.startsWith(short) && /^[\s,(-]/.test(long.slice(short.length));
 }
 
+/**
+ * Whether two instances with one title and one start can be one event. A venue left empty or gated
+ * matches any, so the end, the room and the in-person or online mode must not disagree either: two
+ * sections in different rooms, or one online and one in person, are two events.
+ */
+function sameEvent(a: LocalistInstance, b: LocalistInstance): boolean {
+  const ends = (x?: string, y?: string) => !x || !y || Date.parse(x) === Date.parse(y);
+  const modes = (x?: string, y?: string) => !x || !y || x === y;
+  return sameVenue(a.venue, b.venue) && sameVenue(a.room ?? "", b.room ?? "") && ends(a.end, b.end) && modes(a.experience, b.experience);
+}
+
 /** Localist ids are decimal strings; shorter is smaller. */
 const byId = (a: { id: string }, b: { id: string }) => a.id.length - b.id.length || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 
 /**
- * Drop instances that repeat another event's instance: the same title at the same instant with a
- * compatible venue, published as a second event under its own id and URL. The oldest event (the
- * lowest id) is kept, so the choice does not move between runs. Two venues that are both named
- * and differ ("Lake Shore Campus", "Water Tower Campus") are two sessions and both stay, as does
- * anything at a different start: a series stays one row per occurrence. Order is preserved.
+ * Drop instances that repeat another event's instance: the same title at the same instant, with
+ * nothing in `sameEvent` disagreeing, published as a second event under its own id and URL. The
+ * oldest event (the lowest id) is kept, so the choice does not move between runs. Two venues that
+ * are both named and differ ("Lake Shore Campus", "Water Tower Campus") are two sessions and both
+ * stay, as does anything at a different start: a series stays one row per occurrence. Order is
+ * preserved.
  */
 export function dropLocalistRepeats<T extends LocalistInstance>(xs: T[]): T[] {
   const kept = new Map<string, T[]>();
@@ -212,7 +225,7 @@ export function dropLocalistRepeats<T extends LocalistInstance>(xs: T[]): T[] {
     const at = Date.parse(x.start);
     const key = `${normText(x.title)}\u0000${Number.isNaN(at) ? x.start : at}`;
     const group = kept.get(key) ?? [];
-    if (group.some((k) => k.id === x.id || sameVenue(k.venue, x.venue))) continue;
+    if (group.some((k) => k.id === x.id || sameEvent(k, x))) continue;
     group.push(x);
     kept.set(key, group);
     out.add(x);
@@ -241,19 +254,20 @@ export const localist: Adapter = async (source, ctx) => {
   for (const e of walk.rows) {
     const id = String(e.id ?? ""); if (!id) continue;
     const venue = localistVenue(e);
+    const room = localistPlace(e.room_number);
+    const experience = str(e.experience) || undefined;
     // Five was a brake on how many rows one event could become; the fold is the brake now, so take
     // enough instances to fill the recurrence list it builds (the representative plus the rest).
     for (const x of ((e.event_instances ?? []) as { event_instance: Record<string, unknown> }[]).slice(0, RECURRENCE_CAP + 1)) {
       const inst = x.event_instance;
       const start = str(inst.start); if (!start) continue;
-      instances.push({ id, title: plainText(str(e.title), 200), start, venue, e, inst });
+      instances.push({ id, title: plainText(str(e.title), 200), start, venue, room, end: str(inst.end) || undefined, experience, e, inst });
     }
   }
 
   const items: Item[] = [];
-  for (const { id, title, start, venue: place, e, inst } of dropLocalistRepeats(instances)) {
+  for (const { id, title, start, venue: place, room, e, inst } of dropLocalistRepeats(instances)) {
     const geo = (e.geo ?? {}) as Record<string, unknown>;
-    const room = localistPlace(e.room_number);
     // Read the name too: DePaul marks online events "inperson".
     const online = str(e.experience) === "virtual" || place.toLowerCase() === LOCALIST_ONLINE;
     // An online event is not at the campus, so it gets neither of the source's fallbacks.
@@ -278,19 +292,29 @@ export const localist: Adapter = async (source, ctx) => {
   return {
     items: items.filter((i) => inHorizon(i.starts_at, ctx)),
     note: walkNote(walk),
-    coveredBefore: walk.stop === "end" ? undefined : localistCoveredBefore(walk.rows) ?? new Date(0).toISOString(),
+    coveredBefore: walk.stop === "end" ? undefined : localistCoveredBefore(walk.rows),
   };
 };
 
+/** The epoch: a walk that can vouch for nothing spares every post from the missing-item sweep. */
+const COVERS_NOTHING = new Date(0).toISOString();
+
 /**
- * Where a walk that stopped early stops vouching for the feed. Localist serves rows in order of
- * their instance start, so every event starting before the last row's start was in the pages read.
+ * Where a walk that stopped early stops vouching for the feed: the last parseable start among the
+ * rows read. Localist serves one row per instance in start order, so every event starting before
+ * that was in the pages read. The order is checked, not assumed: rows out of order, or none with a
+ * start, vouch for nothing.
  */
-export function localistCoveredBefore(rows: Record<string, unknown>[]): string | undefined {
-  const last = rows.at(-1);
-  const inst = ((last?.event_instances ?? []) as { event_instance: Record<string, unknown> }[])[0]?.event_instance;
-  const start = str(inst?.start);
-  return start && !Number.isNaN(Date.parse(start)) ? new Date(Date.parse(start)).toISOString() : undefined;
+export function localistCoveredBefore(rows: Record<string, unknown>[]): string {
+  let last = -Infinity;
+  for (const row of rows) {
+    const inst = ((row.event_instances ?? []) as { event_instance: Record<string, unknown> }[])[0]?.event_instance;
+    const at = Date.parse(str(inst?.start));
+    if (Number.isNaN(at)) continue;
+    if (at < last) return COVERS_NOTHING;
+    last = at;
+  }
+  return Number.isFinite(last) ? new Date(last).toISOString() : COVERS_NOTHING;
 }
 
 /* ---------------- NWS active alerts (public domain) ----------------

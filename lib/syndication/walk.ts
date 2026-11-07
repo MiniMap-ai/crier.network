@@ -6,7 +6,10 @@
  * `source_runs.error` records. docs/syndication.md, "Budgets", has the numbers and the reasons.
  */
 
-/** A page request that failed: where, after how long, and with what status if headers came back. */
+/**
+ * A page request that failed: where, after how long, and with what status if headers came back.
+ * `url` and `message` are both redacted, so the whole object is safe to log or serialize.
+ */
 export class FetchFailure extends Error {
   readonly url: string;
   readonly ms: number;
@@ -16,7 +19,7 @@ export class FetchFailure extends Error {
   constructor(f: { url: string; ms: number; status?: number; aborted?: boolean; cause?: string }) {
     super(describeFailure(f));
     this.name = "FetchFailure";
-    this.url = f.url;
+    this.url = redactUrl(f.url);
     this.ms = f.ms;
     this.status = f.status;
     this.aborted = f.aborted ?? false;
@@ -31,12 +34,20 @@ export class FetchFailure extends Error {
   }
 }
 
-/** Query parameters whose values are credentials. */
-const SECRET_PARAM = /([?&](?:apikey|api_key|key|token|access_token)=)[^&]*/gi;
+/**
+ * Query parameters whose values are credentials: Ticketmaster's `apikey`, Localist's
+ * `access_token`, and the other spellings a feed URL in a source's config might carry.
+ */
+const SECRET_PARAM = /([?&](?:api[_-]?key|key|token|access[_-]?token|auth|client[_-]?secret|secret|signature|sig|password)=)[^&#\s]*/gi;
+/** The `user:password@` of an absolute URL. */
+const USERINFO = /(\b[a-z][a-z0-9+.-]*:\/\/)[^/?#\s@]+@/gi;
 
-/** A URL fit to store: credentials in the query string are replaced with an ellipsis. */
-export function redactUrl(url: string): string {
-  return url.replace(SECRET_PARAM, "$1…");
+/**
+ * Text fit to store, with the credentials of every URL in it replaced by an ellipsis. It takes a
+ * whole message as well as a URL, because a fetch error's own text can quote the URL it was given.
+ */
+export function redactUrl(text: string): string {
+  return text.replace(SECRET_PARAM, "$1…").replace(USERINFO, "$1…@");
 }
 
 /**
@@ -48,7 +59,7 @@ export function describeFailure(f: { url: string; ms: number; status?: number; a
   const ms = Math.round(f.ms);
   if (f.aborted) return `${url} aborted after ${ms} ms (${f.status ? `HTTP ${f.status}, body unread` : "no response"})`;
   if (f.status && !f.cause) return `${url} -> HTTP ${f.status} after ${ms} ms`;
-  return `${url} failed after ${ms} ms: ${(f.cause ?? "unknown error").slice(0, 120)}`;
+  return `${url} failed after ${ms} ms: ${redactUrl(f.cause ?? "unknown error").slice(0, 120)}`;
 }
 
 /** Why a walk stopped. Only "end" means every page of the feed was read. */
