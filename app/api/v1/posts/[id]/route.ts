@@ -1,10 +1,11 @@
-import { corsPreflight, fail, handler, ok, readJson } from "@/lib/http";
+import { clientIp, corsPreflight, fail, handler, ok, rateLimit, readJson } from "@/lib/http";
 import { PostPatchSchema, deletePost, getPostRow, publicPost, relatedPosts, repliesFor, updatePost } from "@/lib/posts";
 import { budget, isDbFailure } from "@/lib/db";
 import { noteDbTimeout, track } from "@/lib/metrics";
 import { requirePublisher } from "@/lib/publishers";
 import { POST_ID_RE } from "@/lib/ids";
 import { assertWritable } from "@/lib/limits";
+import { POST_READS } from "@/lib/request-limits";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,11 +15,12 @@ export const OPTIONS = () => corsPreflight();
 
 type Ctx = { params: Promise<{ id: string }> };
 
-export const GET = handler(async (_req, ctx: Ctx) => {
+export const GET = handler(async (req, ctx: Ctx) => {
   const { id: raw } = await ctx.params;
   const id = raw.replace(/\.json$/, "");
   if (!POST_ID_RE.test(id)) return fail(404, "not_found", "No such post.", { hint: "Post ids are 8 characters, e.g. /api/v1/posts/8Hq2mZk3." });
-  const at = budget();   // the post, its related posts and its replies share one budget
+  const at = budget();   // the limiter, the post, its related posts and its replies share one budget
+  await rateLimit(`read:${clientIp(req)}`, POST_READS.limit, POST_READS.windowSeconds, "post reads from this address", { ...at("api/v1/posts/[id]:rateLimit"), failOpen: true });
   const row = await getPostRow(id, undefined, at);
   if (!row || row.deleted_at) return fail(404, "not_found", "No such post.", { hint: "It may have been removed by its publisher." });
   if (row.hidden_at) return fail(404, "hidden", "This post is hidden pending review.", { hint: "It was reported by several parties or removed by a moderator. If you published it and believe this is wrong, email abuse@crier.network." });
