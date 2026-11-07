@@ -7,6 +7,8 @@ import { DbTimeoutError, budget, isDbConnectError, sideWrite, sql, withTimeout }
 import type { SearchQuery } from "./search";
 import { drainSearches, foldDemand, isUnmet, normalizeQuery, recordSearch, roundNear } from "./search-log";
 import type { DemandRow, SearchSource } from "./search-log";
+import { batchStatements, describeBatch, isEmptyBatch, orderBatch } from "./flush-batch";
+import type { TxSql } from "./flush-batch";
 import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, hasPendingCounts, noteRetrievals, noteSideWriteLost, noteView } from "./side-writes";
 
 /* ---------------- recording (batched, fire-and-forget) ----------------
@@ -76,56 +78,55 @@ async function flush() {
   // read the loss rate out of `daily_counters` instead of scraping Vercel's runtime logs.
   const lost = drainSideWritesLost();
   if (lost) pendingCounters.set(SIDE_WRITE_TIMEOUT_KEY, (pendingCounters.get(SIDE_WRITE_TIMEOUT_KEY) ?? 0) + lost);
-  if (pendingCounters.size === 0 && pendingActors.size === 0 && pendingStats.size === 0 && searches.length === 0 && !hasPendingCounts(counts)) return;
-  const counters = [...pendingCounters.entries()];
-  const actors = [...pendingActors.values()];
-  const stats = [...pendingStats.entries()];
+  // Sorted into lock order; lib/flush-batch.ts says why.
+  const batch = orderBatch({ counters: pendingCounters, actors: pendingActors.values(), stats: pendingStats, searches });
   pendingCounters.clear();
   pendingActors.clear();
   pendingStats.clear();
-  try {
-    // Bounded like every other wait, on the flush's own budget rather than the read budget. begin()
-    // cannot be cancelled once it is in flight — the server-side statement_timeout is what ends it
-    // there — but this is what stops us waiting on it inside the caller's remaining time.
-    const at = budget(FLUSH_WAIT_MS);
-    // Set once COMMIT is next. A connection lost before that applied nothing, so the batch goes once
-    // more on the fresh client; one lost during COMMIT may have applied, so it is counted as lost
-    // rather than risked twice.
-    let committing = false;
-    const attempt = () => withTimeout(sql().begin(async (tx) => {
-      await tx`select set_config('statement_timeout', ${String(FLUSH_TIMEOUT_MS)}, true), set_config('lock_timeout', ${String(FLUSH_LOCK_TIMEOUT_MS)}, true)`;
-      if (counters.length) {
-        await tx`insert into daily_counters (day, key, n)
-                 select current_date, k, n from unnest(${counters.map((c) => c[0])}::text[], ${counters.map((c) => c[1])}::bigint[]) as t(k, n)
-                 on conflict (day, key) do update set n = daily_counters.n + excluded.n`;
-      }
-      if (actors.length) {
-        await tx`insert into daily_actors (day, role, actor, n)
-                 select current_date, r, a, n from unnest(${actors.map((a) => a.role)}::text[], ${actors.map((a) => a.actor)}::text[], ${actors.map((a) => a.n)}::integer[]) as t(r, a, n)
-                 on conflict (day, role, actor) do update set n = daily_actors.n + excluded.n`;
-      }
-      for (const [col, n] of stats) await tx`select bump_stat(${col}, ${n})`;
-      // One upsert per distinct shape: the shapes were collapsed in process, so a thousand searches
-      // for the same thing on the same day cost one statement here and occupy one row there.
-      for (const g of searches) await tx`select bump_search(${g.q}, ${g.kind}, ${g.tags}, ${g.near}, ${g.radius_km}, ${g.source}, ${g.n}, ${g.zero}, ${g.embed_failed})`;
-      // Last, and inside a savepoint of its own: a view bump that meets a lock must not be able to
-      // take the tick above it down with it. See lib/side-writes.ts.
-      await applyCounts(tx, counts);
-      committing = true;
-    }), at("metrics:flush"));
+  if (isEmptyBatch(batch) && !hasPendingCounts(counts)) return;
+  // Bounded like every other wait, on the flush's own budget rather than the read budget. begin()
+  // cannot be cancelled once it is in flight — the server-side statement_timeout is what ends it
+  // there — but this is what stops us waiting on it inside the caller's remaining time.
+  const at = budget(FLUSH_WAIT_MS);
+  const limits = (tx: TxSql) => tx`select set_config('statement_timeout', ${String(FLUSH_TIMEOUT_MS)}, true), set_config('lock_timeout', ${String(FLUSH_LOCK_TIMEOUT_MS)}, true)`;
+  if (!isEmptyBatch(batch)) {
     try {
-      await attempt();
+      // Set once COMMIT is next. A connection lost before that applied nothing, so the batch goes once
+      // more on the fresh client; one lost during COMMIT may have applied, so it is counted as lost
+      // rather than risked twice.
+      let committing = false;
+      const attempt = () => withTimeout(sql().begin(async (tx) => {
+        await Promise.all([limits(tx), ...batchStatements(tx, batch)]);
+        committing = true;
+      }), at("metrics:flush"));
+      try {
+        await attempt();
+      } catch (e) {
+        if (!isDbConnectError(e) || committing) throw e;
+        console.warn("metrics flush lost its connection before COMMIT; trying once more", (e as { code?: string }).code ?? "", (e as Error).message);
+        await attempt();
+      }
     } catch (e) {
-      if (!isDbConnectError(e) || committing) throw e;
-      console.warn("metrics flush lost its connection before COMMIT; trying once more", (e as { code?: string }).code ?? "", (e as Error).message);
-      await attempt();
+      // Everything in the batch went with the transaction, the losses already counted included. Note
+      // them again, plus this flush, so the number survives to the next one rather than vanishing in
+      // the failure it is meant to measure.
+      noteSideWriteLost(lost + 1);
+      console.error("metrics flush", (e as Error).message);
+      console.warn("metrics flush lost", (e as { code?: string }).code ?? "", describeBatch(batch));
     }
-  } catch (e) {
-    // Everything drained above went with the transaction, the losses already counted included. Note
-    // them again, plus this flush, so the number survives to the next one rather than vanishing in
-    // the failure it is meant to measure.
-    noteSideWriteLost(lost + 1);
-    console.error("metrics flush", (e as Error).message);
+  }
+  // Its own transaction, after the daily tables commit: an update of `posts` can run to its statement
+  // timeout, and inside the transaction above it would hold every counter row already locked.
+  if (hasPendingCounts(counts)) {
+    try {
+      await withTimeout(sql().begin(async (tx) => {
+        await limits(tx);
+        await applyCounts(tx, counts);
+      }), at("metrics:flush:counts"));
+    } catch (e) {
+      noteSideWriteLost();
+      console.warn("side write failed", "flush:counts", `${counts.views.length} views, ${counts.retrievals.length} retrievals;`, (e as Error).message);
+    }
   }
 }
 

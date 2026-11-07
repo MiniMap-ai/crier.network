@@ -142,13 +142,10 @@ export type Tx = {
 };
 
 /**
- * Apply the batched counters — one statement each, inside a savepoint.
- *
- * The savepoint is the whole point. These ride the metrics flush's transaction, and `cron:tick`
- * rides it too; M0 is judged on that tick. postgres.js rolls a failed savepoint back and rethrows,
- * so catching it here leaves the outer transaction intact and everything else in it still commits.
- * Losing a minute of ticks because a view bump met a lock would be a far worse trade than losing
- * the bump.
+ * Apply the batched counters — one statement each, inside a savepoint, and counted and logged here
+ * when they fail, so the caller's transaction is still usable. Never in the same transaction as the
+ * daily counters: an update of `posts` can run to its statement timeout, and every counter row that
+ * transaction had locked would wait with it (lib/flush-batch.ts).
  *
  * `for update skip locked` keeps today's rule that a counter never waits on a row lock: a page view
  * must not queue behind a syndication update. A row skipped because it is locked loses that one

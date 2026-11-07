@@ -201,11 +201,11 @@ called it. Every one was a page view that was counted nowhere.
 Two rules now, both in `lib/side-writes.ts`:
 
 - **Counters go in the flush.** `posts.views` and `posts.retrievals` accumulate
-  per id in the process and are applied by the same `after(flush)` transaction
-  as the counters above, one statement each via `unnest`, inside a savepoint so
-  a bump that meets a lock cannot cost the transaction its `cron:tick`. Rows
-  locked by something else are still skipped rather than waited on, and
-  crawlers are still not counted. Nothing is sampled.
+  per id in the process and are applied by the same `after(flush)`, one
+  statement each via `unnest`, in a transaction of their own that runs after
+  the daily counters have committed ("Lock order" below says why). Rows locked
+  by something else are still skipped rather than waited on, and crawlers are
+  still not counted. Nothing is sampled.
 - **Everything else is registered.** `sideWrite(label, query)` in `lib/db.ts`
   registers the work with `after()`, applies `CRIER_DB_SIDE_TIMEOUT_MS`, counts
   the loss and warns. Nothing on the request path should use a bare
@@ -240,6 +240,39 @@ wait, is counted as lost rather than risked twice. So, for reading the error
 counters as a clean-day gate (CRI-57): on a day with `error:side_write_timeout`
 at or near zero they are complete; otherwise each unit is one flush whose
 contents are unknown, and the runtime log answers for that window.
+
+### Lock order
+
+Every instance flushes into the same few rows: today's `route:` and `search:`
+keys in `daily_counters`, today's single `stats_daily` row. Each flush holds the
+row locks it takes until it commits, and waits at most `FLUSH_LOCK_TIMEOUT_MS`
+(1.5 s) for one another flush holds. So the flush (`lib/flush-batch.ts`) keeps
+the time it holds them short and the order it takes them fixed:
+
+- **One transaction, daily tables only.** `daily_counters`, then `daily_actors`,
+  then `bump_stat` per column, then `bump_search` per shape, each list sorted by
+  key. The per-post `views` and `retrievals` updates are a second transaction,
+  after the first commits. They used to share it, and an update of `posts` that
+  ran to the 3 s statement timeout held every counter row the flush had already
+  upserted; that was the holder in all three lock timeouts of the week CRI-45
+  was examined (Supabase logs: the waiter on `insert into daily_counters`, the
+  holder cancelled on `update posts ... retrievals`).
+- **Pipelined.** The statements are sent together, so the transaction does not
+  wait on a round trip to the instance between one upsert and the next.
+- **Sorted.** Two flushes that share rows lock them in the same order, so one can
+  only queue behind the other, never wait in a cycle.
+
+Together: a flush that meets a locked counter row waits only for the holder's
+remaining upserts of small rows and its COMMIT, all already on the wire. What
+that bound does not cover is a holder whose connection goes away mid-transaction
+(the pooler incidents in "When a counter is real"): its locks last until the
+server notices, and the waiter is counted as lost.
+
+When a flush fails, the runtime log carries `metrics flush <message>` (an error)
+and `metrics flush lost <sqlstate> counters [key=n, …]` (a warning) naming up to
+40 counter keys it took with it. The `route:` keys among them are the requests
+whose counts were lost. Each failed flush is one `error:side_write_timeout`, as
+before; a failed per-post transaction is one more.
 
 ### What these counters cannot see
 
