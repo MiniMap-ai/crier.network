@@ -190,7 +190,7 @@ export function budget(totalMs: number = DB_TIMEOUT_MS): Budget {
  * Run a read once more if it died with its connection rather than its budget: a class-08 or
  * postgres.js connection code means the socket went away, and the next `sql()` hands out a live
  * one. A timeout is not retried; the budget is spent. Reads only — a write lost during COMMIT may
- * have applied, so the metrics flush does its own retry and stops at COMMIT (lib/metrics.ts).
+ * have applied, so the metrics flush retries with `transactOnce` (lib/flush-batch.ts), which stops at COMMIT.
  */
 export async function retryIfConnectionLost<T>(attempt: () => Promise<T>): Promise<T> {
   try {

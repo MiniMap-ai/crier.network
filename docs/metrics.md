@@ -279,8 +279,13 @@ the second must not start on what is left of a budget the first used up: if the
 first ran out of its 6 s wait, or less than one statement timeout plus 500 ms is
 left (`COUNTS_MIN_MS`), the per-post update is skipped and its counts are lost.
 Otherwise the client could give up on a `begin()` it cannot cancel while the
-server was still running it. A per-post transaction that loses its connection
-before COMMIT is retried once, like the first.
+server was still running it. That margin bounds the common case, a connection
+already open, not every case: when the pool must open a connection first (TLS
+and auth, up to the 10 s `connect_timeout`), the client can still give up while
+the server commits, and the loss is reported for counts that landed. A margin
+that covered a cold open would be larger than the flush's whole 6 s wait. A
+per-post transaction that loses its connection before COMMIT is retried once,
+like the first.
 
 What the bound on a waiter does not cover is a holder whose connection goes
 away mid-transaction (the pooler incidents in "When a counter is real"): its

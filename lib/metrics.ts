@@ -72,8 +72,10 @@ const FLUSH_WAIT_MS = 6000;
 
 /**
  * The least of the flush's budget the per-post transaction starts with: its one statement's
- * server-side timeout, plus room for the connection and COMMIT. With less, the client would give up
- * on a begin() it cannot cancel while the server is still inside that statement.
+ * server-side timeout, plus room for COMMIT on a connection already open. It bounds the common case
+ * only: a connection opened cold (TLS and auth, up to connect_timeout) does not fit, and then the
+ * client may give up while the server commits, so the loss is reported though the counts landed.
+ * A margin covering that would exceed FLUSH_WAIT_MS and the update would never run.
  */
 const COUNTS_MIN_MS = FLUSH_TIMEOUT_MS + 500;
 
