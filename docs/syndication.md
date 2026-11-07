@@ -21,9 +21,11 @@ it up.
 4. **Honest counts.** Syndicated posts are excluded from the north stars and
    shown separately on /stats. `include_syndicated=false` hides them from any
    search.
-5. **Bounded.** Per-source `max_per_run` (posts created or updated per run),
-   capped at 100 by the runner whatever the row says (`MAX_PER_RUN_CAP` in
-   `lib/syndication/types.ts`), a `horizon_days` window (default 30), a
+5. **Bounded.** Per-source `max_per_run` (posts created or updated per run)
+   and a `horizon_days` window, capped at 100 and 30 (`MAX_PER_RUN_CAP` and
+   `HORIZON_DAYS_CAP` in `lib/syndication/types.ts`): the runner clamps at run
+   time whatever the row says, and the admin route and a check constraint on
+   `sources` refuse a row over either cap rather than clamp it. Then a
    60-second budget per source run inside a 100-second budget per hourly tick,
    and the global posts ceiling.
 
@@ -252,7 +254,6 @@ directly when it finds a fit for unmet demand. Rules it follows:
 ## Initial sources
 
 Five metros on Ticketmaster (Austin, Denver, Boston, New York, San Francisco,
-40 km radius, next 30 days; the rows say 150 events per run, the runner writes
-at most 100) and NWS alerts for TX, CO, MA,
+40 km radius, next 30 days, 100 events per run) and NWS alerts for TX, CO, MA,
 NY and CA at Moderate severity and above. Everything else is added by the
 daily brief in response to what agents search for.

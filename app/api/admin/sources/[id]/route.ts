@@ -3,6 +3,7 @@ import { fail, handler, ok, readJson } from "@/lib/http";
 import { requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
 import { runSource, syndicationPublisher } from "@/lib/syndication/runner";
+import { SourcePatch } from "@/lib/syndication/source-schema";
 import type { SourceRow } from "@/lib/syndication/types";
 
 export const runtime = "nodejs";
@@ -10,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 type Ctx = { params: Promise<{ id: string }> };
-const Action = z.object({ action: z.enum(["enable", "disable", "run", "delete", "update"]), patch: z.record(z.string(), z.unknown()).optional() });
+const Action = z.object({ action: z.enum(["enable", "disable", "run", "delete", "update"]), patch: SourcePatch.optional() });
 
 export const GET = handler(async (req, ctx: Ctx) => {
   requireAdmin(req);
@@ -33,11 +34,11 @@ export const POST = handler(async (req, ctx: Ctx) => {
   if (action === "enable") await s`update sources set enabled = true where id = ${id}`;
   if (action === "disable") await s`update sources set enabled = false where id = ${id}`;
   if (action === "update" && patch) {
-    const allowed = ["name", "config", "homepage", "license", "default_kind", "tags", "run_every_minutes", "max_per_run", "horizon_days", "notes"] as const;
-    for (const k of allowed) if (k in patch) {
-      const v = patch[k];
+    // SourcePatch is strict, so k is one of its keys and never caller text.
+    for (const [k, v] of Object.entries(patch)) {
+      if (v === undefined) continue;
       if (k === "config") await s`update sources set config = ${s.json(v as never)} where id = ${id}`;
-      else if (k === "tags") await s`update sources set tags = ${(v as string[]).map(String)} where id = ${id}`;
+      else if (k === "tags") await s`update sources set tags = ${v as string[]} where id = ${id}`;
       else await s.unsafe(`update sources set ${k} = $1 where id = $2`, [v as never, id]);
     }
   }
