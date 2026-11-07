@@ -20,6 +20,12 @@ updates:
       # Track the Node major CI runs (22), not the newest one.
       - dependency-name: "@types/node"
         versions: [">=23"]
+      # Next 16 and postgres 4 each need their own reviewed PR (CRI-72): revalidateTag takes a
+      # second argument in 16, and postgres 4 changes parameter typing and rewrites the pool.
+      - dependency-name: next
+        versions: [">=16"]
+      - dependency-name: postgres
+        versions: [">=4"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
