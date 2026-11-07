@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { collapseInstances, identities } from "../lib/syndication/collapse.ts";
-import { composeTitle, isVenueRules, localWhen, mergeRepresentations, representation } from "../lib/syndication/ticketmaster.ts";
+import { composeTitle, isVenueRules, localWhen, mergeRepresentations, nameWords, representation, sameShow, showKey } from "../lib/syndication/ticketmaster.ts";
 import type { Representation } from "../lib/syndication/ticketmaster.ts";
 import { MAX_PER_RUN_CAP, runLimit } from "../lib/syndication/types.ts";
 
@@ -45,7 +45,8 @@ test("two Discovery records of one show become one item", () => {
   assert.equal(one.title, "August Wilson's Seven Guitars", "the record with its own timezone leads");
   assert.equal(one.timezone, "America/New_York");
   assert.match(one.url!, /-11-06-2026\/event\/G5vzZ1AvZoOP$/);
-  assert.equal(one.key, "tm:KovZpZAEAd6A@2026-11-07T01:00:00.000Z");
+  assert.equal(one.key, "tm:KovZpZAEAd6A@2026-11-07T01:00:00.000Z~august-wilsons-seven-guitars");
+  assert.equal(one.uid, one.key);
   assert.deepEqual(one.metadata?.discovery_ids, ["G5vzZ1AvZoOP", "Z7r9jZ1AAvFCa"]);
   assert.ok(one.aliases?.includes("ticketmaster.com/event/z7r9jz1aavfca"), "the bare URL earlier runs keyed a post on");
   assert.ok(one.aliases?.includes("ticketmaster.com/august-wilsons-seven-guitars-new-york-new-york-11-06-2026/event/g5vzz1avzoop"));
@@ -56,17 +57,40 @@ test("the key does not depend on which records arrived, so a run that sees one u
   const slugOnly = mergeRepresentations(reps(discovery({ id: "G5vzZ1AvZoOP" })));
   const bareOnly = mergeRepresentations(reps(bareTwin({ id: "Z7r9jZ1AAvFCa" })));
   const uid = (items: typeof both) => collapseInstances(items, NOW).items[0].uid;
-  assert.equal(uid(both), "tm:KovZpZAEAd6A@2026-11-07T01:00:00.000Z");
+  assert.equal(uid(both), "tm:KovZpZAEAd6A@2026-11-07T01:00:00.000Z~august-wilsons-seven-guitars");
   assert.equal(uid(slugOnly), uid(both));
   assert.equal(uid(bareOnly), uid(both));
 });
 
-test("a post written under the old URL key is found through the aliases", () => {
-  const [one] = collapseInstances(mergeRepresentations(reps(discovery({ id: "G5vzZ1AvZoOP" }), bareTwin({ id: "Z7r9jZ1AAvFCa" }))), NOW).items;
+const LEAD_URL = "ticketmaster.com/august-wilsons-seven-guitars-new-york-new-york-11-06-2026/event/g5vzz1avzoop";
+const BARE_URL = "ticketmaster.com/event/z7r9jz1aavfca";
+
+test("a post written under the lead record's URL keeps that row, so the first run after deploy updates it", () => {
+  const merged = mergeRepresentations(reps(discovery({ id: "G5vzZ1AvZoOP" }), bareTwin({ id: "Z7r9jZ1AAvFCa" })));
+  const [one] = collapseInstances(merged, NOW, (uid) => uid === LEAD_URL || uid === BARE_URL).items;
+  assert.equal(one.uid, LEAD_URL);
+  assert.ok(identities(one).includes(BARE_URL), "the twin's row is marked seen, not retired");
+  const [again] = collapseInstances(merged, NOW, (uid) => uid === LEAD_URL).items;
+  assert.equal(again.uid, LEAD_URL, "and every later run finds it there");
+});
+
+test("with no row under the lead's URL, the twin's old row is the alias adopted", () => {
+  const [one] = collapseInstances(mergeRepresentations(reps(discovery({ id: "G5vzZ1AvZoOP" }), bareTwin({ id: "Z7r9jZ1AAvFCa" }))), NOW, (uid) => uid === BARE_URL).items;
   const ids = identities(one);
-  assert.equal(ids[0], one.uid);
-  assert.equal(ids[1], "ticketmaster.com/august-wilsons-seven-guitars-new-york-new-york-11-06-2026/event/g5vzz1avzoop", "the lead record's URL is adopted first");
-  assert.ok(ids.includes("ticketmaster.com/event/z7r9jz1aavfca"));
+  assert.equal(ids[0], one.key);
+  assert.ok(!ids.includes(LEAD_URL), "the URL a fold groups on is not an alias to take");
+  const stored = new Set([BARE_URL]);
+  assert.equal(ids.find((id) => stored.has(id)), BARE_URL);
+});
+
+test("a row keyed when one twin arrived is found when both do", () => {
+  const richard = { id: "KovZpZAJ6nlA", name: "Richard Rodgers Theatre", timezone: "America/New_York", city: { name: "New York" } };
+  const slug = discovery({ id: "Z1r9uZrrZbpZ1AvqebK", name: "Hamilton (NY)" }, {}, richard, [{ id: "K8vZ9171o0V", name: "Hamilton" }]);
+  const bare = bareTwin({ id: "Z7r9jZ1AA73F4", name: "Hamilton" }, richard);
+  const [first] = mergeRepresentations(reps(slug));
+  const [later] = mergeRepresentations(reps(bare, slug));
+  assert.equal(later.key, "tm:KovZpZAJ6nlA@2026-11-07T01:00:00.000Z~hamilton");
+  assert.ok(identities(later).includes(first.key!), first.key);
 });
 
 test("a venue-name variant and extra billing still match on venue, start and name prefix", () => {
@@ -86,7 +110,58 @@ test("two different shows at one venue and instant stay two, with distinct keys"
   ));
   assert.equal(items.length, 2);
   assert.notEqual(items[0].key, items[1].key);
-  assert.deepEqual(items.map((i) => i.key), ["tm:KovZpZAEAd6A@2026-11-07T01:00:00.000Z:A1", "tm:KovZpZAEAd6A@2026-11-07T01:00:00.000Z:B2"]);
+  assert.deepEqual(items.map((i) => i.key), [
+    "tm:KovZpZAEAd6A@2026-11-07T01:00:00.000Z~late-show-with-somebody-else",
+    "tm:KovZpZAEAd6A@2026-11-07T01:00:00.000Z~august-wilsons-seven-guitars",
+  ]);
+  assert.ok(!identities(items[0]).some((id) => identities(items[1]).includes(id)), "neither can adopt the other's row");
+});
+
+test("a show's key is the same whether or not another show in its slot was fetched", () => {
+  const show = discovery({ id: "B2" });
+  const other = discovery({ id: "A1", name: "Late Show With Somebody Else" }, {}, SAMUEL_FRIEDMAN, [{ id: "att-1" }]);
+  const [alone] = mergeRepresentations(reps(show));
+  const withOther = mergeRepresentations(reps(other, show)).find((i) => i.metadata?.discovery_ids && (i.metadata.discovery_ids as string[]).includes("B2"));
+  assert.equal(withOther?.key, alone.key);
+});
+
+test("a shared attraction alone does not merge two stages' shows", () => {
+  const house = [{ id: "K8-second-city", name: "The Second City" }];
+  const items = mergeRepresentations(reps(
+    discovery({ id: "M1", name: "Second City Mainstage: Big Show" }, {}, SAMUEL_FRIEDMAN, house),
+    discovery({ id: "E1", name: "e.t.c. Stage: Small Show" }, {}, SAMUEL_FRIEDMAN, house),
+  ));
+  assert.equal(items.length, 2);
+  const [reordered] = mergeRepresentations(reps(
+    discovery({ id: "R1", name: "Robert Glasper x Questlove" }, {}, SAMUEL_FRIEDMAN, [{ id: "att-rg" }]),
+    discovery({ id: "R2", name: "Questlove x Robert Glasper" }, {}, SAMUEL_FRIEDMAN, [{ id: "att-rg" }]),
+  ));
+  assert.deepEqual(reordered.metadata?.discovery_ids, ["R1", "R2"], "the same billing in another order is one show");
+});
+
+test("a name is matched on whole words, so one is not another's prefix by accident", () => {
+  assert.ok(sameShow({ name: nameWords("Robert Glasper"), attractions: [] }, { name: nameWords("Robert Glasper X Questlove + Special Guest Bilal"), attractions: [] }));
+  assert.ok(!sameShow({ name: nameWords("Ann"), attractions: [] }, { name: nameWords("Annie"), attractions: [] }));
+  assert.equal(nameWords("August Wilson’s"), "august wilsons");
+  assert.equal(nameWords("Beyoncé"), "beyonce");
+  assert.notEqual(nameWords("嵐"), "", "a name with no Latin letters still has words");
+});
+
+test("records that each match a different show join them into one, whatever order they came in", () => {
+  const a = discovery({ id: "T1", name: "Vince Giordano and the Nighthawks" });
+  const b = discovery({ id: "T2", name: "Vince Giordano Tribute" });
+  const c = discovery({ id: "T3", name: "Vince Giordano" });
+  const forward = mergeRepresentations(reps(a, b, c)), backward = mergeRepresentations(reps(c, b, a));
+  assert.equal(forward.length, 1);
+  assert.equal(forward[0].key, backward[0].key);
+  assert.equal(forward[0].key, "tm:KovZpZAEAd6A@2026-11-07T01:00:00.000Z~vince-giordano");
+});
+
+test("a long name is cut and hashed in the key", () => {
+  assert.equal(showKey("V@T", "a b"), "tm:V@T~a-b");
+  const long = showKey("V@T", "word ".repeat(30).trim());
+  assert.ok(long.length <= "tm:V@T~".length + 60, long);
+  assert.notEqual(long, showKey("V@T", "word ".repeat(31).trim()));
 });
 
 test("a record with no venue id, coordinates or absolute start is relayed alone under its own id", () => {
@@ -143,6 +218,18 @@ test("a merged item takes the description from whichever record has one", () => 
   assert.match(one.body, /Tickets and details: .*\/event\/LEAD$/m, "the link is still the lead record's");
 });
 
+test("a record with no link gets no link line", () => {
+  const r = representation(discovery({ id: "NOURL", url: "" }), SOURCE)!;
+  assert.ok(!r.item.body.includes("Tickets and details"), r.item.body);
+  assert.equal(r.item.url, undefined);
+});
+
+test("a live record leads over a cancelled twin", () => {
+  const [one] = mergeRepresentations(reps(discovery({ id: "A" }, { status: { code: "cancelled" } }), bareTwin({ id: "B" })));
+  assert.deepEqual(one.metadata?.discovery_ids, ["B", "A"]);
+  assert.equal(one.metadata?.status, "onsale");
+});
+
 test("the venue-rules test catches the shapes production carried", () => {
   for (const t of ["Children under 4 will not be admitted.", "No outside food or beverages.", "No weapons permitted on the premises.", "All bags subject to search."]) assert.ok(isVenueRules(t), t);
   assert.ok(!isVenueRules("An evening of standards with the Nighthawks."));
@@ -170,7 +257,16 @@ test("timed-entry slots still fold on their shared URL, carrying every slot's ke
   const { items, folded } = collapseInstances(merged, NOW);
   assert.equal(folded, 1);
   assert.equal(items[0].uid, "universe.com/events/daydream-balloon-museum-tickets-y5hv92", "the shared URL stays the uid, as before");
-  assert.ok(items[0].aliases?.includes("tm:KovZ917ARSV@2026-11-06T21:45:00.000Z"));
+  assert.ok(items[0].aliases?.includes("tm:KovZ917ARSV@2026-11-06T21:45:00.000Z~daydream-air-becomes-art"));
+  assert.equal(items[0].key, undefined, "a fold of several has no adapter identity of its own");
+});
+
+test("a timed-entry attraction down to one slot stays on the row its URL already has", () => {
+  const museum = { id: "KovZ917ARSV", name: "Balloon Museum", timezone: "America/New_York" };
+  const url = "universe.com/events/daydream-balloon-museum-tickets-y5hv92";
+  const last = mergeRepresentations(reps(discovery({ id: "s9", name: "Daydream: Air Becomes Art", url: `https://${url}` }, { start: { dateTime: "2026-11-06T23:45:00Z" } }, museum)));
+  assert.equal(collapseInstances(last, NOW, (uid) => uid === url).items[0].uid, url);
+  assert.equal(collapseInstances(last, NOW).items[0].uid, last[0].key, "a show first seen alone takes its key");
 });
 
 test("items from adapters that set no key keep exactly the identity they had", () => {

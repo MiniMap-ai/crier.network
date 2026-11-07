@@ -130,15 +130,15 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     try { items = await ADAPTERS[source.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal }); }
     finally { clearTimeout(t); }
     counts.fetched = items.length;
+    const existing = new Map((await s<{ uid: string; post_id: string | null; hash: string }[]>`select uid, post_id, hash from source_items where source_id = ${source.id}`).map((r) => [r.uid, r]));
     // One post per upstream thing, not one per instance. This is where the write path stopped
     // disagreeing with the read path; see lib/syndication/collapse.ts for what it will not fold.
-    const collapsed = collapseInstances(items, now);
+    const collapsed = collapseInstances(items, now, (uid) => !!existing.get(uid)?.post_id);
     items = collapsed.items;
     counts.folded = collapsed.folded;
     if (collapsed.folded) track.counter("synd:folded", collapsed.folded);
     items.sort((a, b) => (a.starts_at ? Date.parse(a.starts_at) : 0) - (b.starts_at ? Date.parse(b.starts_at) : 0));
     const seen = new Set<string>();
-    const existing = new Map((await s<{ uid: string; post_id: string | null; hash: string }[]>`select uid, post_id, hash from source_items where source_id = ${source.id}`).map((r) => [r.uid, r]));
 
     const limit = runLimit(source);
 
@@ -160,7 +160,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         for (const id of ids) {
           const row = existing.get(id);
           if (row?.post_id) { const post = await getPostRow(row.post_id); if (post && !post.deleted_at) { await deletePost(publisher, row.post_id); counts.retired++; } }
-          if (id === item.uid || row) await s`delete from source_items where source_id = ${source.id} and uid = ${id}`;
+          if (id === item.uid || row) await withTimeout(s`delete from source_items where source_id = ${source.id} and uid = ${id}`, { label: "synd:cancel" });
           existing.delete(id);
         }
         continue;

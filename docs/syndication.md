@@ -100,33 +100,49 @@ only one of them. Keyed on the URL, each became a post: 60 duplicate pairs live,
 and every bare-URL post without a timezone (CRI-61).
 
 `lib/syndication/ticketmaster.ts` merges them before the fold. Records sharing a
-venue id and start instant are the same show when they share an attraction id or
-one folded name is a prefix of the other — the rule the CRI-61 reproduction
-query used. Attraction alone is not the key: billing variants are not known to
-carry the same attraction list. The merged item:
+venue id and start instant are the same show when one name, as words (case,
+accents and apostrophes dropped, other punctuation a break), is the other with
+more words on the end, or when they share an attraction id and have the same
+words in another order. That is the CRI-61 reproduction query's rule, held to
+whole words; a shared attraction alone does not merge, because a house
+company's attraction can sit on two stages' shows at one venue and hour.
+Matching is transitive within the slot. The merged item:
 
-- is keyed `tm:<venue id>@<start instant>`, with the lowest record id appended
-  only when two different shows share the slot, so the key does not depend on
-  which records a run happened to receive;
-- publishes the record that has its own timezone (then the slug URL), and takes
+- is keyed `tm:<venue id>@<start instant>~<shortest name, hyphenated>` (cut and
+  hashed past 60 characters), and that key is its uid. It is a function of the
+  show's own records only, never of what else the run fetched, and two shows in
+  one slot cannot share it, since neither name is a prefix of the other. It
+  changes only when a run sees fewer of the show's records than the run before
+  and the shortest name is among the missing; when a run sees more, each
+  record's own key is an alias, so the row is found;
+- publishes a live record over a cancelled one, then one that has its own
+  timezone, then the slug URL, and takes
   the timezone from the event, else its venue, else the twin; the end only from
   `dates.end.dateTime`, because Discovery gives no duration and an invented one
   would be read as fact;
-- lists every record id and normalized URL in `aliases`. When the runner has no
-  `source_items` row under the uid it adopts the first alias that has one, so a
-  post written under the old URL key is updated, not doubled.
+- lists every record's normalized URL (the lead's first), id and own key in
+  `aliases`. When the runner has no `source_items` row under the uid it adopts
+  the first alias that has a post and renames that row to the uid, so a post
+  written under an older key is updated, not doubled.
 
-A fold of one item keeps that key as its uid; a fold of several (timed-entry
-slots) keeps the shared URL as before, and carries the slot keys as aliases.
+A fold of several (timed-entry slots) keeps the shared URL as its uid, as before,
+drops the adapter key, and carries the slot keys as aliases. A fold of one takes
+the show key, unless a row with a post already lives under its URL: then it
+stays there. That keeps a timed-entry attraction down to one slot on the row
+its other slots return to, and means the first run after deploy updates every
+existing post in place under its old key rather than renaming it. An item's
+own URL key is an alias only when it is the uid; items relayed as they came
+share that URL with siblings, and the row under it is not theirs.
 
 A second row under another alias — the duplicate posted before the merge — is
-kept seen rather than retired, and leaves the board when its event expires. If
-the show is cancelled, every alias's post is retired.
+kept seen rather than retired, is no longer updated, and leaves the board when
+its event expires. If the show is cancelled, every alias's post is retired.
 
 Titles of 12 characters or fewer, or a single word, carry the venue
 ("Wanted at James Earl Jones Theatre"). The body's description is the event's
 `description`, `info` or `pleaseNote`, whichever first is not venue rules; when
-all are rules, it is "<attraction> on <local date> at <place>."
+all are rules, it is "<attraction> on <local date> at <place>." The
+"Tickets and details:" line appears only when the record has a link.
 
 ### The live-row guard
 
