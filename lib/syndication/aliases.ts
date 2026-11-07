@@ -83,12 +83,10 @@ export function groupShows<T extends ShowRecord>(records: T[]): T[][] {
 }
 
 /**
- * The aliases of a group's merged item: every other record's URL key and id, and the lead's own id,
- * which survives a reschedule that changes the lead's dated URL. A group of one has none, so a
- * record the rule does not merge is relayed exactly as before.
+ * The aliases of a group's item: the lead's own id, which survives a reschedule that changes the
+ * lead's dated URL, then every other record's URL key and id. A group of one carries its id alone.
  */
 export function aliasesFor(lead: ShowRecord, group: ShowRecord[]): string[] {
-  if (group.length < 2) return [];
   const out = [lead.id];
   for (const r of group) if (r !== lead) out.push(...(r.key ? [r.key, r.id] : [r.id]));
   return [...new Set(out.filter(Boolean))];
@@ -178,6 +176,19 @@ export function planItem(index: RowIndex, item: { uid: string; aliases?: string[
   if (!found) return { uid: item.uid, keep: null, retire: [], aliases: keys.slice(1), aliased: keys.length > 1 };
   const { keep, retire } = found;
   return { uid: keep.uid, keep, retire, aliases: mergedAliases(keep, keys, retire), aliased: keys.length > 1 || keep.uid !== item.uid };
+}
+
+/**
+ * The rows a cancelled item retires: every row it matched, but only when the item names every
+ * identity each of them is stored under. One record of a show arriving cancelled says nothing about
+ * a twin this fetch did not reach, so a row known by any identity the item lacks is not retired
+ * here; null means leave it to the missing-item sweep. Nothing matched gives an empty list.
+ */
+export function cancelTargets(plan: Plan, item: { uid: string; aliases?: string[] }): StoredRow[] | null {
+  const matched = plan.keep ? [plan.keep, ...plan.retire] : [];
+  const keys = new Set(itemKeys(item));
+  const covered = matched.every((r) => keys.has(r.uid) && r.aliases.every((a) => keys.has(a)));
+  return covered ? matched : null;
 }
 
 /** Do two alias lists hold the same identities, order aside? */

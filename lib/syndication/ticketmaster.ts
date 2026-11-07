@@ -1,7 +1,8 @@
 /**
  * Discovery event records to items, one per show. Each record maps to an item whose uid is its
  * Discovery id; records the same-show rule in ./aliases.ts finds to be one show merge into the
- * lead's item, which carries the others' URL keys and ids as aliases. docs/syndication.md has why.
+ * lead's item, which carries its own id and the others' URL keys and ids as aliases.
+ * docs/syndication.md has why.
  *
  * Pure: no database, no `next/server`, so tests/syndication-ticketmaster.test.ts can load it.
  */
@@ -141,9 +142,10 @@ export function showRecord(e: Obj): ShowRecord {
 }
 
 /**
- * Map Discovery records to items, one per show. A show served as several records is relayed as its
- * lead's item with every other record's URL key and id in `aliases`. It is cancelled only when
- * every record is, and then the lead is chosen among all of them; otherwise among those still on.
+ * Map Discovery records to items, one per show. Every item carries its lead's Discovery id in
+ * `aliases`; a show served as several records is relayed as its lead's item with every other
+ * record's URL key and id there too. It is cancelled only when every record in this fetch is, and
+ * then the lead is chosen among all of them; otherwise among those still on.
  */
 export function ticketmasterItems(events: Obj[], source: Pick<SourceRow, "tags">): Item[] {
   const mapped = events.flatMap((e) => {
@@ -151,7 +153,6 @@ export function ticketmasterItems(events: Obj[], source: Pick<SourceRow, "tags">
     return item ? [{ ...showRecord(e), item }] : [];
   });
   return groupShows(mapped).map((group) => {
-    if (group.length === 1) return group[0].item;
     const live = group.filter((r) => !r.item.cancelled);
     const lead = pickLead(live.length ? live : group);
     return { ...lead.item, aliases: aliasesFor(lead, group) };

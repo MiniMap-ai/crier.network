@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { RowIndex, groupShows, mergedAliases, nameWords, pickLead, planItem, resolveRows, sameShow } from "../lib/syndication/aliases.ts";
+import { RowIndex, cancelTargets, groupShows, mergedAliases, nameWords, pickLead, planItem, resolveRows, sameShow } from "../lib/syndication/aliases.ts";
 import type { ShowRecord, StoredRow } from "../lib/syndication/aliases.ts";
 import { collapseInstances } from "../lib/syndication/collapse.ts";
 import { showRecord, ticketmasterItems } from "../lib/syndication/ticketmaster.ts";
@@ -91,7 +91,7 @@ test("a run that fetches only one twin finds the merged row by alias and keeps i
   const stored = row(merged.uid, merged.aliases);
   for (const alone of [bare, slug]) {
     const [item] = relay(alone);
-    assert.equal(item.aliases, undefined, "a lone record carries no aliases");
+    assert.deepEqual(item.aliases, [alone.id], "a lone record carries its own id alone");
     const plan = planItem(new RowIndex([stored]), item);
     assert.equal(plan.uid, keyOf(slug));
     assert.equal(plan.keep, stored);
@@ -124,11 +124,54 @@ test("a reschedule of a stored show finds its row and creates no new identity", 
 
   const moved = { at: "2026-10-21T18:00:00Z" };
   const after = [record({ id: "Z1r9J", name: "Just In Time", slug: "just-in-time", venue: "CircleSquare", attraction, ...moved }), record({ id: "Z7r9J", name: "Just In Time", venue: "CircleSquare", attraction, ...moved })];
-  const [item] = relay(...after);
-  assert.notEqual(item.uid, stored.uid, "the dated slug URL moved with the date");
-  const plan = planItem(new RowIndex([stored]), item);
-  assert.equal(plan.uid, stored.uid);
-  assert.deepEqual(plan.retire, []);
+  for (const fetched of [after, [after[0]]]) {
+    const [item] = relay(...fetched);
+    assert.notEqual(item.uid, stored.uid, "the dated slug URL moved with the date");
+    const plan = planItem(new RowIndex([stored]), item);
+    assert.equal(plan.uid, stored.uid, `${fetched.length} record(s) fetched`);
+    assert.deepEqual(plan.retire, []);
+  }
+});
+
+test("a reschedule of a show stored alone finds its row by the record's own id", () => {
+  const attraction = { id: "att-oh", name: "Oh, Mary!" };
+  const [first] = relay(record({ id: "Z1r9O", name: "Oh, Mary!", slug: "oh-mary", venue: "Lyceum", attraction }));
+  const stored = row(first.uid, first.aliases);
+  const [moved] = relay(record({ id: "Z1r9O", name: "Oh, Mary!", slug: "oh-mary", venue: "Lyceum", attraction, at: "2026-10-22T23:00:00Z" }));
+  assert.notEqual(moved.uid, stored.uid);
+  assert.equal(planItem(new RowIndex([stored]), moved).uid, stored.uid);
+});
+
+test("a twin arriving cancelled alone does not retire the merged show; the sweep decides", () => {
+  const [slug, bare] = CRI_61[7].records;
+  const [merged] = relay(slug, bare);
+  const stored = row(merged.uid, merged.aliases);
+  const cancel = (e: Raw): Raw => ({ ...e, dates: { ...(e.dates as Raw), status: { code: "cancelled" } } });
+  for (const alone of [cancel(bare), cancel(slug)]) {
+    const [item] = relay(alone);
+    assert.equal(item.cancelled, true);
+    const plan = planItem(new RowIndex([stored]), item);
+    assert.equal(plan.keep, stored, "it does reach the show's row");
+    assert.equal(cancelTargets(plan, item), null);
+  }
+  const [both] = relay(cancel(slug), cancel(bare));
+  assert.deepEqual(cancelTargets(planItem(new RowIndex([stored]), both), both), [stored], "every record cancelled: retire");
+});
+
+test("a cancelled item retires rows it names in full: its own, and today's twin rows without aliases", () => {
+  const [slug, bare] = CRI_61[3].records;
+  const cancel = (e: Raw): Raw => ({ ...e, dates: { ...(e.dates as Raw), status: { code: "cancelled" } } });
+  const [alone] = relay(cancel(bare));
+  const legacy = [row(keyOf(slug), [], 1), row(keyOf(bare), [], 2)];
+  assert.deepEqual(cancelTargets(planItem(new RowIndex(legacy), alone), alone)?.map((r) => r.uid), [keyOf(bare)]);
+  const [both] = relay(cancel(slug), cancel(bare));
+  assert.deepEqual(cancelTargets(planItem(new RowIndex(legacy), both), both)?.map((r) => r.uid), [keyOf(slug), keyOf(bare)]);
+  assert.deepEqual(cancelTargets(planItem(new RowIndex(legacy), { uid: "nothing" }), { uid: "nothing" }), [], "nothing matched");
+});
+
+test("another adapter's cancelled item retires the row under its uid, as before aliases", () => {
+  const rows = new RowIndex([row("a"), row("b")]);
+  assert.deepEqual(cancelTargets(planItem(rows, { uid: "a" }), { uid: "a" })?.map((r) => r.uid), ["a"]);
 });
 
 test("records sharing one URL under different titles stay separate items under their own ids", () => {
@@ -138,7 +181,7 @@ test("records sharing one URL under different titles stay separate items under t
     record({ id: "BR2", name: "Gospel Brunch feat. Act 2", venue: "Sylvia", url, attraction: null }),
   );
   assert.deepEqual(out.map((i) => i.uid), ["BR1", "BR2"]);
-  assert.ok(out.every((i) => i.aliases === undefined));
+  assert.deepEqual(out.map((i) => i.aliases), [["BR1"], ["BR2"]], "each its own id, which is also its uid");
 });
 
 test("a single generic-word name does not merge, even as the prefix of another name at the same venue and time", () => {

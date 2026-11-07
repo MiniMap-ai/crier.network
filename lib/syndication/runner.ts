@@ -11,7 +11,7 @@ import { track } from "../metrics";
 import { PostInput, PostInputSchema, createPost, deletePost, getPostRow, normalizeSourceKey, updatePost } from "../posts";
 import { PublisherRow } from "../publishers";
 import { ADAPTERS } from "./adapters";
-import { RowIndex, planItem, sameAliases } from "./aliases";
+import { RowIndex, cancelTargets, planItem, sameAliases } from "./aliases";
 import type { StoredRow } from "./aliases";
 import { collapseInstances } from "./collapse";
 import { Fetched, Item, SourceRow, asFetched, runLimit } from "./types";
@@ -199,8 +199,9 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
       seen.add(item.uid);
       const plan = planItem(rows, item);
       if (item.cancelled) {
-        // The show is off under every identity it is stored under, not only this record's.
-        for (const other of [plan.keep, ...plan.retire]) if (other && other.uid !== item.uid) await retireRow(other);
+        const targets = cancelTargets(plan, item);
+        if (!targets) continue;
+        for (const other of targets) if (other.uid !== item.uid) await retireRow(other);
         const ex = rows.get(item.uid);
         if (ex?.post_id) { const row = await getPostRow(ex.post_id); if (row && !row.deleted_at) { await deletePost(publisher, ex.post_id); counts.retired++; } }
         await s`delete from source_items where source_id = ${source.id} and uid = ${item.uid}`;
@@ -217,8 +218,9 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
       let input: PostInput;
       try { input = toInput(source, { ...item, uid }, now); } catch { counts.skipped++; continue; }
       const hash = hashInput(input);
-      for (const other of plan.retire) if (await retireRow(other)) mergesRetired++;
+      // Aliases first: a run cut short between the two still leaves every identity findable.
       if (ex) await keepRow(uid, ex.post_id, hash, plan.aliases);
+      for (const other of plan.retire) if (await retireRow(other)) mergesRetired++;
       if (ex && ex.hash === hash && ex.post_id) {
         await s`update source_items set last_seen = now(), missing_runs = 0 where source_id = ${source.id} and uid = ${uid}`;
         continue;

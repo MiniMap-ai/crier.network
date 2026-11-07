@@ -171,28 +171,39 @@ attraction id or one name's words beginning the other's. When either name is a
 single word ("Comedy", "Hamilton"), only a shared attraction of that name will
 do, so a generic word never merges on its prefix alone. The lead is the record
 with a dated slug URL, else the lowest id, among the records still on sale; the
-show is cancelled only when every record is. The merged item carries the lead's
-id and every other record's URL key and id as `aliases`; the fold then keys it
-on the lead's URL like any adapter's item. Records sharing one URL under
-different titles never meet the rule and keep their per-id uids.
+item is cancelled only when every record of the show in this fetch is. Every
+item carries its lead's Discovery id as an alias, and a merged item also
+carries every other record's URL key and id; the fold then keys it on the
+lead's URL like any adapter's item. Records sharing one URL under different
+titles never meet the rule and keep their per-id uids.
 
 Aliases are persisted in `source_items.aliases`, and that is what makes the
 merge safe. The runner finds a row by its uid or any alias, never changes a
-stored uid, and only adds aliases. A reschedule (the dated URL changes), a
-rename, a lead flip, or a run that fetched only one twin all land on the row
-the show already has, so none of them can re-key the show or retire it. Merging
-anything derived from what one run fetched cannot promise that, which is why
-three in-memory designs were rejected (PR #32).
+stored uid, and only adds aliases. Once a row holds a show's identities, a
+reschedule (the dated URL changes but the id does not), a rename, a lead flip,
+or a run that fetched only one twin lands on that row, so none of them can
+re-key the show. Two things fall outside that. A row learns its id on the
+first run after it was stored without one, so a reschedule before then still
+re-keys it. And a pair stored as two rows stays two posts until a run fetches
+both twins together and merges them. Merging anything derived from what one run
+fetched cannot promise even this much, which is why three in-memory designs
+were rejected (PR #32).
 
 When an item matches several rows, as each of today's live pairs does with
 each twin under its own uid, the runner keeps the row stored under the item's
-uid, else the oldest. It moves the other rows' uids and aliases into the kept
-row, retires their posts the way the missing-item sweep does (unless another
-row relays the post), and drops those rows. A merge's retires count against
-the run's cap of writes: a merge the run cannot afford in full is skipped and
-left to a later run. A cancelled item retires the show under every identity it
-is stored under. Items from every other adapter carry no aliases and take the
-path they took before.
+uid, else the oldest. It first stores the other rows' uids and aliases on the
+kept row, so a run cut short leaves every identity findable. Then it retires
+their posts the way the missing-item sweep does (unless another row relays the
+post) and drops those rows. A merge's retires count against the run's cap of
+writes: a merge the run cannot afford in full is skipped and left to a later
+run.
+
+A cancelled item retires the rows it matched only when it names every identity
+they are stored under. A fetch reads one page sorted by date, so a show's twins
+can fall on either side of its end: one twin arriving cancelled alone says
+nothing about the other. Such a row is left to the missing-item sweep, which
+retires it after three runs in which no live record reaches it. Items from
+every other adapter carry no aliases and take the path they took before.
 
 What the mapping does to each record: the timezone is the event's, else its
 venue's; the end comes only from `dates.end.dateTime`, never when
