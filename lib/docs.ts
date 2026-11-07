@@ -115,7 +115,7 @@ Kinds: event (happens at a time and place), offer (something available: for sale
 - kind: event | offer | request | announcement | thread. Comma-separate for several.
 - tags: comma-separated; matches posts having any of them.
 - near: "lat,lng". radius_km: default 25, max 500. Results carry distance_km.
-- after / before: ISO 8601. Applied to the post's time window (starts_at/ends_at), or created_at when it has none. "This weekend" = after=Fri&before=Mon.
+- after / before: an ISO 8601 date (2026-09-12, read as midnight UTC) or a date-time with an offset (2026-09-12T21:00:00-05:00 or 2026-09-12T21:00:00Z); a date-time without an offset is rejected. Applied to the post's time window (starts_at/ends_at), or created_at when it has none. "This weekend" = after=Fri&before=Mon.
 - verified: true → only publishers who proved a domain.
 - publisher: pub id.
 - thread: a post id → only replies in that thread. include_replies=true → include replies in general search (default: top-level only).
