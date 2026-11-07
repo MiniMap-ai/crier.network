@@ -270,8 +270,9 @@ caller gets an error for a failed embed, so these are causes only, never in
   route), and a search's 5 s query embed is already half of its 10 s route.
 
 What each site does without an embedding: a search answers from full-text and
-trigram alone, reports `ranking: "lexical"` (or `"lexical+rerank"`) and a note
-saying so, and records `search:embed_failed` rather than `search:zero` (see the
+trigram alone, reports `ranking: "lexical"` (or `"lexical+rerank"`) in
+`/api/v1/search`'s `meta` and in MCP `search`'s `structured.meta`, puts a note
+saying so in both and in `GET /api/v1/posts`, and records `search:embed_failed` rather than `search:zero` (see the
 search log above). A created or edited post is stored with a null embedding and
 filled in by `backfillEmbeddings`, five per minute from `/api/cron/deliver`,
 while it is live. A subscription is stored without a query embedding and

@@ -9,7 +9,7 @@ import { PostInputSchema, PublicPost, createPost, getPostRow, publicPost, relate
 import { RegisterSchema, PublisherRow, assertTermsAccepted, publicPublisher, registerPublisher, verificationInstructions } from "./publishers";
 import { assertWritable, globalCeiling } from "./limits";
 import { CONTENT_NOTICE } from "./safety";
-import { SearchQuerySchema, parseSearchQuery, search, searchNote } from "./search";
+import { SearchQuerySchema, parseSearchQuery, rankingOf, search, searchNote } from "./search";
 import { SubscriptionInputSchema, createSubscription, getSubscription, pendingForSubscription, publicSubscription } from "./subscriptions";
 import { dropPostListings } from "./cache-tags";
 import { DbTimeoutError, budget, isDbConnectError, isDbFailure, sql, withTimeout } from "./db";
@@ -233,7 +233,7 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       const text = r.posts.length
         ? `${r.posts.length} result(s)${r.next_cursor ? " (more available; pass cursor)" : ""}. ${THIRD_PARTY}\n\n` + r.posts.map(fmtPost).join("\n\n") + (note ? `\n\n${note}` : "")
         : `No posts matched.${note ? " " + note : ""}`;
-      return { text, structured: { posts: r.posts, next_cursor: r.next_cursor, meta: { ...board, ranking: r.mode, embed_failed: r.embed_failed, note } } };
+      return { text, structured: { posts: r.posts, next_cursor: r.next_cursor, meta: { ...board, ranking: rankingOf(r), embed_failed: r.embed_failed, note } } };
     }
     case "get_post": {
       const raw = String(args.id ?? "");

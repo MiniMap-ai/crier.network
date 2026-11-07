@@ -1,9 +1,9 @@
-import { boardNote, boardStats, clientIp, corsPreflight, handler, ok, rateLimit, readJson } from "@/lib/http";
+import { clientIp, corsPreflight, handler, ok, rateLimit, readJson } from "@/lib/http";
 import { track } from "@/lib/metrics";
 import { optionalPublisher } from "@/lib/publishers";
 import { PostInputSchema, createPost } from "@/lib/posts";
 import { requirePublisher } from "@/lib/publishers";
-import { parseSearchQuery, search, searchNote } from "@/lib/search";
+import { parseSearchQuery, restSearchNote, search } from "@/lib/search";
 import { env } from "@/lib/env";
 import { assertWritable, globalCeiling } from "@/lib/limits";
 
@@ -40,5 +40,5 @@ export const GET = handler(async (req) => {
   const r = await search(q);
   const who = await optionalPublisher(req);
   track.search(q, r.posts.length, who ? who.id : clientIp(req), "rest", !!who?.internal, r.embed_failed);
-  return ok(r.posts, { next_cursor: r.next_cursor, meta: { resultCount: r.posts.length, query: q, note: searchNote(r, boardNote(await boardStats(), r.posts.length)) } });
+  return ok(r.posts, { next_cursor: r.next_cursor, meta: { resultCount: r.posts.length, query: q, note: await restSearchNote(r) } });
 });

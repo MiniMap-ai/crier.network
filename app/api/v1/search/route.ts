@@ -1,5 +1,5 @@
-import { boardNote, boardStats, clientIp, corsPreflight, handler, ok, rateLimit } from "@/lib/http";
-import { parseSearchQuery, rankingOf, search, searchNote } from "@/lib/search";
+import { clientIp, corsPreflight, handler, ok, rateLimit } from "@/lib/http";
+import { parseSearchQuery, rankingOf, restSearchNote, search } from "@/lib/search";
 import { globalCeiling } from "@/lib/limits";
 import { track } from "@/lib/metrics";
 import { optionalPublisher } from "@/lib/publishers";
@@ -24,6 +24,6 @@ export const GET = handler(async (req) => {
   track.search(q, r.posts.length, who ? who.id : clientIp(req), "rest", !!who?.internal, r.embed_failed);
   return ok(r.posts, {
     next_cursor: r.next_cursor,
-    meta: { resultCount: r.posts.length, query: q, ranking: rankingOf(r), note: searchNote(r, boardNote(await boardStats(), r.posts.length)) },
+    meta: { resultCount: r.posts.length, query: q, ranking: rankingOf(r), note: await restSearchNote(r) },
   });
 });
