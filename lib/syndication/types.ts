@@ -43,6 +43,9 @@ export type Item = {
 /** The relay policy's ceiling on writes per source per run, whatever the row says. */
 export const MAX_PER_RUN_CAP = 100;
 
+/** The relay policy's ceiling on how far ahead a source may relay, in days. */
+export const HORIZON_DAYS_CAP = 30;
+
 /** How many posts one run of this source may create or update: the row's value, capped by policy. */
 export function runLimit(source: Pick<SourceRow, "max_per_run">): number {
   return Math.max(0, Math.min(source.max_per_run, MAX_PER_RUN_CAP));
