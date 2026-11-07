@@ -96,3 +96,20 @@ jobs:
         env:
           SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
         run: npm run check:live-index
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read   # the action lists the PR's commits to choose the range it scans
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The token is read-only here and on fork PRs, so findings go to the job summary instead.
+          GITLEAKS_ENABLE_COMMENTS: false
