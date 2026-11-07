@@ -106,37 +106,33 @@ more words on the end, or when they share an attraction id and have the same
 words in another order. That is the CRI-61 reproduction query's rule, held to
 whole words; a shared attraction alone does not merge, because a house
 company's attraction can sit on two stages' shows at one venue and hour.
-Matching is transitive within the slot. The merged item:
+Matching is transitive within the slot.
 
-- is keyed `tm:<venue id>@<start instant>~<shortest name, hyphenated>` (cut and
-  hashed past 60 characters), and that key is its uid. It is a function of the
-  show's own records only, never of what else the run fetched, and two shows in
-  one slot cannot share it, since neither name is a prefix of the other. It
-  changes only when a run sees fewer of the show's records than the run before
-  and the shortest name is among the missing; when a run sees more, each
-  record's own key is an alias, so the row is found;
-- publishes a live record over a cancelled one, then one that has its own
-  timezone, then the slug URL, and takes
-  the timezone from the event, else its venue, else the twin; the end only from
-  `dates.end.dateTime`, because Discovery gives no duration and an invented one
-  would be read as fact;
-- lists every record's normalized URL (the lead's first), id and own key in
-  `aliases`. When the runner has no `source_items` row under the uid it adopts
-  the first alias that has a post and renames that row to the uid, so a post
-  written under an older key is updated, not doubled.
+The merged item is the lead record: the one with the dated slug URL, else the
+lowest Discovery id. Both are fixed fields of the records themselves, so the
+lead does not move with a record's timezone, its status or what else a run
+fetched. The lead's title, URL and body are published; the timezone comes from
+the event, else its venue, else the twin; the end only from
+`dates.end.dateTime`, because Discovery gives no duration and an invented one
+would be read as fact; the description from whichever record has one; and the
+show is cancelled only when every record is.
 
-A fold of several (timed-entry slots) keeps the shared URL as its uid, as before,
-drops the adapter key, and carries the slot keys as aliases. A fold of one takes
-the show key, unless a row with a post already lives under its URL: then it
-stays there. That keeps a timed-entry attraction down to one slot on the row
-its other slots return to, and means the first run after deploy updates every
-existing post in place under its old key rather than renaming it. An item's
-own URL key is an alias only when it is the uid; items relayed as they came
-share that URL with siblings, and the row under it is not theirs.
+Its identity is the lead's normalized URL, the same identity the fold gives
+every adapter's items, so nothing in the runner or the fold knows about the
+merge. What follows from that:
 
-A second row under another alias — the duplicate posted before the merge — is
-kept seen rather than retired, is no longer updated, and leaves the board when
-its event expires. If the show is cancelled, every alias's post is retired.
+- **Existing pairs clear without a backfill.** The lead's post keeps being
+  updated. The twin is still fetched, but merged into the lead, so its URL is
+  no item's uid: its row is counted missing like any vanished item, and its
+  post retired after three runs that finish under the cap (`skipped === 0`)
+  while its event is still in the future; otherwise it expires with the event.
+- **One way a duplicate can still appear.** A run that fetches only the
+  non-lead twin, because paging cut the lead off, relays the twin under its
+  own URL, as any unmerged record is. Closing that needs the twins' URLs
+  stored as aliases of one row; that is a follow-up ticket, not this mechanism.
+- **The first run after a mapping change updates in place.** Every existing
+  post keeps its uid, and the new titles, bodies and timezones change its hash,
+  so each is updated, at most 100 per source per run.
 
 Titles of 12 characters or fewer, or a single word, carry the venue
 ("Wanted at James Earl Jones Theatre"). The body's description is the event's

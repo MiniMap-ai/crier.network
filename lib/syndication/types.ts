@@ -37,13 +37,6 @@ export type Item = {
   expires_at?: string;
   cancelled?: boolean;
   metadata?: Record<string, unknown>;
-  /**
-   * An identity the adapter vouches for, steadier than the URL. A fold of one takes it as its uid
-   * unless a row already lives under the URL; see `fold` in lib/syndication/collapse.ts.
-   */
-  key?: string;
-  /** Other uids a `source_items` row for this same thing may already be stored under. */
-  aliases?: string[];
 };
 
 /** The relay policy's ceiling on writes per source per run, whatever the row says. */

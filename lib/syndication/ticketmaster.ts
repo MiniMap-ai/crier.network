@@ -98,8 +98,8 @@ export type Representation = {
   attractions: string[];
   /** `nameWords` of the event name. */
   name: string;
-  hasTimezone: boolean;
-  bareUrl: boolean;
+  /** The URL is Discovery's dated slug (`/<name>-<city>-MM-DD-YYYY/event/<id>`), not a bare `/event/<id>`. */
+  slugUrl: boolean;
   body: BodyParts;
 };
 
@@ -138,8 +138,7 @@ export function representation(e: Obj, source: Pick<SourceRow, "tags">): Represe
     slot: venueKey && instant ? `${venueKey}@${instant}` : undefined,
     attractions: attractions.map((a) => str(a.id)).filter(Boolean),
     name: nameWords(name),
-    hasTimezone: !!str(dates.timezone),
-    bareUrl: /\/event\/[A-Za-z0-9]+\/?$/.test(url) && !/-\d{2}-\d{2}-\d{4}\/event\//.test(url),
+    slugUrl: /-\d{2}-\d{2}-\d{4}\/event\//.test(url),
     body,
     item: {
       uid: id,
@@ -171,41 +170,24 @@ export function sameShow(a: Pick<Representation, "name" | "attractions">, b: Pic
   return a.attractions.some((x) => b.attractions.includes(x)) && sameWords(a.name, b.name);
 }
 
-/** Live first, then one with a timezone of its own, then a dated slug URL, then the lower id. */
+/**
+ * The record a merged show is published and stored under: a dated slug URL first, then the lowest
+ * Discovery id. Both are the records' own fixed fields, so the lead, and the post it updates, do not
+ * move with a record's timezone, status or what else a run fetched.
+ */
 function lead(a: Representation, b: Representation): number {
-  return Number(!!a.item.cancelled) - Number(!!b.item.cancelled) || Number(b.hasTimezone) - Number(a.hasTimezone)
-    || Number(a.bareUrl) - Number(b.bareUrl) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+  return Number(b.slugUrl) - Number(a.slugUrl) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
 }
-
-/** FNV-1a, base 36: a short, stable stand-in for a long name in a key. */
-function shortHash(s: string): string {
-  let h = 0x811c9dc5;
-  for (const ch of s) { h ^= ch.codePointAt(0)!; h = Math.imul(h, 0x01000193) >>> 0; }
-  return h.toString(36);
-}
-
-const NAME_IN_KEY = 60;
-
-/** `tm:<venue>@<start instant>~<name words>`, the words hyphenated and, past 60 characters, cut and hashed. */
-export function showKey(slot: string, name: string): string {
-  const words = name.replace(/ /g, "-");
-  return `tm:${slot}~${words.length <= NAME_IN_KEY ? words : `${words.slice(0, NAME_IN_KEY - 9)}-${shortHash(words)}`}`;
-}
-
-/** The name a show is keyed on: its shortest, then first in order. */
-const keyName = (show: Representation[]): string =>
-  show.map((r) => r.name).sort((a, b) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0))[0];
 
 /**
  * One item per show. Records sharing a venue and start instant that are the same show (`sameShow`,
  * taken transitively) merge: the lead record's title, URL and body, any record's timezone, end and
  * description, cancelled only when every record is.
  *
- * The item's `key` and uid is `showKey` of the slot and the show's shortest name: a function of the
- * show's own records, never of what else this run fetched, and different for two shows in one slot
- * because their names are not prefixes of each other. Its `aliases` are the record URLs and ids
- * earlier runs stored it under, and each record's own `showKey`, so a run that sees one more twin
- * than the last still finds the row. Records with no venue or no absolute start pass through alone.
+ * The item's uid is the lead's normalized URL, the identity every adapter's items get from the fold
+ * (`foldKey` in ./collapse.ts), so an existing pair keeps its lead post and the twin's row goes
+ * unseen. Records with no venue or no absolute start pass through alone. docs/syndication.md has
+ * what this leaves open.
  */
 export function mergeRepresentations(reps: Representation[]): Item[] {
   const slots = new Map<string, Representation[][]>();
@@ -228,20 +210,16 @@ export function mergeRepresentations(reps: Representation[]): Item[] {
 }
 
 function merged(show: Representation[]): Item {
-  const slot = show[0].slot!;
-  const key = showKey(slot, keyName(show));
   const sorted = [...show].sort(lead);
   const first = sorted[0];
-  const item: Item = { ...first.item, uid: key, key };
+  const item: Item = { ...first.item, uid: normalizeSourceKey(first.item.url) ?? first.id };
   item.timezone = first.item.timezone ?? sorted.find((r) => r.item.timezone)?.item.timezone;
   item.ends_at = first.item.ends_at ?? sorted.find((r) => r.item.ends_at)?.item.ends_at;
   const told = first.body.described ? undefined : sorted.find((r) => r.body.described);
   if (told) item.body = composeBody({ ...first.body, line: told.body.line, described: true }, first.item.url ?? "");
   item.cancelled = show.every((r) => r.item.cancelled);
-  const ids = sorted.map((r) => r.id);
-  const urls = sorted.map((r) => normalizeSourceKey(r.item.url)).filter((u): u is string => !!u);
-  item.aliases = [...new Set([...urls, ...ids, ...sorted.map((r) => showKey(slot, r.name))])].filter((a) => a !== key);
-  item.metadata = { ...(first.item.metadata ?? {}), discovery_ids: ids };
+  const status = (sorted.find((r) => !!r.item.cancelled === item.cancelled) ?? first).item.metadata?.status;
+  item.metadata = { ...(first.item.metadata ?? {}), status, discovery_ids: sorted.map((r) => r.id) };
   if (item.timezone === undefined) delete item.timezone;
   if (item.ends_at === undefined) delete item.ends_at;
   return item;

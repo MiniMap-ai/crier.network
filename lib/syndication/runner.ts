@@ -4,13 +4,13 @@
  * retire vanished. Every relayed post carries source_url, syndicated=true and a source note.
  */
 import { createHash } from "node:crypto";
-import { sql, withTimeout } from "../db";
+import { sql } from "../db";
 import { newPostId } from "../ids";
 import { track } from "../metrics";
 import { PostInput, PostInputSchema, createPost, deletePost, getPostRow, normalizeSourceKey, updatePost } from "../posts";
 import { PublisherRow } from "../publishers";
 import { ADAPTERS } from "./adapters";
-import { collapseInstances, identities } from "./collapse";
+import { collapseInstances } from "./collapse";
 import { Item, SourceRow, runLimit } from "./types";
 
 const SYNDICATION_NAME = "Crier Syndication";
@@ -130,42 +130,26 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     try { items = await ADAPTERS[source.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal }); }
     finally { clearTimeout(t); }
     counts.fetched = items.length;
-    const existing = new Map((await s<{ uid: string; post_id: string | null; hash: string }[]>`select uid, post_id, hash from source_items where source_id = ${source.id}`).map((r) => [r.uid, r]));
     // One post per upstream thing, not one per instance. This is where the write path stopped
     // disagreeing with the read path; see lib/syndication/collapse.ts for what it will not fold.
-    const collapsed = collapseInstances(items, now, (uid) => !!existing.get(uid)?.post_id);
+    const collapsed = collapseInstances(items, now);
     items = collapsed.items;
     counts.folded = collapsed.folded;
     if (collapsed.folded) track.counter("synd:folded", collapsed.folded);
     items.sort((a, b) => (a.starts_at ? Date.parse(a.starts_at) : 0) - (b.starts_at ? Date.parse(b.starts_at) : 0));
     const seen = new Set<string>();
-
-    const limit = runLimit(source);
+    const existing = new Map((await s<{ uid: string; post_id: string | null; hash: string }[]>`select uid, post_id, hash from source_items where source_id = ${source.id}`).map((r) => [r.uid, r]));
 
     for (const item of items) {
       if (Date.now() > deadline - 3000) { counts.skipped += 1; continue; }
-      const ids = identities(item);
-      let ex = existing.get(item.uid);
-      const alias = ex ? undefined : ids.find((id) => existing.get(id)?.post_id);
-      if (alias) {
-        await withTimeout(s`update source_items set uid = ${item.uid} where source_id = ${source.id} and uid = ${alias}`, { label: "synd:rekey" });
-        ex = { ...existing.get(alias)!, uid: item.uid };
-        existing.delete(alias);
-        existing.set(item.uid, ex);
-      }
-      // A second row under another alias is a duplicate posted before the merge; it is kept seen,
-      // not retired, and expires with its event (docs/syndication.md).
-      for (const id of ids) if (id === item.uid || existing.has(id)) seen.add(id);
+      seen.add(item.uid);
+      const ex = existing.get(item.uid);
       if (item.cancelled) {
-        for (const id of ids) {
-          const row = existing.get(id);
-          if (row?.post_id) { const post = await getPostRow(row.post_id); if (post && !post.deleted_at) { await deletePost(publisher, row.post_id); counts.retired++; } }
-          if (id === item.uid || row) await withTimeout(s`delete from source_items where source_id = ${source.id} and uid = ${id}`, { label: "synd:cancel" });
-          existing.delete(id);
-        }
+        if (ex?.post_id) { const row = await getPostRow(ex.post_id); if (row && !row.deleted_at) { await deletePost(publisher, ex.post_id); counts.retired++; } }
+        await s`delete from source_items where source_id = ${source.id} and uid = ${item.uid}`;
         continue;
       }
-      if (counts.created + counts.updated >= limit) { counts.skipped++; continue; }
+      if (counts.created + counts.updated >= runLimit(source)) { counts.skipped++; continue; }
       let input: PostInput;
       try { input = toInput(source, item, now); } catch { counts.skipped++; continue; }
       const hash = hashInput(input);

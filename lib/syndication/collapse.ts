@@ -64,12 +64,8 @@ export type Collapsed = {
   folded: number;
 };
 
-/**
- * Fold each group of instances into one item. Order of first appearance is kept. `stored` says
- * whether a `source_items` row with a post exists under a uid; it decides the uid of a fold of one
- * that carries an adapter `key` (see `fold`), and nothing else.
- */
-export function collapseInstances(items: Item[], now: Date, stored: (uid: string) => boolean = () => false): Collapsed {
+/** Fold each group of instances into one item. Order of first appearance is kept. */
+export function collapseInstances(items: Item[], now: Date): Collapsed {
   const groups = new Map<string, Item[]>();
   for (const item of items) {
     const key = foldKey(item);
@@ -103,24 +99,16 @@ export function collapseInstances(items: Item[], now: Date, stored: (uid: string
     }
 
     folded += group.length - 1;
-    out.push(fold(key, live, now, stored));
+    out.push(fold(key, live, now));
   }
   return { items: out, folded };
 }
 
 /** One item standing for all the instances: the next one upcoming, carrying the others. */
-function fold(key: string, live: Item[], now: Date, stored: (uid: string) => boolean): Item {
+function fold(key: string, live: Item[], now: Date): Item {
   const sorted = [...live].sort(byStart);
   const next = sorted.find((i) => startMs(i) >= now.getTime()) ?? sorted[0];
-  // A fold of one takes the adapter's key unless a row already lives under the URL: a timed-entry
-  // attraction down to one slot would otherwise leave the row its other slots keep coming back to.
-  const own = sorted.length === 1 ? next.key : undefined;
-  const uid = own && (stored(own) || !stored(key)) ? own : key;
-  const item: Item = { ...next, uid };
-  if (uid !== next.key) delete item.key;
-  const aliases = foldedAliases(uid, key, live);
-  if (aliases) item.aliases = aliases;
-  else delete item.aliases;
+  const item: Item = { ...next, uid: key };
   if (sorted.length === 1) return item;
 
   const rest = [...new Set(
@@ -139,27 +127,6 @@ function fold(key: string, live: Item[], now: Date, stored: (uid: string) => boo
     item.expires_at = new Date(until).toISOString();
   }
   return item;
-}
-
-/**
- * The uids the instances were, or may have been, stored under. Only adapters that set `key` or
- * `aliases` get any: a URL-keyed adapter has one identity and keeps it.
- */
-function foldedAliases(uid: string, key: string, live: Item[]): string[] | undefined {
-  const known = live.flatMap((i) => [i.key, ...(i.aliases ?? [])]).filter((a): a is string => !!a);
-  if (known.length === 0) return undefined;
-  return [...new Set([key, ...known])].filter((a) => a !== uid);
-}
-
-/**
- * Every uid the runner may find this item's `source_items` row under: its own first. The item's URL
- * key is left out unless it is the uid: siblings relayed as they came share that URL, and the row
- * under it is not theirs to take or retire.
- */
-export function identities(item: Item): string[] {
-  const shared = foldKey(item);
-  return [...new Set([item.uid, ...(item.key ? [item.key] : []), ...(item.aliases ?? [])])]
-    .filter((id) => id === item.uid || id !== shared);
 }
 
 /**
