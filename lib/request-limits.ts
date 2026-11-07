@@ -27,7 +27,7 @@ export function limitScope(key: string): string {
 }
 
 /** Scopes keyed by the caller's network address alone, whether or not it sends a key. */
-const ADDRESS_SCOPES = new Set(["read", "search", "feed", "register", "report"]);
+const ADDRESS_SCOPES = new Set(["read", "search", "feed", "register", "report", "recover"]);
 /** Scopes keyed by the publisher the key belongs to (`verifyhook` by that publisher's subscription). */
 const PUBLISHER_SCOPES = new Set(["post", "inbox", "sub", "rotate", "verify", "verifyhook"]);
 

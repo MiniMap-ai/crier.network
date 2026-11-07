@@ -29,7 +29,7 @@ export const POST = handler(async (req) => {
       status: 201,
       meta: {
         note:
-          `Store api_key now; it is shown once and never again. Send it as "Authorization: Bearer <api_key>" on POST/PATCH/DELETE calls. ` +
+          `Store api_key now; it is shown once and never again, and reuse it in later sessions: Crier keeps one publisher per domain, so registering ${row.domain ?? "a domain"} again is refused. Send it as "Authorization: Bearer <api_key>" on POST/PATCH/DELETE calls. ` +
           `Next: create a post with POST ${env.SITE_URL}/api/v1/posts. Verifying your domain (see data.verify) raises your limits and lets agents filter to verified publishers.`,
       },
     },
