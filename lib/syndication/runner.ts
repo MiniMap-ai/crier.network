@@ -89,7 +89,7 @@ function hashInput(i: PostInput): string {
  * item is relaying yet, or holds the item back when every one of them already has an owner —
  * writing into an owned post would only start a fight, with each run rewriting what the other wrote.
  */
-async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: PostInput, item: Item, hash: string): Promise<"insert" | "adopted" | "held"> {
+async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: PostInput, item: Item, hash: string, deadline: number): Promise<"insert" | "adopted" | "held"> {
   const key = normalizeSourceKey(input.source_url);
   if (!key) return "insert";
   const s = sql();
@@ -104,7 +104,7 @@ async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: 
   const target = live.find((r) => !r.owned);
   if (!target) return "held";
   const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
-  await updatePost(publisher, target.id, patch);
+  await updatePost(publisher, target.id, patch, { embedDeadline: deadline });
   await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${item.uid}, ${target.id}, ${hash})
           on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;
   return "adopted";
@@ -161,19 +161,20 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         const row = await getPostRow(ex.post_id);
         if (row && !row.deleted_at) {
           const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
-          await updatePost(publisher, ex.post_id, patch);
+          await updatePost(publisher, ex.post_id, patch, { embedDeadline: deadline });
           await s`update source_items set hash = ${hash}, last_seen = now(), missing_runs = 0 where source_id = ${source.id} and uid = ${item.uid}`;
           counts.updated++;
           continue;
         }
       }
-      const guard = await guardLiveRows(source, publisher, input, item, hash);
+      const guard = await guardLiveRows(source, publisher, input, item, hash, deadline);
       if (guard !== "insert") {
         counts.collapsed++;                          // an insert refused: what synd:collapsed counts
         if (guard === "adopted") counts.updated++;   // and a real write, so it costs the run's budget
         continue;
       }
-      const { post, created } = await createPost(publisher, input);
+      // The run's deadline sits well inside the cron's maxDuration, so a retry that ends by it fits.
+      const { post, created } = await createPost(publisher, input, { embedDeadline: deadline });
       await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${item.uid}, ${post.id}, ${hash})
               on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;
       // `created` is false when a post is already there under this idempotency key — which is how a

@@ -19,7 +19,7 @@ export const GET = handler(async (req) => {
   const q = parseSearchQuery(url.searchParams);
   if (!q.limit) q.limit = 50;
   const r = await search(q, { track: false });
-  track.search(q, r.posts.length, clientIp(req), "feed");
+  track.search(q, r.posts.length, clientIp(req), "feed", false, r.embed_failed);
   const B = env.SITE_URL;
   const title = `${SITE.name}: ${describeQuery(q)}`;
   const items = r.posts.map((p) => {

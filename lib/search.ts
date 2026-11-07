@@ -2,7 +2,7 @@ import { z } from "zod";
 import { budget, sql, toVectorLiteral, withTimeout } from "./db";
 import type { Budget } from "./db";
 import { embedQuery, rerank } from "./cohere";
-import { HttpError, cursorOf, encodeCursor } from "./http";
+import { HttpError, boardNote, boardStats, cursorOf, encodeCursor } from "./http";
 import { isKeysetCursor, isOffsetCursor } from "./cursor";
 import { DATE_TIME_HINT, DATE_TIME_MESSAGE, isSearchDateTime } from "./dates";
 import { POST_ID_RE } from "./ids";
@@ -94,7 +94,35 @@ function buildWhere(q: SearchQuery, opts: { alias?: string } = {}): Built {
   return { where: clauses.join(" and "), params, distanceExpr, nearLat, nearLng };
 }
 
-export type SearchResult = { posts: PublicPost[]; next_cursor: string | null; mode: "keyset" | "hybrid"; reranked: boolean; sort: "relevance" | "newest" | "soonest" };
+/**
+ * `embed_failed` is true when a text query's embedding failed and the results come from the
+ * full-text and trigram arms alone. The caller says so in its note and passes it to track.search,
+ * so an empty lexical answer is not recorded as unmet demand.
+ */
+export type SearchResult = { posts: PublicPost[]; next_cursor: string | null; mode: "keyset" | "hybrid"; reranked: boolean; sort: "relevance" | "newest" | "soonest"; embed_failed: boolean };
+
+/** What a caller tells the agent when `embed_failed` is set. */
+export const LEXICAL_ONLY_NOTE =
+  "Semantic matching was unavailable for this search, so these results matched your words only. Retrying shortly may find posts that say the same thing in other words.";
+
+/** A search response's note: LEXICAL_ONLY_NOTE first when the embed failed, then the board's own note. */
+export function searchNote(r: SearchResult, boardNote: string | undefined): string | undefined {
+  return [r.embed_failed ? LEXICAL_ONLY_NOTE : undefined, boardNote].filter(Boolean).join(" ") || undefined;
+}
+
+/**
+ * The `meta.note` a REST search route hands to ok(). Undefined unless the embed failed, so that ok()
+ * composes the board note itself and a response reads boardStats once, not twice.
+ */
+export async function restSearchNote(r: SearchResult): Promise<string | undefined> {
+  return r.embed_failed ? searchNote(r, boardNote(await boardStats(), r.posts.length)) : undefined;
+}
+
+/** The ranking a response reports: how the results were ordered, in words. */
+export function rankingOf(r: SearchResult): string {
+  if (r.mode !== "hybrid") return r.sort;
+  return (r.embed_failed ? "lexical" : "hybrid") + (r.reranked ? "+rerank" : "");
+}
 
 const POOL = 100;   // max candidates considered for a text query
 const RERANK_POOL = 40;
@@ -116,6 +144,7 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
   let mode: SearchResult["mode"] = "keyset";
   let reranked = false;
   let sortUsed: SearchResult["sort"] = "relevance";
+  let embedFailed = false;
 
   if (!q.q) {
     // Keyset pagination over a stable order.
@@ -149,7 +178,9 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
     const cur = cursorOf(q.cursor, isOffsetCursor);
     const offset = Math.max(0, Math.min(cur?.o ?? 0, POOL));
     const text = q.q;
-    const vec = await embedQuery(text);
+    // No retry here: the query embed's own timeout is already half of /api/v1/search's 10 s maxDuration.
+    const { vec, failed } = await embedQuery(text, { site: "search" });
+    embedFailed = failed;
 
     // Full-text candidates.
     const ftsParams = [...b.params, text, POOL];
@@ -250,7 +281,7 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
     track.stat("retrievals", ids.length);
   }
   if (opts.track !== false) track.stat("searches");
-  return { posts, next_cursor, mode, reranked, sort: sortUsed };
+  return { posts, next_cursor, mode, reranked, sort: sortUsed, embed_failed: embedFailed };
 }
 
 /** Describe a query in words, for feed titles and subscription summaries. */

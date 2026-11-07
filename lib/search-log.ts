@@ -24,7 +24,17 @@ export type SearchShape = {
   source: SearchSource;
 };
 
-export type ShapeCount = SearchShape & { n: number; zero: number };
+/** `zero` counts searches that found nothing; `embed_failed` counts searches answered without the semantic arm, which are never in `zero`. */
+export type ShapeCount = SearchShape & { n: number; zero: number; embed_failed: number };
+
+/**
+ * Did this search find nothing, as demand evidence? A text search whose query embedding failed ran
+ * on its lexical arms alone, so an empty answer there says nothing about what was posted: it is not
+ * unmet demand. `search:zero`, `unmet_queries` and `search_log.zero` all follow this.
+ */
+export function isUnmet(o: { zero: boolean; embedFailed?: boolean }): boolean {
+  return o.zero && !o.embedFailed;
+}
 
 /** The fields of a parsed SearchQuery this module reads. Structural, so `lib/search` need not be imported. */
 type QueryFields = { q?: string; kind?: string; tags?: string; near?: string; radius_km?: number };
@@ -80,12 +90,17 @@ export function shapeKey(s: SearchShape): string {
  * Fold one search into a pending map. Returns false when the map is full and this shape is new,
  * which is the caller's cue to count the drop.
  */
-export function addSearch(into: Map<string, ShapeCount>, shape: SearchShape, zero: boolean, limit = MAX_PENDING_SHAPES): boolean {
+export function addSearch(into: Map<string, ShapeCount>, shape: SearchShape, outcome: { zero: boolean; embedFailed?: boolean }, limit = MAX_PENDING_SHAPES): boolean {
   const k = shapeKey(shape);
-  const cur = into.get(k);
-  if (cur) { cur.n++; if (zero) cur.zero++; return true; }
-  if (into.size >= limit) return false;
-  into.set(k, { ...shape, n: 1, zero: zero ? 1 : 0 });
+  let cur = into.get(k);
+  if (!cur) {
+    if (into.size >= limit) return false;
+    cur = { ...shape, n: 0, zero: 0, embed_failed: 0 };
+    into.set(k, cur);
+  }
+  cur.n++;
+  if (isUnmet(outcome)) cur.zero++;
+  if (outcome.embedFailed) cur.embed_failed++;
   return true;
 }
 
@@ -106,9 +121,9 @@ export type RecordOutcome =
   | "dropped";
 
 /** Buffer one search for the next flush. Takes no seeker, by construction (BR-17). */
-export function recordSearch(q: QueryFields, source: SearchSource, opts: { zero: boolean; internal?: boolean }): RecordOutcome {
+export function recordSearch(q: QueryFields, source: SearchSource, opts: { zero: boolean; embedFailed?: boolean; internal?: boolean }): RecordOutcome {
   if (opts.internal) return "skipped";
-  return addSearch(pending, searchShape(q, source), opts.zero) ? "recorded" : "dropped";
+  return addSearch(pending, searchShape(q, source), opts) ? "recorded" : "dropped";
 }
 
 /** Take everything buffered. The buffer is emptied, so a flush can never write a shape twice. */
