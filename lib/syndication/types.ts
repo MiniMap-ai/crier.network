@@ -38,6 +38,12 @@ export type Item = {
   expires_at?: string;
   cancelled?: boolean;
   metadata?: Record<string, unknown>;
+  /**
+   * Other identities this item's row may be stored under, for an item standing for several
+   * upstream records (lib/syndication/aliases.ts). The runner finds a row by uid or any alias and
+   * keeps the stored uid. Only the Ticketmaster adapter sets it.
+   */
+  aliases?: string[];
 };
 
 /** The relay policy's ceiling on writes per source per run, whatever the row says. */

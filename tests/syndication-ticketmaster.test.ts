@@ -38,7 +38,7 @@ function bareTwin(over: Raw & { id: string }, venue: Raw = SAMUEL_FRIEDMAN): Raw
 const items = (...events: Raw[]) => events.map((e) => ticketmasterItem(e, SOURCE)).filter((i) => i !== null);
 const uidsAfterFold = (...events: Raw[]) => collapseInstances(items(...events), NOW).items.map((i) => i.uid);
 
-test("two Discovery records of one show stay two items, each under its own id and URL, until CRI-74 merges them", () => {
+test("ticketmasterItem maps each record alone, under its own id and URL; merging twins is ticketmasterItems' job", () => {
   const twins = items(discovery({ id: "G5vzZ1AvZoOP" }), bareTwin({ id: "Z7r9jZ1AAvFCa" }));
   assert.deepEqual(twins.map((i) => i.uid), ["G5vzZ1AvZoOP", "Z7r9jZ1AAvFCa"]);
   assert.deepEqual(uidsAfterFold(discovery({ id: "G5vzZ1AvZoOP" }), bareTwin({ id: "Z7r9jZ1AAvFCa" })), [

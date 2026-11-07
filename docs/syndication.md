@@ -65,7 +65,7 @@ adapter, folds the instances of one upstream thing into one item, then:
   consecutive fetches while still in the future — unless another item of the
   same source is still relaying that post.
 
-State lives in `source_items` (uid → post, hash, last seen) and `source_runs`
+State lives in `source_items` (uid → post, hash, last seen, aliases) and `source_runs`
 (one row per run with counts and errors). A run's `status` is `ok`, `partial`
 (the fetch stopped early, everything it read was written, and `error` says
 where it stopped), or `error` (the fetch failed before anything was read, or
@@ -161,12 +161,38 @@ Discovery serves some shows twice: two event ids, a dated slug URL
 (`/hamilton-ny-new-york-new-york-10-20-2026/event/Z1r9…`) and a bare one
 (`/event/Z7r9…`), and names that differ in punctuation or billing ("August
 Wilsons" and "August Wilson's"; "Hamilton" and "Hamilton (NY)"). The two URLs
-differ, so the fold above keeps them apart, and such twins are relayed as two
-posts for now (CRI-61). `lib/syndication/ticketmaster.ts` maps each record to
-one item whose uid is its Discovery id, which the fold then keys on its URL like
-any adapter's item. Merging twins safely needs their ids and URLs stored as
-aliases of one row, so that a reschedule, a rename or a run that fetched only
-one twin cannot re-key the show or retire it: CRI-74.
+differ, so the fold above cannot see they are one show (CRI-61).
+
+`lib/syndication/ticketmaster.ts` maps each record to one item whose uid is its
+Discovery id, then merges the records the same-show rule in
+`lib/syndication/aliases.ts` finds to be one show into the lead's item. The rule
+is strict: same venue id, same start instant, different URLs, and a shared
+attraction id or one name's words beginning the other's. When either name is a
+single word ("Comedy", "Hamilton"), only a shared attraction of that name will
+do, so a generic word never merges on its prefix alone. The lead is the record
+with a dated slug URL, else the lowest id, among the records still on sale; the
+show is cancelled only when every record is. The merged item carries the lead's
+id and every other record's URL key and id as `aliases`; the fold then keys it
+on the lead's URL like any adapter's item. Records sharing one URL under
+different titles never meet the rule and keep their per-id uids.
+
+Aliases are persisted in `source_items.aliases`, and that is what makes the
+merge safe. The runner finds a row by its uid or any alias, never changes a
+stored uid, and only adds aliases. A reschedule (the dated URL changes), a
+rename, a lead flip, or a run that fetched only one twin all land on the row
+the show already has, so none of them can re-key the show or retire it. Merging
+anything derived from what one run fetched cannot promise that, which is why
+three in-memory designs were rejected (PR #32).
+
+When an item matches several rows, as each of today's live pairs does with
+each twin under its own uid, the runner keeps the row stored under the item's
+uid, else the oldest. It moves the other rows' uids and aliases into the kept
+row, retires their posts the way the missing-item sweep does (unless another
+row relays the post), and drops those rows. A merge's retires count against
+the run's cap of writes: a merge the run cannot afford in full is skipped and
+left to a later run. A cancelled item retires the show under every identity it
+is stored under. Items from every other adapter carry no aliases and take the
+path they took before.
 
 What the mapping does to each record: the timezone is the event's, else its
 venue's; the end comes only from `dates.end.dateTime`, never when

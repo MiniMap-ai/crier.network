@@ -1,6 +1,6 @@
 import { RECURRENCE_CAP } from "./collapse.ts";
 import { icalDate, icalText, parseFeed, parseICal } from "./feeds.ts";
-import { ticketmasterItem } from "./ticketmaster.ts";
+import { ticketmasterItems } from "./ticketmaster.ts";
 import { fetchJson, fetchText, inHorizon, plainText, runLimit } from "./types.ts";
 import { walkNote, walkPages } from "./walk.ts";
 // Split out: node's type stripping erases `import type` but cannot spot types inside a mixed list.
@@ -17,7 +17,7 @@ const point = (lat: unknown, lng: unknown): { lat: number; lng: number } | undef
 /* ---------------- Ticketmaster Discovery API ----------------
    config: { lat, lng, radius_km, city (label), segment? ("Music" | "Sports" | "Arts & Theatre" | ...) }
    Terms require attribution and a link back; every post says "Source: Ticketmaster" and links the event.
-   Each record maps to one item in ./ticketmaster.ts. */
+   Records map to items, one per show, in ./ticketmaster.ts. */
 export const ticketmaster: Adapter = async (source, ctx) => {
   const key = process.env.TICKETMASTER_API_KEY;
   if (!key) throw new Error("TICKETMASTER_API_KEY is not set");
@@ -26,7 +26,7 @@ export const ticketmaster: Adapter = async (source, ctx) => {
   if (lat === undefined || lng === undefined) throw new Error("config.lat and config.lng are required");
   const radius = Math.min(150, num(c.radius_km) ?? 40);
   const fmt = (d: Date) => d.toISOString().replace(/\.\d{3}Z$/, "Z");
-  const items: Item[] = [];
+  const records: Record<string, unknown>[] = [];
   const pageSize = 200;
   const maxPages = Math.ceil(runLimit(source) / pageSize);
   for (let page = 0; page < maxPages && page * pageSize < 1000; page++) {
@@ -38,13 +38,10 @@ export const ticketmaster: Adapter = async (source, ctx) => {
     type TM = { _embedded?: { events?: Record<string, unknown>[] }; page?: { totalPages?: number } };
     const data = await fetchJson<TM>(`https://app.ticketmaster.com/discovery/v2/events.json?${params}`, ctx);
     const events = data._embedded?.events ?? [];
-    for (const e of events) {
-      const item = ticketmasterItem(e, source);
-      if (item) items.push(item);
-    }
+    records.push(...events);
     if (events.length < pageSize || (data.page?.totalPages ?? 0) <= page + 1) break;
   }
-  return items.filter((i) => inHorizon(i.starts_at, ctx));
+  return ticketmasterItems(records, source).filter((i) => inHorizon(i.starts_at, ctx));
 };
 
 /* ---------------- iCalendar ----------------
