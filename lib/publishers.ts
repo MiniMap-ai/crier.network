@@ -8,7 +8,7 @@ import { HttpError, bearer } from "./http";
 import { newApiKey, newPublisherId, newSecret, newVerifyToken, sha256 } from "./ids";
 import { assertSafeOutboundUrl } from "./safety";
 import { track } from "./metrics";
-import { globalCeiling } from "./limits";
+import { CEILINGS, assertUnderCeiling } from "./limits";
 import { checkRecoverySecret, claimDomain, claimedDomain, domainOf, domainTakenRefusal, holdsDomain, newRecoverySecret, recoveryPlan } from "./publisher-claim";
 import type { RecoveryPlan } from "./publisher-claim";
 
@@ -122,7 +122,8 @@ export async function registerPublisher(input: z.infer<typeof RegisterSchema>, c
     return claimDomain(claimed, {
       holders: rowsOnDomain(tx),
       write: async () => {
-        await globalCeiling("registrations_per_day", "new publishers");
+        const [ceiling] = await tx<{ remaining: number }[]>`select rate_limit_hit('global:registrations_per_day', ${CEILINGS.registrations_per_day}, 86400) as remaining`;
+        assertUnderCeiling(ceiling?.remaining, "new publishers");
         const [row] = await tx<PublisherRow[]>`
           insert into publishers (id, name, description, url, domain, verify_token, api_key_hash, api_key_prefix, terms_accepted_at, terms_version, client, user_agent)
           values (${id}, ${input.name}, ${input.description ?? null}, ${input.url ?? null}, ${domain}, ${verify_token}, ${sha256(apiKey)}, ${apiKey.slice(0, 14)}, now(), ${TERMS_VERSION},
