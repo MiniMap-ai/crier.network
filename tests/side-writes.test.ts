@@ -7,7 +7,7 @@ process.env.CRIER_DB_SIDE_TIMEOUT_MS = "60";
 
 const { DB_SIDE_TIMEOUT_MS, withTimeout } = await import("../lib/db-timeout.ts");
 const {
-  MAX_PENDING_POSTS, SIDE_WRITE_TIMEOUT_KEY,
+  MAX_PENDING_POSTS,
   applyCounts, drainCounts, drainSideWritesLost, makeSideWrite, noteRetrievals, noteView,
 } = await import("../lib/side-writes.ts");
 type Tx = Parameters<typeof applyCounts>[0];
@@ -33,27 +33,13 @@ const sideWriteWith = (keepalive: (task: () => Promise<void>) => void) =>
 /** Stands in for a postgres.js transaction: records the statements, and can be told to fail on one. */
 function fakeTx(opts: { failOn?: RegExp } = {}) {
   const statements: { sql: string; args: unknown[] }[] = [];
-  const savepoints: string[] = [];
-  let rolledBack = false;
-  const tag = (strings: TemplateStringsArray, ...args: unknown[]) => {
+  const tx: Tx = (strings, ...args) => {
     const sql = strings.join("?").replace(/\s+/g, " ").trim();
     statements.push({ sql, args });
-    if (opts.failOn?.test(sql)) return Promise.reject(new Error("deadlock detected"));
+    if (opts.failOn?.test(sql)) return Promise.reject(new Error("canceling statement due to statement timeout"));
     return Promise.resolve([]);
   };
-  const tx = Object.assign(tag, {
-    async savepoint(fn: (sp: Tx) => Promise<unknown>) {
-      savepoints.push("s" + savepoints.length);
-      try {
-        return await fn(tx as unknown as Tx);
-      } catch (e) {
-        // What postgres.js does: roll back to the savepoint, then rethrow for the caller to catch.
-        rolledBack = true;
-        throw e;
-      }
-    },
-  });
-  return { tx: tx as unknown as Tx, statements, savepoints, get rolledBack() { return rolledBack; } };
+  return { tx, statements };
 }
 
 /** Run something that may warn, and hand back both what it returned and what it said. */
@@ -117,71 +103,41 @@ test("past the cap, new ids are dropped and counted; ids already held keep count
 
 /* ---------------- what the flush issues ---------------- */
 
-test("the flush issues one batched statement each for views and retrievals, inside a savepoint", async () => {
+test("the flush applies views and retrievals in one statement, one row per post", async () => {
   reset();
-  noteView("aaaaaaaa");
-  noteView("aaaaaaaa");
   noteView("bbbbbbbb");
-  noteRetrievals(["cccccccc"]);
+  noteView("aaaaaaaa");
+  noteView("aaaaaaaa");
+  noteRetrievals(["cccccccc", "aaaaaaaa"]);
   const t = fakeTx();
 
-  assert.equal(await applyCounts(t.tx, drainCounts()), true);
-  assert.equal(t.savepoints.length, 1, "both statements share one savepoint");
-  assert.equal(t.statements.length, 2, "one statement per counter, not one per post");
+  await applyCounts(t.tx, drainCounts());
+  assert.equal(t.statements.length, 1, "one statement, not one per post or per column");
 
-  const [views, retrievals] = t.statements;
-  assert.match(views.sql, /update posts p set views = p\.views \+ v\.n/);
-  assert.match(views.sql, /for update skip locked/, "a view bump still never waits on a row lock");
-  assert.deepEqual(views.args[0], ["aaaaaaaa", "bbbbbbbb"], "ids go in as one array");
-  assert.deepEqual(views.args[1], [2, 1], "and their counts alongside, in the same order");
-  assert.deepEqual(views.args[2], ["aaaaaaaa", "bbbbbbbb"], "the lock subquery takes the same ids");
-  assert.match(retrievals.sql, /update posts p set retrievals = p\.retrievals \+ r\.n/);
-  assert.match(retrievals.sql, /for update skip locked/);
-  assert.deepEqual(retrievals.args[0], ["cccccccc"]);
+  const [update] = t.statements;
+  assert.match(update.sql, /update posts p set views = p\.views \+ c\.v, retrievals = p\.retrievals \+ c\.r/);
+  assert.match(update.sql, /for update skip locked/, "a view bump still never waits on a row lock");
+  assert.deepEqual(update.args[0], ["aaaaaaaa", "bbbbbbbb", "cccccccc"], "ids go in as one array, sorted");
+  assert.deepEqual(update.args[1], [2, 1, 0], "views alongside, in the same order");
+  assert.deepEqual(update.args[2], [1, 0, 1], "and retrievals");
+  assert.deepEqual(update.args[3], ["aaaaaaaa", "bbbbbbbb", "cccccccc"], "the lock subquery takes the same ids");
   assert.equal(drainSideWritesLost(), 0, "nothing was lost");
 });
 
 test("nothing pending issues nothing at all", async () => {
   reset();
   const t = fakeTx();
-  assert.equal(await applyCounts(t.tx, drainCounts()), true);
-  assert.deepEqual(t.statements, [], "an idle instance does not open a savepoint to write nothing");
+  await applyCounts(t.tx, drainCounts());
+  assert.deepEqual(t.statements, [], "an idle instance does not write nothing");
 });
 
-test("only retrievals pending: no empty views statement", async () => {
-  reset();
-  noteRetrievals(["aaaaaaaa"]);
-  const t = fakeTx();
-  assert.equal(await applyCounts(t.tx, drainCounts()), true);
-  assert.equal(t.statements.length, 1);
-  assert.match(t.statements[0].sql, /set retrievals/);
-});
-
-test("a failed views statement rolls back to its savepoint and lets the transaction commit", async () => {
+test("a failed per-post statement is thrown to the flush, which counts and logs the loss once", async () => {
   reset();
   noteView("aaaaaaaa");
-  noteRetrievals(["bbbbbbbb"]);
-  const counts = drainCounts();
-  const t = fakeTx({ failOn: /set views/ });
-
-  // The case the savepoint exists for: cron:tick and the counters are in this same transaction, and
-  // a view bump that met a lock must not be able to take them with it. applyCounts absorbs the
-  // rethrow rather than propagating it, so flush() goes on to commit everything else.
-  const { result, warnings } = await capturingWarnings(() => applyCounts(t.tx, counts));
-  assert.equal(result, false, "it reports the loss instead of throwing");
-  assert.equal(t.rolledBack, true, "and the savepoint was rolled back");
-  assert.equal(drainSideWritesLost(), 1, `so ${SIDE_WRITE_TIMEOUT_KEY} records it on the next flush`);
-  assert.equal(warnings.length, 1);
-  assert.match(warnings[0], /side write failed flush:counts/);
-  assert.match(warnings[0], /deadlock detected/, "the reason survives into the log");
-});
-
-test("a failed counter statement is a lost batch, not a retry that could double-count", async () => {
-  reset();
-  noteView("aaaaaaaa");
-  const t = fakeTx({ failOn: /set views/ });
-  await capturingWarnings(() => applyCounts(t.tx, drainCounts()));
-  assert.equal(t.statements.filter((s) => /set views/.test(s.sql)).length, 1, "exactly one attempt");
+  const t = fakeTx({ failOn: /update posts/ });
+  await assert.rejects(applyCounts(t.tx, drainCounts()), /statement timeout/);
+  assert.equal(drainSideWritesLost(), 0, "not counted here as well");
+  assert.equal(t.statements.length, 1, "exactly one attempt, not a retry that could double-count");
 });
 
 /* ---------------- the sideWrite helper ---------------- */
