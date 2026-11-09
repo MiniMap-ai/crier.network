@@ -42,16 +42,10 @@ export type BoundedAgeOptions = {
 
 /**
  * Wraps a cached read so that what it returns is no older than `maxAgeMs` while computing works.
- *
- * `read` is the shared cache, which answers with a stale entry while it revalidates and keeps that
- * entry for as long as revalidation does not land. When `read` hands back something older than
- * `maxAgeMs`, the wrapper answers with `compute` instead. Computed values are shared per process:
- * concurrent callers wait on one computation, and later ones reuse its result while it is young
- * enough, so a cache that stays stale costs at most one computation per process per `maxAgeMs`.
- *
- * When a computation rejects, its callers get the youngest stale value they have, and for
- * `retryAfterMs` later callers get theirs without a new computation. Only `read` itself throwing,
- * which means there is no cached value at all, reaches the caller as an error.
+ * An older cached value is replaced by `compute`, one computation per process at a time, reused
+ * while young enough. When computing fails, callers get the youngest stale value, and for
+ * `retryAfterMs` later callers get it without a new attempt. Only `read` throwing (no cached value
+ * at all) reaches the caller. docs/metrics.md, "How fresh the numbers are", has the why.
  */
 export function boundedAge<T extends Stamped>(read: () => Promise<T>, compute: () => Promise<T>, opts: BoundedAgeOptions): () => Promise<T> {
   const now = opts.now ?? Date.now;
