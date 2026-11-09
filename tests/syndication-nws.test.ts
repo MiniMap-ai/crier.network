@@ -103,9 +103,10 @@ test("the zone comes from the abbreviation in the headline, which the CAP timest
 });
 
 /**
- * One CAP alert in three segments, as api.weather.gov/alerts/active serves them: three features,
- * one headline, one onset, and an `areaDesc` per segment, the first of which names its zone twice.
- * Rebuilt from the Reno Lake Wind Advisory posts `YZ7sGvCj`, `PgDvGNf6` and `sdCfS3XR` (CRI-64).
+ * One CAP alert in three segments: three features under one headline, each with its own
+ * `areaDesc`, the first naming its zone twice. Areas and headline are those of the Reno Lake Wind
+ * Advisory posts `YZ7sGvCj`, `PgDvGNf6` and `sdCfS3XR` (CRI-64); the onset is set the same on all
+ * three, which that alert's Tahoe segment did not have.
  */
 function renoSegments() {
   const at = (n: string, areaDesc: string, lng: number, lat: number) => ({

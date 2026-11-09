@@ -215,13 +215,11 @@ each one covers:
 - the area is `areaDesc` with each zone named once, since upstream sometimes
   lists one twice ("Greater Lake Tahoe Area; Greater Lake Tahoe Area").
 
-Before this, the three segments of the Reno Lake Wind Advisory of 2026-10-26
-were three posts with one title, 4 of 21 live NWS posts (CRI-64).
-
 `starts_at` is the segment's `onset`, else `effective`, the same field for
 every segment. Sibling segments can start at different times when upstream says
-they do: in that advisory, the Lake Tahoe segment read "Until 6 PM" and started
-at 4 AM PDT, while the two that read "From 10 AM" started at 10 AM.
+they do: in one Reno Lake Wind Advisory (CRI-64), the Lake Tahoe segment read
+"Until 6 PM" and started at 4 AM PDT, while the two that read "From 10 AM"
+started at 10 AM.
 
 ### The live-row guard
 
