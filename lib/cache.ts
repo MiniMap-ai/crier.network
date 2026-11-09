@@ -20,6 +20,7 @@ import { POSTS_TAG, postTag } from "./cache-tags";
 import { DB_SIDE_TIMEOUT_MS, DB_TIMEOUT_MS, budget, retryIfConnectionLost } from "./db";
 import { PublicPost, getPostRow, indexable, publicPost, relatedPosts, repliesFor } from "./posts";
 import { metricsSnapshot } from "./metrics";
+import { METRICS_MAX_AGE_S, METRICS_REVALIDATE_S, boundedAge } from "./metrics-freshness";
 import { search } from "./search";
 
 /** Long enough to absorb a crawl, short enough that a hidden post disappears on its own. */
@@ -86,5 +87,12 @@ export function cachedPublisherPosts(id: string): Promise<PublicPost[]> {
 export const cachedMetricsSnapshot = unstable_cache(
   () => metricsSnapshot(),
   ["metrics-snapshot"],
-  { revalidate: PAGE_REVALIDATE },
+  { revalidate: METRICS_REVALIDATE_S },
 );
+
+/**
+ * The metrics snapshot for /api/v1/metrics and /stats: the cached one, unless it is older than
+ * METRICS_MAX_AGE_S, in which case a freshly computed one. docs/metrics.md says how old that makes
+ * the numbers a reader sees.
+ */
+export const freshMetricsSnapshot = boundedAge(cachedMetricsSnapshot, () => metricsSnapshot(), METRICS_MAX_AGE_S * 1000);

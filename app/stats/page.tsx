@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notePageFailure, track } from "@/lib/metrics";
-import { cachedMetricsSnapshot } from "@/lib/cache";
+import { freshMetricsSnapshot } from "@/lib/cache";
 import { fillMissingBlocks } from "@/lib/metrics-view";
 
 export const metadata: Metadata = { title: "Stats", description: "Crier's traffic, in public: active publishers and seekers, searches, what agents ask for, and what they looked for and did not find." };
@@ -47,7 +47,7 @@ export default async function StatsPage() {
   // deliberately not filled in with an empty block: an entry written before the block existed knows
   // nothing about what agents asked for, and publishing that as "nobody asked" would be a lie, so
   // the section says the snapshot has no answer instead.
-  const m = fillMissingBlocks(await cachedMetricsSnapshot().catch((e: unknown) => { notePageFailure("stats", e); throw e; }));
+  const m = fillMissingBlocks(await freshMetricsSnapshot().catch((e: unknown) => { notePageFailure("stats", e); throw e; }));
   const u = m.unmet_demand;
   const d = m.demand?.last_30d;
   const d7 = m.demand?.last_7d;

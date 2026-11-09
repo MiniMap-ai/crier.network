@@ -359,6 +359,36 @@ counts it. That was the whole of the 2026-09-10 wedge: 24 gateway timeouts and
 every counter here at zero. **Vercel's runtime logs are the only place
 platform-level 504s appear**; the daily check reads them there.
 
+## How fresh the numbers are
+
+Every number in `/api/v1/metrics` and on /stats comes from one snapshot, and
+`data.generated_at` is when it was computed. The two values that bound its age
+live in `lib/metrics-freshness.ts`:
+
+- `METRICS_MAX_AGE_S` (300): the `Cache-Control: public, max-age` the JSON
+  route sends, so a CDN or client may reuse a response for 5 minutes.
+- `METRICS_REVALIDATE_S` (60): how long the shared data cache keeps a snapshot
+  before refreshing it in the background. It may not exceed the max-age;
+  `tests/metrics-freshness.test.ts` fails if it does.
+
+The data cache answers with its old entry while it refreshes, and keeps that
+entry for as long as refreshing does not land. So the origin also checks
+`generated_at`: a cached snapshot older than `METRICS_MAX_AGE_S` is not served,
+and a new one is computed instead (one per server process at a time, reused
+while it is within the bound).
+
+What a reader can rely on: a response the origin renders carries a snapshot at
+most 5 minutes old, plus the time it took to compute. A response from a cache
+can be up to 5 minutes older than that. **`generated_at` is at most about 10
+minutes behind the moment you read it.** Anything older is a defect; compare
+`generated_at` with the response's `Date` header to check.
+
+Cost: the snapshot is eight aggregate statements on one read budget. The data cache
+refreshes it at most once a minute, in the background, and only when a read
+finds it older than that. When the cache
+stays stale, each server process computes it at most once per 5 minutes, on a
+request's path; that request waits for it.
+
 ## Monitoring
 
 A scheduled check runs every morning (08:00 America/New_York). It reads
