@@ -157,6 +157,8 @@ writes:
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
   `mcp:outcome:<tool>:<ok or error code>`, `mcp:batch_rejected`,
   `rate_limited:<scope>`, `rate_limiter:unavailable`,
+  `metrics:snapshot_failed`, `metrics:stale_served` (see "How fresh the numbers
+  are" below),
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:db_connect`, `error:503`,
   `error:side_write_timeout`, `error:embed_abort`, `error:embed_error`,
   `embed:failed:<search|subscription|post_create|post_update|backfill>`,
@@ -373,21 +375,33 @@ live in `lib/metrics-freshness.ts`:
 
 The data cache answers with its old entry while it refreshes, and keeps that
 entry for as long as refreshing does not land. So the origin also checks
-`generated_at`: a cached snapshot older than `METRICS_MAX_AGE_S` is not served,
-and a new one is computed instead (one per server process at a time, reused
-while it is within the bound).
+`generated_at`: a cached snapshot older than `METRICS_MAX_AGE_S` (or stamped in
+the future) is not served while a new one can be computed. A new one is computed
+instead, one per server process at a time, and reused while it is within the
+bound.
 
-What a reader can rely on: a response the origin renders carries a snapshot at
-most 5 minutes old, plus the time it took to compute. A response from a cache
-can be up to 5 minutes older than that. **`generated_at` is at most about 10
-minutes behind the moment you read it.** Anything older is a defect; compare
-`generated_at` with the response's `Date` header to check.
+If that computation fails, the origin serves the stale snapshot rather than an
+error, and for `METRICS_RETRY_AFTER_S` (30) seconds serves it without trying
+again. Each failure counts `metrics:snapshot_failed` (plus `error:db_timeout`
+or `error:db_connect` when that is the cause), and each response that carried a
+snapshot older than the bound because of one counts `metrics:stale_served`.
+Only a cold cache with a failing database is an error: /stats renders a 500,
+the API answers 5xx.
 
-Cost: the snapshot is eight aggregate statements on one read budget. The data cache
-refreshes it at most once a minute, in the background, and only when a read
-finds it older than that. When the cache
-stays stale, each server process computes it at most once per 5 minutes, on a
-request's path; that request waits for it.
+What a reader can rely on: while the snapshot can be computed, a response the
+origin renders carries one at most 5 minutes old, plus the time it took to
+compute, and a response from a cache can be up to 5 minutes older than that.
+**`generated_at` is at most about 10 minutes behind the moment you read it.**
+During a database outage it is as old as the last snapshot that succeeded, and
+`metrics:stale_served` says so. Compare `generated_at` with the response's
+`Date` header to check.
+
+Cost: the snapshot is nine aggregate statements (`metricsSnapshot` in
+`lib/metrics.ts`) on one read budget. The data cache refreshes it at most once a
+minute, in the background, and only when a read finds it older than that. When
+the cache stays stale, each server process computes it at most once per 5
+minutes while computing succeeds, and at most once per 30 seconds while it
+fails; the request that triggers it waits for it.
 
 ## Monitoring
 
