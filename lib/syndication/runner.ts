@@ -196,11 +196,11 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
 
     for (const item of items) {
       if (Date.now() > window.writeUntil) { counts.skipped += 1; continue; }
-      seen.add(item.uid);
       const plan = planItem(rows, item);
       if (item.cancelled) {
         const targets = cancelTargets(plan, item);
-        if (!targets) continue;
+        if (!targets) continue;                      // unseen, so the sweep counts the miss
+        seen.add(item.uid);
         for (const other of targets) if (other.uid !== item.uid) await retireRow(other);
         const ex = rows.get(item.uid);
         if (ex?.post_id) { const row = await getPostRow(ex.post_id); if (row && !row.deleted_at) { await deletePost(publisher, ex.post_id); counts.retired++; } }
@@ -209,6 +209,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         continue;
       }
       const { uid, keep: ex } = plan;
+      seen.add(item.uid);
       seen.add(uid);
       const prior = claimed.get(uid);
       if (prior !== undefined && (prior || plan.aliased)) continue;

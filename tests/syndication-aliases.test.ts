@@ -169,6 +169,17 @@ test("a cancelled item retires rows it names in full: its own, and today's twin 
   assert.deepEqual(cancelTargets(planItem(new RowIndex(legacy), { uid: "nothing" }), { uid: "nothing" }), [], "nothing matched");
 });
 
+test("a cancelled item does not retire a row under its own uid that holds identities it lacks", () => {
+  const timedEntry = row("universe.com/events/daydream", ["slot-1", "slot-2"]);
+  const cancelled = { uid: "universe.com/events/daydream", aliases: ["slot-3"] };
+  assert.equal(cancelTargets(planItem(new RowIndex([timedEntry]), cancelled), cancelled), null, "slot ids gathered over earlier runs");
+  const [slug, bare] = CRI_61[5].records;
+  const [merged] = relay(slug, bare);
+  const [slugAlone] = relay({ ...slug, dates: { ...(slug.dates as Raw), status: { code: "cancelled" } } });
+  assert.equal(slugAlone.uid, merged.uid, "the row is stored under this item's own uid");
+  assert.equal(cancelTargets(planItem(new RowIndex([row(merged.uid, merged.aliases)]), slugAlone), slugAlone), null);
+});
+
 test("another adapter's cancelled item retires the row under its uid, as before aliases", () => {
   const rows = new RowIndex([row("a"), row("b")]);
   assert.deepEqual(cancelTargets(planItem(rows, { uid: "a" }), { uid: "a" })?.map((r) => r.uid), ["a"]);

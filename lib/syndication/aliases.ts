@@ -182,7 +182,8 @@ export function planItem(index: RowIndex, item: { uid: string; aliases?: string[
  * The rows a cancelled item retires: every row it matched, but only when the item names every
  * identity each of them is stored under. One record of a show arriving cancelled says nothing about
  * a twin this fetch did not reach, so a row known by any identity the item lacks is not retired
- * here; null means leave it to the missing-item sweep. Nothing matched gives an empty list.
+ * here; null means leave it to the missing-item sweep, so the caller must not mark any of those
+ * rows, the item's own uid included, as seen this run. Nothing matched gives an empty list.
  */
 export function cancelTargets(plan: Plan, item: { uid: string; aliases?: string[] }): StoredRow[] | null {
   const matched = plan.keep ? [plan.keep, ...plan.retire] : [];
