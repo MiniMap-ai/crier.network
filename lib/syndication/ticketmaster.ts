@@ -1,10 +1,15 @@
 /**
- * One Discovery event record to one item, uid the Discovery id. Records describing one show twice
- * are relayed as two items; docs/syndication.md says why and what would merge them.
+ * Discovery event records to items, one per show. Each record maps to an item whose uid is its
+ * Discovery id; records the same-show rule in ./aliases.ts finds to be one show merge into the
+ * lead's item, which carries its own id and the others' URL keys and ids as aliases.
+ * docs/syndication.md has why.
  *
  * Pure: no database, no `next/server`, so tests/syndication-ticketmaster.test.ts can load it.
  */
+import { normalizeSourceKey } from "../source-key.ts";
+import { aliasesFor, groupShows, pickLead } from "./aliases.ts";
 import { plainText } from "./types.ts";
+import type { ShowRecord } from "./aliases.ts";
 import type { Item, SourceRow } from "./types.ts";
 
 type Obj = Record<string, unknown>;
@@ -118,4 +123,38 @@ export function ticketmasterItem(e: Obj, source: Pick<SourceRow, "tags">): Item 
     cancelled: status === "cancelled",
     metadata: { source: "ticketmaster", segment, genre, venue: venueName, status },
   };
+}
+
+/** What the same-show rule reads from a Discovery record. */
+export function showRecord(e: Obj): ShowRecord {
+  const start = obj(obj(e.dates).start);
+  const instant = Date.parse(str(start.dateTime));
+  const local = str(start.localDate) ? `local:${str(start.localDate)}T${str(start.localTime)}` : "";
+  const embedded = obj(e._embedded);
+  return {
+    id: str(e.id),
+    key: normalizeSourceKey(str(e.url).trim()),
+    venueId: str(list(embedded.venues)[0]?.id),
+    start: Number.isNaN(instant) ? local : new Date(instant).toISOString(),
+    name: str(e.name).trim(),
+    attractions: list(embedded.attractions).map((a) => ({ id: str(a.id), name: str(a.name) })),
+  };
+}
+
+/**
+ * Map Discovery records to items, one per show. Every item carries its lead's Discovery id in
+ * `aliases`; a show served as several records is relayed as its lead's item with every other
+ * record's URL key and id there too. It is cancelled only when every record in this fetch is, and
+ * then the lead is chosen among all of them; otherwise among those still on.
+ */
+export function ticketmasterItems(events: Obj[], source: Pick<SourceRow, "tags">): Item[] {
+  const mapped = events.flatMap((e) => {
+    const item = ticketmasterItem(e, source);
+    return item ? [{ ...showRecord(e), item }] : [];
+  });
+  return groupShows(mapped).map((group) => {
+    const live = group.filter((r) => !r.item.cancelled);
+    const lead = pickLead(live.length ? live : group);
+    return { ...lead.item, aliases: aliasesFor(lead, group) };
+  });
 }

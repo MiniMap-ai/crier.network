@@ -5,12 +5,14 @@
  */
 import { createHash } from "node:crypto";
 import { sql } from "../db";
-import { withTimeout } from "../db-timeout";
+import { budget, withTimeout } from "../db-timeout";
 import { newPostId } from "../ids";
 import { track } from "../metrics";
 import { PostInput, PostInputSchema, createPost, deletePost, getPostRow, normalizeSourceKey, updatePost } from "../posts";
 import { PublisherRow } from "../publishers";
 import { ADAPTERS } from "./adapters";
+import { RowIndex, cancelTargets, planItem, sameAliases } from "./aliases";
+import type { StoredRow } from "./aliases";
 import { collapseInstances } from "./collapse";
 import { Fetched, Item, SourceRow, asFetched, runLimit } from "./types";
 import { runWindow } from "./budget";
@@ -89,10 +91,11 @@ function hashInput(i: PostInput): string {
  * seekers and cost the crawler surface, the honest board size, and the database.
  *
  * Returns "insert" when there is room. Otherwise it takes over the earliest live sibling that no
- * item is relaying yet, or holds the item back when every one of them already has an owner —
- * writing into an owned post would only start a fight, with each run rewriting what the other wrote.
+ * item is relaying yet and returns that post's id, or holds the item back when every one of them
+ * already has an owner — writing into an owned post would only start a fight, with each run
+ * rewriting what the other wrote.
  */
-async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: PostInput, item: Item, hash: string, deadline: number): Promise<"insert" | "adopted" | "held"> {
+async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: PostInput, uid: string, hash: string, deadline: number): Promise<"insert" | { adopted: string } | "held"> {
   const key = normalizeSourceKey(input.source_url);
   if (!key) return "insert";
   const s = sql();
@@ -108,9 +111,9 @@ async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: 
   if (!target) return "held";
   const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
   await updatePost(publisher, target.id, patch, { embedDeadline: deadline });
-  await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${item.uid}, ${target.id}, ${hash})
+  await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${uid}, ${target.id}, ${hash})
           on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;
-  return "adopted";
+  return { adopted: target.id };
 }
 
 export type RunResult = { source: string; status: "ok" | "partial" | "error"; fetched: number; created: number; updated: number; retired: number; skipped: number; folded: number; collapsed: number; error?: string; ms: number };
@@ -148,23 +151,79 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     if (collapsed.folded) track.counter("synd:folded", collapsed.folded);
     items.sort((a, b) => (a.starts_at ? Date.parse(a.starts_at) : 0) - (b.starts_at ? Date.parse(b.starts_at) : 0));
     const seen = new Set<string>();
-    const existing = new Map((await s<{ uid: string; post_id: string | null; hash: string }[]>`select uid, post_id, hash from source_items where source_id = ${source.id}`).map((r) => [r.uid, r]));
+    const rows = new RowIndex((await s<{ uid: string; post_id: string | null; hash: string; aliases: string[]; first_seen: Date }[]>`
+      select uid, post_id, hash, aliases, first_seen from source_items where source_id = ${source.id}`)
+      .map((r): StoredRow => ({ uid: r.uid, post_id: r.post_id, hash: r.hash, aliases: r.aliases, firstSeen: r.first_seen.getTime() })));
+    const at = budget(Math.max(0, window.end - Date.now()));
+    // Rows this run has written, and whether an alias was involved. A second item reaching a row
+    // through an alias is another representation of a show already relayed, so it writes nothing.
+    const claimed = new Map<string, boolean>();
+    let mergesRetired = 0;
+    const written = () => counts.created + counts.updated + mergesRetired;
+
+    /** Retire a merged-away row's post, unless another row relays it, and drop the row: the kept row now holds its identities. */
+    const retireRow = async (row: StoredRow): Promise<boolean> => {
+      let retired = false;
+      if (row.post_id) {
+        const [shared] = await withTimeout(s<{ n: number }[]>`
+          select count(*)::int as n from source_items
+           where post_id = ${row.post_id} and not (source_id = ${source.id} and uid = ${row.uid})`, at("synd:alias_shared"));
+        const post = (shared?.n ?? 0) === 0 ? await getPostRow(row.post_id, undefined, at) : null;
+        if (post && !post.deleted_at) {
+          await withTimeout(deletePost(publisher, row.post_id), at("synd:alias_retire"));
+          counts.retired++;
+          retired = true;
+        }
+      }
+      await withTimeout(s`delete from source_items where source_id = ${source.id} and uid = ${row.uid}`, at("synd:alias_drop"));
+      rows.remove(row.uid);
+      return retired;
+    };
+
+    /**
+     * Store the kept row's aliases when they changed, and index it so later items find it by them.
+     * A row with no aliases is left as the run found it, which keeps every unmerged item, and every
+     * other adapter, on the path it took before aliases existed.
+     */
+    const keepRow = async (uid: string, postId: string | null, hash: string, aliases: string[]) => {
+      if (aliases.length === 0) return;
+      const row = rows.get(uid);
+      if (!row || !sameAliases(row.aliases, aliases)) {
+        await withTimeout(s`update source_items set aliases = ${aliases}::text[] where source_id = ${source.id} and uid = ${uid}`, at("synd:aliases"));
+      }
+      rows.put({ uid, post_id: postId, hash, aliases, firstSeen: row?.firstSeen ?? Date.now() });
+    };
 
     for (const item of items) {
       if (Date.now() > window.writeUntil) { counts.skipped += 1; continue; }
-      seen.add(item.uid);
-      const ex = existing.get(item.uid);
+      const plan = planItem(rows, item);
       if (item.cancelled) {
+        const targets = cancelTargets(plan, item);
+        if (!targets) continue;                      // unseen, so the sweep counts the miss
+        seen.add(item.uid);
+        for (const other of targets) if (other.uid !== item.uid) await retireRow(other);
+        const ex = rows.get(item.uid);
         if (ex?.post_id) { const row = await getPostRow(ex.post_id); if (row && !row.deleted_at) { await deletePost(publisher, ex.post_id); counts.retired++; } }
         await s`delete from source_items where source_id = ${source.id} and uid = ${item.uid}`;
+        rows.remove(item.uid);
         continue;
       }
-      if (counts.created + counts.updated >= runLimit(source)) { counts.skipped++; continue; }
+      const { uid, keep: ex } = plan;
+      seen.add(item.uid);
+      seen.add(uid);
+      const prior = claimed.get(uid);
+      if (prior !== undefined && (prior || plan.aliased)) continue;
+      claimed.set(uid, plan.aliased);
+      // A merge's retires are writes under the cap too, and the run takes a merge whole or not at all.
+      if (written() + plan.retire.length >= runLimit(source)) { for (const r of plan.retire) seen.add(r.uid); counts.skipped++; continue; }
       let input: PostInput;
-      try { input = toInput(source, item, now); } catch { counts.skipped++; continue; }
+      try { input = toInput(source, { ...item, uid }, now); } catch { counts.skipped++; continue; }
       const hash = hashInput(input);
+      // Aliases first: a run cut short between the two still leaves every identity findable.
+      if (ex) await keepRow(uid, ex.post_id, hash, plan.aliases);
+      for (const other of plan.retire) if (await retireRow(other)) mergesRetired++;
       if (ex && ex.hash === hash && ex.post_id) {
-        await s`update source_items set last_seen = now(), missing_runs = 0 where source_id = ${source.id} and uid = ${item.uid}`;
+        await s`update source_items set last_seen = now(), missing_runs = 0 where source_id = ${source.id} and uid = ${uid}`;
         continue;
       }
       if (ex?.post_id) {
@@ -172,21 +231,24 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         if (row && !row.deleted_at) {
           const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
           await updatePost(publisher, ex.post_id, patch, { embedDeadline: deadline });
-          await s`update source_items set hash = ${hash}, last_seen = now(), missing_runs = 0 where source_id = ${source.id} and uid = ${item.uid}`;
+          await s`update source_items set hash = ${hash}, last_seen = now(), missing_runs = 0 where source_id = ${source.id} and uid = ${uid}`;
           counts.updated++;
           continue;
         }
       }
-      const guard = await guardLiveRows(source, publisher, input, item, hash, deadline);
+      const guard = await guardLiveRows(source, publisher, input, uid, hash, deadline);
       if (guard !== "insert") {
         counts.collapsed++;                          // an insert refused: what synd:collapsed counts
-        if (guard === "adopted") counts.updated++;   // and a real write, so it costs the run's budget
+        if (guard === "held") continue;
+        counts.updated++;                            // an adoption is a real write, so it costs the run's budget
+        await keepRow(uid, guard.adopted, hash, plan.aliases);
         continue;
       }
       // The run's deadline sits well inside the cron's maxDuration, so a retry that ends by it fits.
       const { post, created } = await createPost(publisher, input, { embedDeadline: deadline });
-      await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${item.uid}, ${post.id}, ${hash})
+      await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${uid}, ${post.id}, ${hash})
               on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;
+      await keepRow(uid, post.id, hash, plan.aliases);
       // `created` is false when a post is already there under this idempotency key — which is how a
       // post retired earlier stays retired, rather than coming back on the next run. Nothing was
       // written, so nothing is counted: an item whose hash was unchanged is not counted either, and
