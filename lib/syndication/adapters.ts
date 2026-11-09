@@ -397,9 +397,9 @@ export const nws: Adapter = async (source, ctx) => {
     const headline = str(p.headline);
     items.push({
       uid: id,
-      title: plainText(headline && where ? `${headline} — ${where}` : headline || `${str(p.event)}: ${where}`, 200),
+      title: plainText([headline || str(p.event), where].filter(Boolean).join(headline ? " — " : ": "), 200),
       body: [
-        `${str(p.event)} · ${str(p.severity)} · ${str(p.urgency)}. Areas: ${plainText(where, 200)}.`,
+        `${str(p.event)} · ${str(p.severity)} · ${str(p.urgency)}.${where ? ` Areas: ${plainText(where, 200)}.` : ""}`,
         plainText(str(p.description), 700),
         str(p.instruction) ? `Instruction: ${plainText(str(p.instruction), 300)}` : "",
         `Issued by ${str(p.senderName)}. Source: National Weather Service (public domain), relayed by Crier.`,

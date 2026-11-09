@@ -39,10 +39,11 @@ function feature(over: Props): { properties: Props; geometry: Record<string, unk
 }
 
 function source(config: Record<string, unknown> = { area: "CO" }): SourceRow {
+  const area = String(config.area);
   return {
-    id: "src_nwsCO", name: "NWS alerts, Colorado", adapter: "nws",
+    id: `src_nws${area}`, name: `NWS alerts, ${area}`, adapter: "nws",
     config,
-    homepage: null, license: "National Weather Service, public domain", default_kind: "announcement", tags: ["colorado"],
+    homepage: null, license: "National Weather Service, public domain", default_kind: "announcement", tags: [area.toLowerCase()],
     enabled: true, run_every_minutes: 60, max_per_run: 100, horizon_days: 7,
     added_by: "test", notes: null, created_at: NOW, last_run_at: null,
     last_status: null, last_error: null, last_counts: null,
@@ -102,10 +103,9 @@ test("the zone comes from the abbreviation in the headline, which the CAP timest
 });
 
 /**
- * One CAP alert in three segments, as api.weather.gov/alerts/active served the Reno Lake Wind
- * Advisory of 2026-10-26: three features, one headline, one onset, and an `areaDesc` per segment,
- * the first of which names its zone twice. Reconstructed from the posts it became (`YZ7sGvCj`,
- * `PgDvGNf6`, `sdCfS3XR`; CRI-64).
+ * One CAP alert in three segments, as api.weather.gov/alerts/active serves them: three features,
+ * one headline, one onset, and an `areaDesc` per segment, the first of which names its zone twice.
+ * Rebuilt from the Reno Lake Wind Advisory posts `YZ7sGvCj`, `PgDvGNf6` and `sdCfS3XR` (CRI-64).
  */
 function renoSegments() {
   const at = (n: string, areaDesc: string, lng: number, lat: number) => ({
@@ -148,6 +148,15 @@ test("an alert split into three CAP segments is three posts that say which area 
 test("an alert with no headline is titled by its event and area", async () => {
   const [item] = await relay([feature({ headline: "" })]);
   assert.equal(item.title, "Flood Watch: Alamosa Vicinity/Central San Luis Valley Below 8500 Ft");
+});
+
+test("an alert that names no area has no area separator in its title and no Areas clause in its body", async () => {
+  const [titled] = await relay([feature({ areaDesc: " ; " })]);
+  assert.equal(titled.title, "Flood Watch issued October 22 at 6:05AM MDT until October 23 at 6:00PM MDT by NWS Pueblo CO");
+  assert.ok(titled.body.startsWith("Flood Watch · Severe · Expected.\n"));
+  assert.equal(titled.location?.name, undefined);
+  const [untitled] = await relay([feature({ areaDesc: "", headline: "" })]);
+  assert.equal(untitled.title, "Flood Watch");
 });
 
 test("nwsArea names each zone once, in upstream order", () => {
