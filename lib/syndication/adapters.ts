@@ -345,6 +345,24 @@ export function nwsTimezone(headline: string, senderName: string): string | unde
   return NWS_ZONES[abbr];
 }
 
+/**
+ * The places one CAP segment covers, from its `areaDesc`: the zone names, each once, in upstream
+ * order. NWS splits one alert into a segment per group of zones and serves each as its own feature
+ * under the same headline, so this is what tells sibling segments apart. A zone listed twice
+ * ("Greater Lake Tahoe Area; Greater Lake Tahoe Area") is named once. Empty when upstream names none.
+ */
+export function nwsArea(areaDesc: string): string {
+  const seen = new Set<string>();
+  const parts: string[] = [];
+  for (const raw of plainText(areaDesc, 2000).split(";")) {
+    const part = raw.trim();
+    if (!part || seen.has(part.toLowerCase())) continue;
+    seen.add(part.toLowerCase());
+    parts.push(part);
+  }
+  return parts.join("; ");
+}
+
 /** Zone-based alerts carry no geometry; resolve the first affected zone's centroid (cached per process, capped per run). */
 async function zoneCentroid(zoneUrls: string[], ctx: AdapterContext, budget: { left: number }): Promise<{ lat: number; lng: number } | undefined> {
   for (const url of zoneUrls.slice(0, 3)) {
@@ -375,11 +393,13 @@ export const nws: Adapter = async (source, ctx) => {
     const id = str(p.id); if (!id) continue;
     const c = centroid(f.geometry) ?? (await zoneCentroid((p.affectedZones as string[] | undefined) ?? [], ctx, zoneBudget));
     const expires = nwsExpiry(str(p.expires), str(p.ends));
+    const where = nwsArea(str(p.areaDesc));
+    const headline = str(p.headline);
     items.push({
       uid: id,
-      title: plainText(str(p.headline) || `${str(p.event)}: ${str(p.areaDesc)}`, 200),
+      title: plainText(headline && where ? `${headline} — ${where}` : headline || `${str(p.event)}: ${where}`, 200),
       body: [
-        `${str(p.event)} · ${str(p.severity)} · ${str(p.urgency)}. Areas: ${plainText(str(p.areaDesc), 200)}.`,
+        `${str(p.event)} · ${str(p.severity)} · ${str(p.urgency)}. Areas: ${plainText(where, 200)}.`,
         plainText(str(p.description), 700),
         str(p.instruction) ? `Instruction: ${plainText(str(p.instruction), 300)}` : "",
         `Issued by ${str(p.senderName)}. Source: National Weather Service (public domain), relayed by Crier.`,
@@ -390,7 +410,7 @@ export const nws: Adapter = async (source, ctx) => {
       ends_at: str(p.ends) || undefined,
       timezone: nwsTimezone(str(p.headline), str(p.senderName)),
       expires_at: expires,
-      location: { name: plainText(str(p.areaDesc), 120) || undefined, lat: c?.lat, lng: c?.lng },
+      location: { name: plainText(where, 120) || undefined, lat: c?.lat, lng: c?.lng },
       tags: [...source.tags, "weather", "alert", str(p.event).toLowerCase().replace(/[^a-z0-9]+/g, "-")].filter((t) => t.length >= 2 && t.length <= 40),
       metadata: { source: "nws", severity: p.severity, urgency: p.urgency, certainty: p.certainty, event: p.event },
     });
