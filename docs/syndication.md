@@ -37,7 +37,7 @@ it up.
 | `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, venue calendars. Recurring series are not expanded. | `{url, timezone?, location_name?, lat?, lng?}` |
 | `rss` | Any RSS/Atom feed of notices. Items become announcements with a TTL. | `{url, ttl_days?, location_name?, lat?, lng?}` |
 | `localist` | Localist calendars (most universities). Public JSON API, paged, at most 500 rows a run. Placeholder venues are dropped, not published; one event published twice is relayed once. | `{base, location_name?, lat?, lng?}` |
-| `nws` | National Weather Service active alerts for a state (public domain). Zone alerts get a centroid from the zone geometry. | `{area, min_severity?}` |
+| `nws` | National Weather Service active alerts for a state (public domain). One post per CAP segment, titled and placed by its area. Zone alerts get a centroid from the zone geometry. | `{area, min_severity?}` |
 
 ### What an adapter may call a place
 
@@ -236,6 +236,27 @@ ids rose with `created_at` across all 526 Loyola events). Different
 starts never merge, so a series stays one row per occurrence, and two named
 campuses at one hour stay two sessions. The copies already on the board are
 retired by the missing-item sweep like any item that stops arriving.
+
+### One alert, several areas
+
+NWS splits one CAP alert into numbered segments (`…c1f1….001.1`, `….002.1`,
+`….003.1`), one per group of zones, and `api.weather.gov/alerts/active` serves
+each as its own feature with its own id and the alert's one headline. The
+segments are not copies: each names different zones, and the text under
+`WHAT` and `WHEN` can differ too. So `nws` keeps one post per segment — folding
+them would make a search near one of the areas worse — and says which area
+each one covers:
+
+- the title is the headline, then ` — `, then the segment's area,
+- `place_name` is the segment's area,
+- the area is `areaDesc` with each zone named once, since upstream sometimes
+  lists one twice ("Greater Lake Tahoe Area; Greater Lake Tahoe Area").
+
+`starts_at` is the segment's `onset`, else `effective`, the same field for
+every segment. Sibling segments can start at different times when upstream says
+they do: in one Reno Lake Wind Advisory (CRI-64), the Lake Tahoe segment read
+"Until 6 PM" and started at 4 AM PDT, while the two that read "From 10 AM"
+started at 10 AM.
 
 ### The live-row guard
 
