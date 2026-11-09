@@ -8,7 +8,8 @@ import { HttpError, bearer } from "./http";
 import { newApiKey, newPublisherId, newSecret, newVerifyToken, sha256 } from "./ids";
 import { assertSafeOutboundUrl } from "./safety";
 import { track } from "./metrics";
-import { checkRecoverySecret, claimDomain, domainTakenRefusal, holdsDomain, newRecoverySecret, recoveryPlan } from "./publisher-claim";
+import { globalCeiling } from "./limits";
+import { checkRecoverySecret, claimDomain, claimedDomain, domainOf, domainTakenRefusal, holdsDomain, newRecoverySecret, recoveryPlan } from "./publisher-claim";
 import type { RecoveryPlan } from "./publisher-claim";
 
 export type PublisherRow = {
@@ -78,13 +79,7 @@ export function assertTermsAccepted(input: { accept_terms?: boolean }) {
   }
 }
 
-export function domainOf(url: string | null | undefined): string | null {
-  if (!url) return null;
-  try {
-    const h = new URL(url).hostname.toLowerCase();
-    return h.replace(/^www\./, "");
-  } catch { return null; }
-}
+export { domainOf };
 
 type HeldRow = PublisherRow & { domain: string };
 
@@ -98,7 +93,7 @@ const rowsOnDomain = (tx: TransactionSql) => (domain: string) => tx<PublisherRow
 /** A recovery secret issued now for `holder`, with the challenge that redeems it. */
 export function issueRecovery(holder: HeldRow): RecoveryPlan {
   const now = Math.floor(Date.now() / 1000);
-  return recoveryPlan(holder.id, holder.domain, newRecoverySecret(now, newSecret()), now, env.SITE_URL, sha256);
+  return recoveryPlan(holder, newRecoverySecret(now, newSecret()), now, env.SITE_URL, sha256);
 }
 
 function domainTaken(holder: HeldRow, attempt: "register" | "move"): HttpError {
@@ -111,9 +106,10 @@ function domainTaken(holder: HeldRow, attempt: "register" | "move"): HttpError {
 }
 
 /**
- * Insert a publisher and return it with its key, which is shown only here. When an active publisher
- * already holds the url's domain, throws 409 publisher_exists carrying that publisher and the steps to
- * recover its key (docs/scenarios.md, scenario 15), and writes nothing.
+ * Insert a publisher and return it with its key, which is shown only here. When the url is a bare
+ * origin and an active publisher already holds its domain, throws 409 publisher_exists carrying that
+ * publisher and the steps to recover its key (docs/scenarios.md, scenario 15), and writes nothing.
+ * Charges the daily registration ceiling only for a registration that is written.
  */
 export async function registerPublisher(input: z.infer<typeof RegisterSchema>, ctx: { userAgent?: string | null; ip?: string } = {}) {
   const id = newPublisherId();
@@ -121,10 +117,12 @@ export async function registerPublisher(input: z.infer<typeof RegisterSchema>, c
   const verify_token = newVerifyToken();
   const domain = domainOf(input.url);
   const claim = await withTimeout(sql().begin(async (tx) => {
-    await lockDomain(tx, domain);
-    return claimDomain(domain, {
+    const claimed = claimedDomain(input.url);
+    await lockDomain(tx, claimed);
+    return claimDomain(claimed, {
       holders: rowsOnDomain(tx),
       write: async () => {
+        await globalCeiling("registrations_per_day", "new publishers");
         const [row] = await tx<PublisherRow[]>`
           insert into publishers (id, name, description, url, domain, verify_token, api_key_hash, api_key_prefix, terms_accepted_at, terms_version, client, user_agent)
           values (${id}, ${input.name}, ${input.description ?? null}, ${input.url ?? null}, ${domain}, ${verify_token}, ${sha256(apiKey)}, ${apiKey.slice(0, 14)}, now(), ${TERMS_VERSION},
@@ -142,14 +140,15 @@ export async function registerPublisher(input: z.infer<typeof RegisterSchema>, c
 }
 
 /**
- * Point `p` at `url`, which clears its verification. Throws the same 409 as registration when another
- * active publisher holds the new domain.
+ * Point `p` at `url`, which clears its verification. Throws the same 409 as registration when `url`
+ * is a bare origin and another active publisher holds its domain.
  */
 export async function moveToUrl(p: PublisherRow, url: string, at: Budget = budget()): Promise<PublisherRow> {
   const domain = domainOf(url);
+  const claimed = claimedDomain(url);
   const claim = await withTimeout(sql().begin(async (tx) => {
-    await lockDomain(tx, domain);
-    return claimDomain(domain, {
+    await lockDomain(tx, claimed);
+    return claimDomain(claimed, {
       holders: rowsOnDomain(tx),
       write: async () => {
         const [row] = await tx<PublisherRow[]>`update publishers set url = ${url}, domain = ${domain}, domain_verified_at = null where id = ${p.id} returning *`;
@@ -179,7 +178,7 @@ export async function recoverPublisher(input: z.infer<typeof RecoverSchema>, at:
   const row = await getPublisher(input.publisher_id, at);
   if (!row || !holdsDomain(row)) {
     throw new HttpError(404, "not_found", "No active publisher with that id has a domain to recover.",
-      "Recovery takes the publisher_id a 409 publisher_exists named. A publisher registered without a url has no domain to prove; register again.");
+      "Recovery takes the publisher_id a 409 publisher_exists named. A publisher whose url is missing or has a path claims no domain, so there is nothing to prove; register again.");
   }
   const held = row as HeldRow;
   if (!input.recovery_secret) return { recovered: false, checked: false, row, recover: issueRecovery(held) };
@@ -189,18 +188,19 @@ export async function recoverPublisher(input: z.infer<typeof RecoverSchema>, at:
     if (check.reason === "expired") throw new HttpError(400, "recovery_secret_expired", "That recovery_secret has expired.", again);
     throw new HttpError(400, "invalid_recovery_secret", "That is not a recovery_secret Crier issued.", again);
   }
-  const recover = recoveryPlan(row.id, held.domain, input.recovery_secret, check.issuedAt, env.SITE_URL, sha256);
+  const recover = recoveryPlan(held, input.recovery_secret, check.issuedAt, env.SITE_URL, sha256);
   const method = await checkDomainToken(held.domain, recover.challenge);
   if (!method) return { recovered: false, checked: true, row, recover };
   const apiKey = newApiKey();
-  // The domain and status conditions refuse a publisher that moved or was suspended after the check.
+  // Matching the row as checked refuses one that moved, was suspended, or had its key replaced since,
+  // so two redemptions of one secret cannot both succeed.
   const [rotated] = await withTimeout(sql()<PublisherRow[]>`
     update publishers set api_key_hash = ${sha256(apiKey)}, api_key_prefix = ${apiKey.slice(0, 14)}, domain_verified_at = now()
-    where id = ${row.id} and status = 'active' and domain = ${held.domain}
+    where id = ${row.id} and status = 'active' and url = ${held.url} and domain = ${held.domain} and api_key_hash = ${held.api_key_hash}
     returning *`, { ms: DB_SIDE_TIMEOUT_MS, label: "recoverPublisher" });
   if (!rotated) {
-    throw new HttpError(409, "publisher_changed", "That publisher changed its domain or status during recovery; no key was issued.",
-      `POST ${env.SITE_URL}/api/v1/publishers/verify with {"publisher_id": "${row.id}"} to see where it stands.`);
+    throw new HttpError(409, "publisher_changed", "That publisher's url, status or key changed during recovery; no key was issued.",
+      `If you already redeemed this secret, use the key that call returned. Otherwise POST ${env.SITE_URL}/api/v1/publishers/verify with {"publisher_id": "${row.id}"} for a new secret and challenge.`);
   }
   track.counter("publisher:recovered");
   return { recovered: true, row: rotated, apiKey, method };
@@ -208,8 +208,8 @@ export async function recoverPublisher(input: z.infer<typeof RecoverSchema>, at:
 
 /** What to do about a lost key, for the REST and MCP 401s alike. */
 export const LOST_KEY_HINT =
-  "If you lost your key and registered with a url, register again with the same url: the 409 publisher_exists answer names your publisher and the steps to prove the domain and take a new key for it. " +
-  "If you registered without a url, register again; old posts stay attached to the old publisher.";
+  "If you lost your key and registered with a bare domain url (no path), register again with the same url: the 409 publisher_exists answer names your publisher and the steps to prove the domain and take a new key for it. " +
+  "If you registered without a url or with a url that has a path, register again; old posts stay attached to the old publisher.";
 
 export async function getPublisher(id: string, at: Budget = budget()): Promise<PublisherRow | null> {
   const [row] = await withTimeout(sql()<PublisherRow[]>`select * from publishers where id = ${id}`, at("getPublisher"));
@@ -276,14 +276,34 @@ async function checkDomainToken(domain: string, token: string): Promise<"dns" | 
     const target = await assertSafeOutboundUrl(`https://${domain}/.well-known/crier.txt`, "domain");
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 5000);
-    const res = await fetch(target, { signal: ctrl.signal, redirect: "manual", headers: { "User-Agent": "Crier-Verify/1.0 (+https://crier.network)" } });
-    clearTimeout(t);
-    if (res.ok) {
-      const text = (await res.text()).slice(0, 2000);
-      if (text.split(/\r?\n/).some((l) => l.trim() === token)) return "well-known";
-    }
+    try {
+      const res = await fetch(target, { signal: ctrl.signal, redirect: "manual", headers: { "User-Agent": "Crier-Verify/1.0 (+https://crier.network)" } });
+      if (res.ok) {
+        const text = await readCapped(res, WELL_KNOWN_MAX_BYTES);
+        if (text.split(/\r?\n/).some((l) => l.trim() === token)) return "well-known";
+      }
+    } finally { clearTimeout(t); }
   } catch { /* unreachable */ }
   return null;
+}
+
+const WELL_KNOWN_MAX_BYTES = 2000;
+
+/** At most `max` bytes of `res`'s body as text; the rest is never read. */
+async function readCapped(res: Response, max: number): Promise<string> {
+  if (!res.body) return "";
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let n = 0;
+  try {
+    while (n < max) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      n += value.byteLength;
+    }
+  } finally { await reader.cancel().catch(() => {}); }
+  return new TextDecoder().decode(Buffer.concat(chunks).subarray(0, max));
 }
 
 /** Replace the API key. The old one stops working immediately. */

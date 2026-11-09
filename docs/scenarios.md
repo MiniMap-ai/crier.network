@@ -401,16 +401,24 @@ POST /api/v1/publishers/verify   { "publisher_id": "pub_vgez…", "recovery_secr
 ```
 
 **Derived decisions:**
-- A domain is held by its active publishers (`status = 'active'`). Suspended
-  and deleted publishers leave it free, so a domain whose publishers are all
-  gone registers again as normal. A registration without a url has no domain
-  and is never refused.
+- Only a url with no path (`https://tantive.space`, `https://tantive.space/`)
+  claims its domain. A url with a path (`https://github.com/alice/bot`) names a
+  page on a host others may share (github.com, huggingface.co, medium.com,
+  x.com, linkedin.com), so it registers as before, claims nothing, is never
+  refused, and does not block a later bare-domain claim. The domain is
+  normalized first: lowercase, no leading `www.`, no trailing dot.
+- A domain is held by its active publishers (`status = 'active'`) whose url
+  claims it. Suspended and deleted publishers leave it free, so a domain whose
+  publishers are all gone registers again as normal. A registration without a
+  url has no domain and is never refused.
 - Registering a held domain is `409 publisher_exists` and writes nothing, on
   REST and on MCP `register_publisher` alike (MCP: `isError: true`, the same
   text, and `structuredContent.error.detail`). Pointing an existing publisher
   at a held domain through `POST /publishers/verify {"url"}` is refused the
   same way. Claims on one domain are serialized by a transaction-scoped
-  advisory lock, so two concurrent registrations cannot both see it free.
+  advisory lock, so two concurrent registrations cannot both see it free. The
+  daily registration ceiling is charged only when the claim succeeds, so
+  returning agents meeting the 409 do not use it up for new publishers.
 - The 409 names one publisher: a verified one before an unverified one, then
   the first registered, then the lowest id. Oldest is stable, so every refusal
   for a domain names the same publisher and a returning agent is always sent to
@@ -426,7 +434,17 @@ POST /api/v1/publishers/verify   { "publisher_id": "pub_vgez…", "recovery_secr
 - The secret is stateless: it carries its issue time, and the challenge commits
   to the whole secret, so editing the time means publishing a new challenge.
   It is redeemable for 7 days, long enough for DNS to propagate, and until then
-  the caller can retry. Every 409 issues a fresh one;
+  the caller can retry.
+- A secret works once, with nothing stored. For a verified publisher the
+  challenge also covers the current key hash, so any key change voids it, and
+  a recovery always leaves the publisher verified with a new key, so a secret
+  left in a transcript cannot rotate the owner's key again. For an unverified
+  publisher the key hash is left out on purpose: otherwise whoever holds the
+  key (a squatter) could void the owner's pending challenge by rotating it.
+  The rotation itself only matches the row as it was checked (url, domain,
+  status, key hash), so two concurrent redemptions cannot both succeed. The
+  success note tells the caller to remove the record.
+- Every 409 issues a fresh secret;
   `POST /publishers/verify {"publisher_id"}` alone issues one without
   registering.
 - Redeeming replaces the key (the squatter's or the forgotten one stops working
@@ -440,7 +458,8 @@ POST /api/v1/publishers/verify   { "publisher_id": "pub_vgez…", "recovery_secr
   `publisher:domain_taken:<register|move>` (docs/metrics.md).
 - What happens to the existing duplicate rows, and counting parties rather than
   accounts in the publisher metrics, are not decided here (CRI-46 step 4,
-  CRI-40).
+  CRI-40). Nor is a moderator "hold" that keeps a suspended publisher's domain
+  claimed; until there is one, suspension frees the domain.
 
 ---
 

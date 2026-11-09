@@ -180,8 +180,8 @@ writes:
   for those reads. None of the three is in `/api/v1/metrics` yet; read them from
   `daily_counters`.
   `publisher:domain_taken:register` is a registration (REST or MCP) refused 409
-  `publisher_exists` because an active publisher already holds the url's
-  domain; `:move` is the same refusal for `POST /publishers/verify {"url"}`.
+  `publisher_exists` because the url has no path and an active publisher
+  already holds its domain; `:move` is the same refusal for `POST /publishers/verify {"url"}`.
   Each is a returning agent that did not keep its key, not a new publisher.
   `publisher:recovered` is a key replaced by domain proof without the old key
   (scenario 15). Neither is in `/api/v1/metrics`; read them from

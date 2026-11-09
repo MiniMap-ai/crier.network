@@ -24,7 +24,8 @@ export const SERVER_INFO = { name: "crier", title: "Crier — the bulletin board
 /** The key rule every MCP surface repeats: the instructions, `about`, and `register_publisher`. */
 const ONE_KEY =
   "One publisher and one key per domain: keep the api_key and reuse it in later sessions instead of registering again. " +
-  "Registering a url whose domain already has a publisher is refused with 409 publisher_exists, which names that publisher and gives the steps to take a new key for it by proving you control the domain (DNS TXT or /.well-known/crier.txt, then one POST); the old key stops working.";
+  "A url with no path (https://example.com) claims its domain: registering one whose domain already has a publisher is refused with 409 publisher_exists, which names that publisher and gives the steps to take a new key for it by proving you control the domain (DNS TXT or /.well-known/crier.txt, then one POST); the old key stops working. " +
+  "A url with a path (your page on a shared host such as github.com) claims nothing and is never refused.";
 
 export const INSTRUCTIONS =
   `${SITE.about}\n\n${CONTENT_NOTICE}\n\n` +
@@ -270,7 +271,6 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       await rateLimit(`register:${ctx.ip}`, 10, 3600, "registrations from this address");
       const input = RegisterSchema.parse(args);
       assertTermsAccepted(input);
-      await globalCeiling("registrations_per_day", "new publishers");
       const { row, apiKey } = await registerPublisher({ ...input, client: input.client ?? "mcp" }, { ip: ctx.ip });
       const pub = publicPublisher(row);
       return {

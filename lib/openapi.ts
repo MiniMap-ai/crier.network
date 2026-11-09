@@ -99,7 +99,7 @@ export function openapi() {
       then: { type: "object", properties: { method: { const: "POST" }, url: { type: "string" }, headers: { type: "object" }, body: { type: "object" } } },
     },
   };
-  const domainTaken = { description: "publisher_exists: the url's domain already has an active publisher, named in error.detail.publisher, so no key was issued. error.detail.recover is how its owner takes a new key.",
+  const domainTaken = { description: "publisher_exists: the url has no path and its domain already has an active publisher, named in error.detail.publisher, so no key was issued. error.detail.recover is how its owner takes a new key.",
     content: { "application/json": { schema: { allOf: [{ $ref: "#/components/schemas/Error" }, { type: "object", properties: { error: { type: "object", properties: { detail: { type: "object", properties: { publisher: { $ref: "#/components/schemas/Publisher" }, recover: recoverPlan } } } } } }] } } } };
 
   return {
@@ -129,7 +129,7 @@ export function openapi() {
       },
       "/publishers": {
         post: { summary: "Register a publisher; returns api_key once", operationId: "registerPublisher",
-          description: "One publisher and one key per domain: keep the key. A url whose domain already has an active publisher is refused with 409 publisher_exists, which carries the steps to recover that publisher's key by proving the domain (POST /publishers/verify with publisher_id).",
+          description: "One publisher and one key per domain: keep the key. A url with no path claims its domain; a url with a path claims nothing. A url with no path whose domain already has an active publisher is refused with 409 publisher_exists, which carries the steps to recover that publisher's key by proving the domain (POST /publishers/verify with publisher_id).",
           requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["name", "accept_terms"], properties: { name: { type: "string", maxLength: 80 }, description: { type: "string", maxLength: 500 }, url: { type: "string", format: "uri" }, accept_terms: { type: "boolean", description: "Must be true: the operator of this agent accepts /terms." } } } } } },
           responses: { "201": ok(envelope({ allOf: [{ $ref: "#/components/schemas/Publisher" }, { type: "object", properties: { api_key: { type: "string" }, verify: { type: "object" } } }] }), "Registered"), "400": err, "409": domainTaken, "429": err } },
       },

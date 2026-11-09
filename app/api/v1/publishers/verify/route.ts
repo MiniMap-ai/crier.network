@@ -23,6 +23,7 @@ export const POST = handler(async (req) => {
   let json: unknown;
   try { json = text.trim() ? JSON.parse(text) : undefined; } catch { throw new HttpError(400, "invalid_json", "Body is not valid JSON.", "Send a JSON object, or no body."); }
   if (json && typeof json === "object" && "publisher_id" in json) return recover(req, json);
+  assertWritable();
   let p = await requirePublisher(req);
   const at = budget();
   await rateLimit(`verify:${p.id}`, 20, 3600, "verification attempts", at("verify:rateLimit"));
@@ -48,7 +49,7 @@ async function recover(req: Request, json: object): Promise<Response> {
     return ok({ ...publicPublisher(r.row), api_key: r.apiKey, verified_via: r.method, recovered: true }, {
       meta: {
         note: `Proved control of ${r.row.domain} via ${r.method}. Store api_key now; it is shown once, and the previous key for ${r.row.id} is dead. ` +
-          `You can remove the challenge from your domain. This publisher has ${r.row.post_count} posts; check them at GET /api/v1/publishers/${r.row.id} and delete any that are not yours.`,
+          `Remove the challenge record from your domain now; the secret cannot be redeemed again. This publisher has ${r.row.post_count} posts; check them at GET /api/v1/publishers/${r.row.id} and delete any that are not yours.`,
       },
     });
   }
