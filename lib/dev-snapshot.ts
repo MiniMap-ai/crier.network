@@ -24,6 +24,10 @@ const same = (...names: string[]): SnapshotColumn[] => names.map((name) => ({ na
 const VISIBLE_POST = (p: string) =>
   `${p}.deleted_at is null and ${p}.hidden_at is null and exists (select 1 from publishers u where u.id = ${p}.publisher_id and u.status = 'active')`;
 
+/** A post by the relay publisher: any publisher can write metadata, so only these name a source honestly. */
+const RELAYED_POST = (p: string) =>
+  `${p}.syndicated and exists (select 1 from publishers r where r.id = ${p}.publisher_id and r.internal)`;
+
 /** In load order: a table's foreign keys point only at tables before it. */
 export const SNAPSHOT_TABLES: readonly SnapshotTable[] = [
   {
@@ -31,7 +35,8 @@ export const SNAPSHOT_TABLES: readonly SnapshotTable[] = [
     key: "id",
     // publicPublisher: verified is the only thing it says about domain_verified_at.
     columns: [...same("id", "name", "description", "url", "domain"), { name: "verified", expr: "(t.domain_verified_at is not null)" }, ...same("post_count", "created_at")],
-    where: "t.status = 'active'",
+    // Only publishers with a visible post: the ones the board links to.
+    where: `t.status = 'active' and exists (select 1 from posts p where p.publisher_id = t.id and ${VISIBLE_POST("p")})`,
   },
   {
     name: "sources",
@@ -39,7 +44,7 @@ export const SNAPSHOT_TABLES: readonly SnapshotTable[] = [
     // What a relayed post's metadata says about its source: source_id, source_name, license (cut
     // to 200 characters, as the runner writes it), and the adapter as metadata.source.
     columns: [...same("id", "name", "adapter"), { name: "license", expr: "left(t.license, 200)" }],
-    where: `exists (select 1 from posts p where p.metadata->>'source_id' = t.id and ${VISIBLE_POST("p")})`,
+    where: `exists (select 1 from posts p where p.metadata->>'source_id' = t.id and ${RELAYED_POST("p")} and ${VISIBLE_POST("p")})`,
   },
   {
     name: "posts",
@@ -130,46 +135,57 @@ export function cutPage<R extends Record<string, unknown>>(
   return { rows, bytes, next: i + 1 < SNAPSHOT_TABLES.length ? { t: SNAPSHOT_TABLES[i + 1].name, k: "" } : null };
 }
 
-export type Access = "disabled" | "denied" | "granted";
+export type Access = "disabled" | "misconfigured" | "denied" | "granted";
 
 /**
- * Whether a request may read the snapshot. `expectedSha256` is CRIER_SNAPSHOT_KEY_SHA256: unset or
- * not a hex SHA-256 is "disabled", which the route answers 404 so the endpoint does not exist.
- * `equal` must be constant-time.
+ * Whether a request may read the snapshot. `expectedSha256` is CRIER_SNAPSHOT_KEY_SHA256: unset is
+ * "disabled", and set but not 64 hex characters (a whole `shasum` output line, say) is
+ * "misconfigured"; the route answers both 404. `equal` must be constant-time.
  */
 export function snapshotAccess(
   expectedSha256: string | undefined, presented: string | null,
   sha256: (s: string) => string, equal: (a: string, b: string) => boolean,
 ): Access {
   const want = (expectedSha256 ?? "").trim().toLowerCase();
-  if (!/^[0-9a-f]{64}$/.test(want)) return "disabled";
+  if (!want) return "disabled";
+  if (!/^[0-9a-f]{64}$/.test(want)) return "misconfigured";
   if (!presented) return "denied";
   return equal(sha256(presented).toLowerCase(), want) ? "granted" : "denied";
 }
 
-/** An empty host is the client default, localhost. */
-const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]", ""]);
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+
+/** The libpq variables a Postgres client falls back to for whatever a URL leaves out. */
+export const PG_ENV_VARS = ["PGHOST", "PGHOSTADDR", "PGPORT", "PGUSER", "PGPASSWORD", "PGDATABASE"] as const;
 
 /**
  * Why scripts/db-dev.mjs must not write to this database URL, or null when it may. It writes, drops
- * and recreates, so it refuses production by its project ref wherever the ref appears (user name,
- * host, query), any Supabase host, and any other remote host unless `allowRemote`. The ref is
- * matched by hash so the repository does not carry it: every run of 20 lowercase letters is hashed.
+ * and recreates, so it refuses production by its project ref wherever the ref appears (URL, PGHOST,
+ * PGHOSTADDR, PGUSER), any Supabase host, a URL with no host, and any other remote host unless
+ * `allowRemote`. The ref is matched by hash so the repository does not carry it. The caller must
+ * still connect with the URL's host passed explicitly and PG_ENV_VARS removed from child processes.
  */
 export function databaseRefusal(
-  url: string, opts: { prodRefSha256: readonly string[]; sha256: (s: string) => string; allowRemote?: boolean },
+  url: string,
+  opts: { prodRefSha256: readonly string[]; sha256: (s: string) => string; allowRemote?: boolean; env?: Record<string, string | undefined> },
 ): string | null {
   let parsed: URL;
   try { parsed = new URL(url); } catch { return "not a postgres:// URL"; }
   if (!/^postgres(ql)?:$/.test(parsed.protocol)) return "not a postgres:// URL";
-  const text = decodeURIComponent(url).toLowerCase();
-  for (const run of text.match(/[a-z]{20,}/g) ?? []) {
-    for (let i = 0; i + 20 <= run.length; i++) {
-      if (opts.prodRefSha256.includes(opts.sha256(run.slice(i, i + 20)))) return "it carries the production project ref";
+  const env = opts.env ?? {};
+  const shellHosts = [env.PGHOST ?? "", env.PGHOSTADDR ?? ""];
+  for (const [where, text] of [["it", decodeURIComponent(url)], ["PGHOST, PGHOSTADDR or PGUSER", [...shellHosts, env.PGUSER ?? ""].join(" ")]]) {
+    for (const run of text.toLowerCase().match(/[a-z]{20,}/g) ?? []) {
+      for (let i = 0; i + 20 <= run.length; i++) {
+        if (opts.prodRefSha256.includes(opts.sha256(run.slice(i, i + 20)))) return `${where} carries the production project ref`;
+      }
     }
   }
   const host = parsed.hostname.toLowerCase();
-  if (/(^|\.)supabase\.(co|com)$/.test(host)) return "it is a Supabase host";
+  const supabase = (h: string) => /(^|\.)supabase\.(co|com)\.?$/i.test(h);
+  if (supabase(host)) return "it is a Supabase host";
+  if (shellHosts.some(supabase)) return "PGHOST or PGHOSTADDR is a Supabase host; unset it first";
+  if (!host) return "it names no host, so the client would take PGHOST; write it, e.g. postgres://postgres@localhost:5432/crier_dev";
   if (!LOCAL_HOSTS.has(host) && !opts.allowRemote) return `${host} is not a local host (pass --allow-remote-host for a scratch database elsewhere)`;
   return null;
 }

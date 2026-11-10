@@ -30,7 +30,14 @@ function refusal(e: HttpError) {
  * The dev dataset (docs/scenarios.md, scenario 15). Without a cursor, the manifest: tables, columns
  * and row counts, and the cursor of the first page. With one, a page of one table's rows.
  */
-export const GET = handler(async (req) => {
+export async function GET(req: Request): Promise<Response> {
+  // Including handler()'s own 500s, whose fail() sets no Cache-Control.
+  const res = await guarded(req, undefined);
+  res.headers.set("Cache-Control", "no-store");
+  return res;
+}
+
+const guarded = handler(async (req) => {
   try {
     return await snapshot(req);
   } catch (e) {
@@ -39,9 +46,15 @@ export const GET = handler(async (req) => {
   }
 });
 
+let warnedMisconfigured = false;
+
 async function snapshot(req: Request): Promise<Response> {
   const access = snapshotAccess(process.env.CRIER_SNAPSHOT_KEY_SHA256, bearer(req), sha256, safeEqual);
-  if (access === "disabled") return reply(404, { ok: false, error: { code: "not_found", message: "Not found." } });
+  if (access === "misconfigured" && !warnedMisconfigured) {
+    warnedMisconfigured = true;
+    console.warn("CRIER_SNAPSHOT_KEY_SHA256 is set but is not 64 hex characters, so /api/dev/snapshot is disabled. Set it to the digest alone.");
+  }
+  if (access === "disabled" || access === "misconfigured") return reply(404, { ok: false, error: { code: "not_found", message: "Not found." } });
   const at = budget();
   await rateLimit(`snapshot:${clientIp(req)}`, SNAPSHOT_PAGES_PER_HOUR, 3600, "snapshot pages from this address", at("dev/snapshot:rateLimit"));
   if (access === "denied") return reply(401, { ok: false, error: { code: "unauthorized", message: "This endpoint needs the snapshot key as a bearer token." } });

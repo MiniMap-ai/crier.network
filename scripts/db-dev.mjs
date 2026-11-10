@@ -3,17 +3,12 @@
  * A local development database with something in it: creates a Postgres 16 + pgvector database,
  * applies migrations/ with scripts/migrate.mjs, and loads a dev dataset into it.
  *
- *   npm run db:dev                         the snapshot when CRIER_SNAPSHOT_KEY is set, else public posts
- *   npm run db:dev -- --from snapshot      GET /api/dev/snapshot with CRIER_SNAPSHOT_KEY
- *   npm run db:dev -- --from public        public GET /api/v1/posts (live posts and replies; add --include-expired)
- *   npm run db:dev -- --from fixtures      a small synthetic board, no network
- *   npm run db:dev -- --file snap.json     a dataset saved earlier with --save snap.json
- *   options: --db <url> (default DEV_DATABASE_URL, else postgres://postgres:postgres@localhost:5432/crier_dev),
- *            --reset (drop and recreate the database), --site <url> (default CRIER_SNAPSHOT_URL, else https://crier.network),
- *            --allow-remote-host (a scratch database that is not on this machine)
+ *   --from snapshot|public|fixtures, or --file <saved.json>; default: snapshot if CRIER_SNAPSHOT_KEY is set, else public
+ *   --db <url> (DEV_DATABASE_URL, else postgres://postgres:postgres@localhost:5432/crier_dev), --reset, --save <file>,
+ *   --site <url> (CRIER_SNAPSHOT_URL, else https://crier.network), --include-expired (public), --allow-remote-host
  *
- * It never reads DATABASE_URL, and it refuses production and any Supabase host (lib/dev-snapshot.ts).
- * The private tables get synthetic rows and every publisher a fresh dev key, written to .dev/keys.<database>.json.
+ * It never reads DATABASE_URL and refuses production (lib/dev-snapshot.ts). Private tables get synthetic
+ * rows and every publisher a fresh dev key, written to .dev/keys.<database>.json. README: Running locally.
  */
 import postgres from "postgres";
 import { spawnSync } from "node:child_process";
@@ -21,7 +16,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { PRODUCTION_REF_SHA256, SNAPSHOT_TABLES, databaseRefusal } from "../lib/dev-snapshot.ts";
+import { PG_ENV_VARS, PRODUCTION_REF_SHA256, SNAPSHOT_TABLES, databaseRefusal } from "../lib/dev-snapshot.ts";
 import { datasetFromPublicPosts, planLoad, syntheticDataset } from "../lib/dev-dataset.ts";
 import { normalizeSourceKey } from "../lib/source-key.ts";
 
@@ -40,12 +35,14 @@ const file = option("file");
 const from = file ? "file" : option("from") || (process.env.CRIER_SNAPSHOT_KEY ? "snapshot" : "public");
 if (!["snapshot", "public", "fixtures", "file"].includes(from)) die(`--from must be snapshot, public, fixtures or a --file; got ${from}`);
 
-const refusal = databaseRefusal(dbUrl, { prodRefSha256: PRODUCTION_REF_SHA256, sha256, allowRemote: flag("allow-remote-host") });
+const refusal = databaseRefusal(dbUrl, { prodRefSha256: PRODUCTION_REF_SHA256, sha256, allowRemote: flag("allow-remote-host"), env: process.env });
 if (refusal) die(`refusing to write to that database: ${refusal}.`);
+// Nothing below, this process or migrate.mjs, may fill a part of the URL in from the shell.
+for (const k of PG_ENV_VARS) delete process.env[k];
 
 const target = new URL(dbUrl);
-const dbName = decodeURIComponent(target.pathname.replace(/^\//, "")) || "crier_dev";
-if (dbName === "postgres") die("pick a database of its own (e.g. /crier_dev), not the maintenance database");
+const dbName = decodeURIComponent(target.pathname.replace(/^\//, ""));
+if (!dbName || dbName === "postgres") die("name a database of its own in the URL (e.g. /crier_dev), not the maintenance database");
 const maintenance = new URL(dbUrl);
 maintenance.pathname = "/postgres";
 
@@ -56,7 +53,7 @@ if (option("save")) { await writeFile(option("save"), JSON.stringify(data)); con
 await load(data);
 
 async function prepareDatabase() {
-  const admin = postgres(maintenance.toString(), { max: 1, onnotice: () => {} });
+  const admin = connect(maintenance);
   try {
     const [{ v }] = await admin`select current_setting('server_version_num')::int as v`;
     if (v < 160000) die(`Postgres ${Math.floor(v / 10000)} found; production runs 16. Try: docker run -d --name crier-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 pgvector/pgvector:pg16`);
@@ -69,7 +66,7 @@ async function prepareDatabase() {
   } catch (e) {
     die(`cannot prepare ${dbName} through ${maintenance.host}: ${e.message}. Start one with: docker run -d --name crier-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 pgvector/pgvector:pg16`);
   } finally { await admin.end(); }
-  const db = postgres(dbUrl, { max: 1, onnotice: () => {} });
+  const db = connect(target);
   try {
     await db.unsafe("create extension if not exists vector; create extension if not exists pg_trgm; create extension if not exists unaccent; create extension if not exists pgcrypto");
   } catch (e) {
@@ -132,7 +129,7 @@ async function publicPages() {
 
 async function load(data) {
   const plan = planLoad(data, { sha256, token, normalizeSourceKey });
-  const db = postgres(dbUrl, { max: 1, onnotice: () => {} });
+  const db = connect(target);
   try {
     const [{ n }] = await db`select count(*)::int as n from posts`;
     if (n > 0) die(`${dbName} already has ${n} posts; pass --reset to start over`);
@@ -169,6 +166,18 @@ async function insert(tx, table, rows, jsonColumns = []) {
     });
     await tx`insert into ${tx(table)} ${tx(chunk)}`;
   }
+}
+
+/** A client for exactly the URL's host, port, user and database. */
+function connect(url) {
+  return postgres(url.toString(), {
+    host: url.hostname.replace(/^\[(.*)\]$/, "$1"),
+    port: Number(url.port || 5432),
+    user: decodeURIComponent(url.username) || "postgres",
+    database: decodeURIComponent(url.pathname.replace(/^\//, "")),
+    max: 1,
+    onnotice: () => {},
+  });
 }
 
 function quoteIdent(s) {

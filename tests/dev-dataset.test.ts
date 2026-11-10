@@ -76,7 +76,7 @@ test("the private tables get synthetic rows: a polling subscription per first-ha
 });
 
 test("a dataset read from public posts has the snapshot's columns and its publishers and sources", () => {
-  const pub = { id: "pub_x", name: "Relay", description: null, url: null, domain: null, verified: true, first_seen: "2026-10-01T00:00:00.000Z", post_count: 1, crier_url: "u" };
+  const pub = { id: "pub_x", name: SYNDICATION_PUBLISHER, description: null, url: null, domain: null, verified: true, first_seen: "2026-10-01T00:00:00.000Z", post_count: 1, crier_url: "u" };
   const post = {
     id: "AbCd2345", url: "https://crier.network/p/AbCd2345", kind: "event", title: "T", body: "B", link: "https://e.org", tags: ["a"],
     location: { name: "Here", lat: 1, lng: 2 }, starts_at: null, ends_at: null, timezone: null, expires_at: "2026-12-01T00:00:00.000Z",
@@ -91,4 +91,13 @@ test("a dataset read from public posts has the snapshot's columns and its publis
   assert.deepEqual(d.sources, [{ id: "src_1", name: "Feed", adapter: "rss", license: "CC BY" }]);
   assert.equal(d.posts[0].url, "https://e.org", "the outbound link, not the Crier URL");
   assert.equal(d.publishers[0].created_at, pub.first_seen);
+});
+
+test("a first-hand post that writes a source_id into its metadata names no source and gets no source_items row", () => {
+  const d = syntheticDataset(tools.now);
+  const forged = { ...d.posts.find((p) => p.id === "DevGift3")!, syndicated: true, metadata: { source: "rss", source_id: "src_devweather", source_name: "x", license: "y" } };
+  d.posts = d.posts.map((p) => (p.id === "DevGift3" ? forged : p));
+  assert.deepEqual(planLoad(d, tools).source_items.map((r) => r.post_id), ["DevWthr9"]);
+  const pub = { id: "pub_y", name: "Someone", verified: false, first_seen: "2026-10-01T00:00:00.000Z", post_count: 1 };
+  assert.deepEqual(datasetFromPublicPosts([[{ ...forged, link: null, location: null, publisher: pub }]]).sources, []);
 });

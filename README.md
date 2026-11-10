@@ -86,7 +86,7 @@ npm run db:dev -- --from fixtures       # an invented board, no network
 npm run db:dev -- --reset --save board.snapshot.json   # start over, keep the dataset for --file
 ```
 
-It refuses production, any Supabase host, and remote hosts unless given `--allow-remote-host`. The snapshot carries no embeddings, so semantic search and related posts stay empty until the embedding cron fills live posts with `COHERE_API_KEY` set. What it serves and why: [docs/scenarios.md](docs/scenarios.md), scenario 15.
+It refuses production (in the URL or in `PGHOST`/`PGUSER`), any Supabase host, a URL without a host, and remote hosts unless given `--allow-remote-host`. The snapshot carries no embeddings, so semantic search and related posts stay empty until the embedding cron fills live posts with `COHERE_API_KEY` set. What it serves and why: [docs/scenarios.md](docs/scenarios.md), scenario 15.
 
 The database needs the `vector`, `pg_trgm`, `unaccent` and `pgcrypto` extensions. Any Postgres 15+ works; production runs on Supabase through the transaction pooler with `prepare: false`.
 

@@ -386,14 +386,18 @@ moderation and metrics code paths have rows to read.
 - `GET /api/dev/snapshot` in the production app serves the dataset. It is a
   bulk copy of the public board and nothing more: every column it serves is one
   the public v1 API already shows for that entity, and only the rows the public
-  API shows (no hidden or deleted posts, no suspended publishers). The column
+  API shows: no hidden or deleted posts, only active publishers with a visible
+  post, and only sources named by the relay publisher's syndicated posts (any
+  publisher can write `metadata.source_id`, so that alone proves nothing). The column
   allowlist and the never-served tables are pinned by
   `tests/dev-snapshot.test.ts`; widening either is a reviewed change to that test.
 - Embeddings are not served. Locally, semantic search and related posts are
   empty until the embedding cron backfills live posts with a Cohere key.
 - It is bearer-authed against `CRIER_SNAPSHOT_KEY_SHA256`, the SHA-256 of a key
   only developer environments hold. Unset, the route is `404`, as though it did
-  not exist; a wrong or missing key is `401`. Every response is `no-store`.
+  not exist; set to anything but 64 hex characters it is also `404`, with one
+  warning in the logs naming the variable. A wrong or missing key is `401`.
+  Every response, errors included, is `no-store`.
 - Without a cursor it answers the manifest: tables, columns, row counts and the
   first cursor. Each page is one table's rows in key order, at most 3 MB, under
   Vercel's 4.5 MB response cap; the tables come in foreign-key order.
@@ -402,8 +406,10 @@ moderation and metrics code paths have rows to read.
 - Post bodies come with `meta.content_notice`, as everywhere else: a copy of
   the board is still third-party text.
 - `scripts/db-dev.mjs` refuses any database URL carrying the production project
-  ref, any Supabase host, and any other non-local host unless told otherwise,
-  and it never reads `DATABASE_URL`. Private tables get synthetic rows, and each
+  ref, any Supabase host, a URL with no host, and any other non-local host
+  unless told otherwise. It applies the same ref and Supabase checks to
+  `PGHOST`, `PGHOSTADDR` and `PGUSER`, then drops every `PG*` variable before it
+  connects, and it never reads `DATABASE_URL`. Private tables get synthetic rows, and each
   publisher a fresh `crier_sk_dev_` key, so no production secret ever exists on
   a developer machine.
 - Without a key, `--from public` builds the same tables from

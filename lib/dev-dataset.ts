@@ -79,9 +79,10 @@ export function planLoad(data: Dataset, tools: Tools): LoadPlan {
   // Parents first, so a reply's foreign key always has its thread to point at.
   posts.sort((a, b) => Number(a.parent_id !== null) - Number(b.parent_id !== null));
   const sourceIds = new Set(sources.map((s) => String(s.id)));
+  const relay = new Set(publishers.filter((p) => p.internal).map((p) => String(p.id)));
   const source_items = posts.flatMap((p) => {
     const sid = (p.metadata as Row | null)?.source_id;
-    if (typeof sid !== "string" || !sourceIds.has(sid)) return [];
+    if (!p.syndicated || !relay.has(String(p.publisher_id)) || typeof sid !== "string" || !sourceIds.has(sid)) return [];
     return [{ source_id: sid, uid: p.source_key ?? `dev:${p.id}`, post_id: p.id, hash: "", first_seen: p.created_at, last_seen: p.updated_at, missing_runs: 0 }];
   });
   const firstHand = publishers.filter((p) => !p.internal);
@@ -120,7 +121,8 @@ export function datasetFromPublicPosts(pages: Row[][]): Dataset {
       verified: !!u.verified, post_count: u.post_count ?? 0, created_at: u.first_seen,
     });
     const m = (p.metadata ?? {}) as Row;
-    if (typeof m.source_id === "string" && typeof m.source === "string") {
+    // Any publisher can write metadata; only the relay publisher's syndicated posts name a source.
+    if (p.syndicated && u.name === SYNDICATION_PUBLISHER && typeof m.source_id === "string" && typeof m.source === "string") {
       sources.set(m.source_id, { id: m.source_id, name: m.source_name ?? m.source_id, adapter: m.source, license: m.license ?? "unknown" });
     }
     const loc = p.location as { name: string | null; lat: number | null; lng: number | null } | null;

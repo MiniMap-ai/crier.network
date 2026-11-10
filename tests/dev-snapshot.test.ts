@@ -57,6 +57,12 @@ test("only rows the public API shows are served: no hidden, deleted or suspended
   assert.match(SNAPSHOT_TABLES.find((t) => t.name === "sources")!.where, /p\.hidden_at is null/);
 });
 
+test("a publisher is served only with a visible post, and a source only through a relayed post", () => {
+  assert.match(SNAPSHOT_TABLES.find((t) => t.name === "publishers")!.where, /from posts p where p\.publisher_id = t\.id and p\.deleted_at is null and p\.hidden_at is null/);
+  const sources = SNAPSHOT_TABLES.find((t) => t.name === "sources")!.where;
+  assert.match(sources, /p\.syndicated and exists \(select 1 from publishers r where r\.id = p\.publisher_id and r\.internal\)/);
+});
+
 test("a page reads one table in key order after the cursor's key, and a count covers every table", () => {
   const s = pageStatement(SNAPSHOT_TABLES[0]);
   assert.match(s, /^select t\.id, .*\(t\.domain_verified_at is not null\) as verified, .* from publishers t where \(.*\) and t\.id > \$1 order by t\.id limit \$2$/);
@@ -112,7 +118,12 @@ test("only cursors naming a served table and a string key are accepted", () => {
 test("without CRIER_SNAPSHOT_KEY_SHA256 the endpoint is disabled, whatever is sent", () => {
   assert.equal(snapshotAccess(undefined, "anything", sha256, eq), "disabled");
   assert.equal(snapshotAccess("", "anything", sha256, eq), "disabled");
-  assert.equal(snapshotAccess("not-a-digest", "anything", sha256, eq), "disabled");
+  assert.equal(snapshotAccess("   ", "anything", sha256, eq), "disabled");
+});
+
+test("a set but malformed digest, such as a whole shasum line, is misconfigured and still refuses", () => {
+  assert.equal(snapshotAccess("not-a-digest", "anything", sha256, eq), "misconfigured");
+  assert.equal(snapshotAccess(`${sha256("the-key")}  -`, "the-key", sha256, eq), "misconfigured");
 });
 
 test("the key is checked by its SHA-256, and a missing or wrong key is denied", () => {
@@ -142,6 +153,21 @@ test("db-dev refuses Supabase hosts even with --allow-remote-host, and other rem
   assert.match(databaseRefusal("postgres://u:p@db.example.net/x", guard) ?? "", /not a local host/);
   assert.equal(databaseRefusal("postgres://u:p@db.example.net/x", { ...guard, allowRemote: true }), null);
   assert.match(databaseRefusal("mysql://localhost/x", guard) ?? "", /postgres/);
+});
+
+test("db-dev refuses a URL with no host, which a client would fill from PGHOST", () => {
+  assert.notEqual(databaseRefusal("postgres://postgres@/crier_dev", guard), null);
+  for (const url of ["postgres:///crier_dev", "postgresql:///crier_dev?host=/var/run/postgresql"]) {
+    assert.match(databaseRefusal(url, { ...guard, allowRemote: true }) ?? "", /names no host/, url);
+  }
+});
+
+test("db-dev refuses when the shell's PG variables point at production, even for a local URL", () => {
+  const local = "postgres://postgres@localhost:5432/crier_dev";
+  assert.match(databaseRefusal(local, { ...guard, env: { PGUSER: `postgres.${FAKE_REF}` } }) ?? "", /PGUSER carries the production project ref/);
+  assert.match(databaseRefusal(local, { ...guard, env: { PGHOST: `db.${FAKE_REF}.example.net` } }) ?? "", /production project ref/);
+  assert.match(databaseRefusal(local, { ...guard, env: { PGHOSTADDR: "aws-0-us-east-1.pooler.supabase.com" } }) ?? "", /PGHOST or PGHOSTADDR is a Supabase host/);
+  assert.equal(databaseRefusal(local, { ...guard, env: { PGHOST: "localhost", PGUSER: "me", PGPASSWORD: FAKE_REF } }), null, "the password is never inspected");
 });
 
 test("db-dev accepts a local database", () => {
