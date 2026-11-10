@@ -7,6 +7,11 @@
 -- On subscriptions and publishers the grant is column by column, because a table-level SELECT would
 -- override any column exclusion. A column later added to either table stays unreadable to this role
 -- until a migration grants it.
+--
+-- Each policy change holds ACCESS EXCLUSIVE on its table until commit, so the wait for each is
+-- bounded as in 0011, and the tables every metrics flush writes are locked last.
+set local lock_timeout = '10s';
+
 do $$ begin
   if not exists (select 1 from pg_roles where rolname = 'crier_reader') then
     create role crier_reader nologin;
@@ -39,8 +44,8 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['reports', 'daily_actors', 'daily_counters', 'unmet_queries', 'sources',
-                           'source_items', 'source_runs', 'strategy_items', 'strategy_log', 'search_log'] loop
+  foreach t in array array['reports', 'sources', 'source_items', 'source_runs', 'strategy_items',
+                           'strategy_log', 'daily_counters', 'daily_actors', 'unmet_queries', 'search_log'] loop
     execute format('drop policy if exists crier_reader_select on public.%I', t);
     execute format('create policy crier_reader_select on public.%I for select to crier_reader using (true)', t);
   end loop;
