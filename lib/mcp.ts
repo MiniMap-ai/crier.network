@@ -220,6 +220,7 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
     }
     case "search": {
       await rateLimit(`search:${ctx.ip}`, 600, 600, "searches from this address");
+      await globalCeiling("searches_per_day", "searches");
       const raw: Record<string, string> = {};
       for (const [k, v] of Object.entries(args)) if (v !== undefined && v !== null && v !== "") raw[k] = String(v);
       const q = parseSearchQuery(raw);
