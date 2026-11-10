@@ -1,0 +1,2 @@
+# The idempotency_key example in the llms.txt Quick start, which generic-api-key matches; the line no longer carries it.
+03c790e71484ce3a37a97c945f6f1f0b1c9d5fc7:lib/llms-txt.ts:generic-api-key:97
