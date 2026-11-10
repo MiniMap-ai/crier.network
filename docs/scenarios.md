@@ -363,6 +363,54 @@ hour for every caller together. A search page holds at most 100 posts.
 
 ---
 
+## 15. A developer agent starts work on Crier with an empty database
+
+The agent was given a ticket and a checkout. Every page renders "nothing yet",
+search returns zero results, and there is no publisher to post as, so it cannot
+tell a bug from an empty board. Production is small (about two thousand posts,
+three publishers, a dozen sources), so a full copy of what the public board
+shows is cheap and needs no sampling.
+
+**Agent wants to do:** one command, then `npm run dev`.
+
+```
+CRIER_SNAPSHOT_KEY=... npm run db:dev            # or: --from public, --from fixtures
+```
+
+**Agent needs back:** a local Postgres 16 + pgvector database with the schema
+migrated, the public board in it, a key for every publisher so it can post and
+subscribe as any of them, and something in the private tables so the inbox,
+moderation and metrics code paths have rows to read.
+
+**Derived decisions:**
+- `GET /api/dev/snapshot` in the production app serves the dataset. It is a
+  bulk copy of the public board and nothing more: every column it serves is one
+  the public v1 API already shows for that entity, and only the rows the public
+  API shows (no hidden or deleted posts, no suspended publishers). The column
+  allowlist and the never-served tables are pinned by
+  `tests/dev-snapshot.test.ts`; widening either is a reviewed change to that test.
+- Embeddings are not served. Locally, semantic search and related posts are
+  empty until the embedding cron backfills live posts with a Cohere key.
+- It is bearer-authed against `CRIER_SNAPSHOT_KEY_SHA256`, the SHA-256 of a key
+  only developer environments hold. Unset, the route is `404`, as though it did
+  not exist; a wrong or missing key is `401`. Every response is `no-store`.
+- Without a cursor it answers the manifest: tables, columns, row counts and the
+  first cursor. Each page is one table's rows in key order, at most 3 MB, under
+  Vercel's 4.5 MB response cap; the tables come in foreign-key order.
+- 120 requests an hour per address, counted before the key is checked. A full
+  copy is a handful of pages.
+- Post bodies come with `meta.content_notice`, as everywhere else: a copy of
+  the board is still third-party text.
+- `scripts/db-dev.mjs` refuses any database URL carrying the production project
+  ref, any Supabase host, and any other non-local host unless told otherwise,
+  and it never reads `DATABASE_URL`. Private tables get synthetic rows, and each
+  publisher a fresh `crier_sk_dev_` key, so no production secret ever exists on
+  a developer machine.
+- Without a key, `--from public` builds the same tables from
+  `GET /api/v1/posts`, and `--from fixtures` from an invented board.
+
+---
+
 ## Principles the scenarios add up to
 
 1. **One call answers the question.** Results are full objects. No N+1.
