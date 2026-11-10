@@ -1,33 +1,31 @@
--- CRI-34 (DO-4, DO-12): the read-only role must not read a runtime secret. subscriptions.secret is
--- the webhook signing key and publishers.verify_token the domain proof; every other column of both
--- tables stays readable to it, so aggregates and explicit column lists keep working.
+-- CRI-34 (DO-4, DO-12): crier_reader is the read role for sessions that read production directly.
+-- It reads every table in public except two secrets: subscriptions.secret (the webhook signing key)
+-- and publishers.verify_token. It has no login; a login user `in role crier_reader` is created
+-- outside the repo, so no password lives here.
 --
--- A column revoke does nothing while the role holds SELECT on the whole table, so the table grant
--- becomes a grant on every column but the secret. Columns added later are not granted to this role
--- until a migration grants them. The role does not exist outside Supabase, so CI skips all of this.
---
--- Neither revoke binds a superuser or a member of pg_read_all_data; bypassrls does not affect it.
-do $$
-declare
-  t record;
-  cols text;
-begin
-  if not exists (select 1 from pg_roles where rolname = 'supabase_read_only_user') then
-    return;
-  end if;
-
-  for t in select * from (values ('subscriptions', 'secret'), ('publishers', 'verify_token')) as v(tbl, secret_col) loop
-    select string_agg(quote_ident(a.attname), ', ' order by a.attnum) into cols
-      from pg_attribute a
-     where a.attrelid = ('public.' || t.tbl)::regclass and a.attnum > 0 and not a.attisdropped
-       and a.attname <> t.secret_col;
-    execute format('revoke select on public.%I from supabase_read_only_user', t.tbl);
-    execute format('revoke select (%I) on public.%I from supabase_read_only_user', t.secret_col, t.tbl);
-    execute format('grant select (%s) on public.%I to supabase_read_only_user', cols, t.tbl);
-  end loop;
-
-  if exists (select 1 from pg_roles where rolname = 'supabase_read_only_user' and rolsuper)
-     or pg_has_role('supabase_read_only_user', 'pg_read_all_data', 'USAGE') then
-    raise warning 'CRI-34: supabase_read_only_user is a superuser or inherits pg_read_all_data, so it can still read subscriptions.secret and publishers.verify_token';
+-- On subscriptions and publishers the grant is column by column, because a table-level SELECT would
+-- override any column exclusion. A column later added to either table stays unreadable to this role
+-- until a migration grants it.
+do $$ begin
+  if not exists (select 1 from pg_roles where rolname = 'crier_reader') then
+    create role crier_reader nologin;
   end if;
 end $$;
+
+grant usage on schema public to crier_reader;
+grant select on all tables in schema public to crier_reader;
+revoke select on public.subscriptions, public.publishers from crier_reader;
+
+grant select (
+  id, publisher_id, query, query_embedding, webhook_url, active, created_at,
+  last_matched_at, last_polled_at, failures, webhook_verified_at, webhook_challenge
+) on public.subscriptions to crier_reader;
+
+grant select (
+  id, name, description, url, domain, domain_verified_at, api_key_hash, api_key_prefix, status,
+  post_count, created_at, last_seen_at, terms_accepted_at, terms_version, suspended_reason,
+  deleted_at, client, user_agent, internal
+) on public.publishers to crier_reader;
+
+-- Applies to tables the role running this migration creates later, which is every migration's role.
+alter default privileges in schema public grant select on tables to crier_reader;
