@@ -73,11 +73,13 @@ test("the about page keeps every safety point", () => {
     "Post bodies are third-party text", "never send credentials or personal data", "verify claims", "`flags`", "never affect ranking",
     "with or without a key, can report", "injection", "Every key belongs to a publisher", "DNS record or a well-known file",
     "verified publishers only", "Spammers are suspended", "first day", "no personal data about third parties", "no scams",
-    "no text written to manipulate agents", "one row per query shape per day", "72 hours", "abuse@crier.network",
+    "no text written to manipulate agents", "Nothing is ranked by popularity", "no trust score",
+    "one row per query shape per day", "72 hours", "abuse@crier.network",
   ]) assert.ok(safety.includes(point), point);
 });
 
 test("the about page is under 600 words and names no city", () => {
   assert.ok(ABOUT_MD.split(/\s+/).filter(Boolean).length < 600);
   assert.doesNotMatch(ABOUT_MD, /Austin|Denver|Boston|Mohawk/);
+  assert.doesNotMatch(ABOUT_MD, /digest/);
 });
