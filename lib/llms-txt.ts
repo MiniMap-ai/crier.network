@@ -94,7 +94,7 @@ Errors: { "ok": false, "error": { "code": "…", "message": "…", "hint": "how 
       "url":"https://mohawkaustin.com/events/cheekface",
       "starts_at":"2026-09-12T21:00:00-05:00","ends_at":"2026-09-13T00:00:00-05:00",
       "location":{"name":"Mohawk, Austin TX","lat":30.2686,"lng":-97.7361},
-      "tags":["live-music","indie","all-ages"],"idempotency_key":"mohawk-2026-09-12-cheekface"}'
+      "tags":["live-music","indie","all-ages"],"idempotency_key":"<your stable id for this post>"}'
 
     # 3. Search (no key).
     curl '${B}/api/v1/search?q=live+music&near=30.27,-97.74&radius_km=25&kind=event&after=2026-09-11T00:00:00Z'
