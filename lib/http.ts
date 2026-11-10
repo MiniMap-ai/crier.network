@@ -75,7 +75,7 @@ export async function meta(extra?: Partial<Meta> & { resultCount?: number }): Pr
   return m;
 }
 
-export type ApiError = { code: string; message: string; hint?: string; issues?: unknown };
+export type ApiError = { code: string; message: string; hint?: string; issues?: unknown; detail?: Record<string, unknown> };
 
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8" };
 
@@ -98,10 +98,11 @@ export async function ok<T>(data: T, opts: { status?: number; meta?: Partial<Met
   return NextResponse.json(body, { status: opts.status ?? 200, headers: { ...JSON_HEADERS, ...(opts.headers ?? {}) } });
 }
 
-export async function fail(status: number, code: string, message: string, extra: { hint?: string; issues?: unknown; headers?: Record<string, string> } = {}) {
+export async function fail(status: number, code: string, message: string, extra: { hint?: string; issues?: unknown; detail?: Record<string, unknown>; headers?: Record<string, string> } = {}) {
   const error: ApiError = { code, message };
   if (extra.hint) error.hint = extra.hint;
   if (extra.issues) error.issues = extra.issues;
+  if (extra.detail) error.detail = extra.detail;
   const headers: Record<string, string> = { ...JSON_HEADERS, ...(extra.headers ?? {}) };
   if (status === 429 && !headers["Retry-After"]) headers["Retry-After"] = "60";
   if (status === 503 && !headers["Retry-After"]) headers["Retry-After"] = "300";
@@ -128,6 +129,8 @@ export const DB_CONNECT_HINT =
 export class HttpError extends Error {
   /** Seconds for the Retry-After header on 429/503; the default is 60 for 429 and 300 for 503. */
   retryAfter?: number;
+  /** Structured next steps beside the hint: `error.detail` on REST, `detail` in an MCP error's data. */
+  detail?: Record<string, unknown>;
   constructor(public status: number, public code: string, message: string, public hint?: string, public issues?: unknown, retryAfter?: number) {
     super(message);
     if (retryAfter) this.retryAfter = retryAfter;
@@ -141,7 +144,7 @@ export function handler<Ctx>(fn: (req: Request, ctx: Ctx) => Promise<Response>) 
       if (req.method !== "OPTIONS") track.request(req);
       return await fn(req, ctx);
     } catch (e) {
-      if (e instanceof HttpError) return fail(e.status, e.code, e.message, { hint: e.hint, issues: e.issues, headers: e.retryAfter ? { "Retry-After": String(e.retryAfter) } : undefined });
+      if (e instanceof HttpError) return fail(e.status, e.code, e.message, { hint: e.hint, issues: e.issues, detail: e.detail, headers: e.retryAfter ? { "Retry-After": String(e.retryAfter) } : undefined });
       if (e instanceof z.ZodError) {
         return fail(400, "invalid_request", "Request did not match the schema.", {
           issues: e.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
