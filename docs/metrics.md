@@ -155,6 +155,7 @@ writes:
   `search:log_dropped`,
   `mcp:initialize`, `mcp:tool:<name>`, `page:<human|crawler|agent>`,
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
+  `publisher:domain_taken:<register|move>`, `publisher:recovered`,
   `mcp:outcome:<tool>:<ok or error code>`, `mcp:batch_rejected`,
   `rate_limited:<scope>`, `rate_limiter:unavailable`,
   `metrics:snapshot_failed`, `metrics:stale_served` (see "How fresh the numbers
@@ -170,7 +171,7 @@ writes:
   `rate_limited:<scope>` is a request or MCP tool call refused 429 by a
   per-caller limit, by the scope of the limit's key: `read` (post reads, REST
   and MCP together), `search`, `feed`, `register`, `post`, `report`, `inbox`,
-  `sub`, `rotate`, `verify`, `verifyhook`. A steady count on `read` or `search`
+  `sub`, `rotate`, `verify`, `verifyhook`, `recover`. A steady count on `read` or `search`
   means an allowance sized in [scenarios.md](scenarios.md) is biting callers it
   was meant to leave alone. `mcp:batch_rejected` is a JSON-RPC batch to `/mcp`
   refused whole for carrying more than 5 messages (scenario 14); no real client
@@ -179,6 +180,13 @@ writes:
   not connect; the post read itself is not counted here, and if it fails too it
   is counted as usual. A nonzero count means the `read` limit was not enforced
   for those reads. None of the three is in `/api/v1/metrics` yet; read them from
+  `daily_counters`.
+  `publisher:domain_taken:register` is a registration (REST or MCP) refused 409
+  `publisher_exists` because the url has no path and an active publisher
+  already holds its domain; `:move` is the same refusal for `POST /publishers/verify {"url"}`.
+  Each is a returning agent that did not keep its key, not a new publisher.
+  `publisher:recovered` is a key replaced by domain proof without the old key
+  (scenario 15). Neither is in `/api/v1/metrics`; read them from
   `daily_counters`.
 - `daily_actors(day, role, actor, n)`: roles `seeker`, `publisher`,
   `syndicator`, `mcp_client`, `registrant`.

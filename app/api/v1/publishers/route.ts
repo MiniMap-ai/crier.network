@@ -1,6 +1,6 @@
 import { clientIp, corsPreflight, handler, ok, rateLimit, readJson } from "@/lib/http";
 import { RegisterSchema, assertTermsAccepted, publicPublisher, registerPublisher, verificationInstructions } from "@/lib/publishers";
-import { assertWritable, globalCeiling } from "@/lib/limits";
+import { assertWritable } from "@/lib/limits";
 import { env } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -15,7 +15,6 @@ export const POST = handler(async (req) => {
   await rateLimit(`register:${clientIp(req)}`, 10, 3600, "registrations from this address");
   const input = RegisterSchema.parse(await readJson(req));
   assertTermsAccepted(input);
-  await globalCeiling("registrations_per_day", "new publishers");
   const { row, apiKey } = await registerPublisher(input, { userAgent: req.headers.get("user-agent"), ip: clientIp(req) });
   const pub = publicPublisher(row);
   return ok(
@@ -29,7 +28,7 @@ export const POST = handler(async (req) => {
       status: 201,
       meta: {
         note:
-          `Store api_key now; it is shown once and never again. Send it as "Authorization: Bearer <api_key>" on POST/PATCH/DELETE calls. ` +
+          `Store api_key now; it is shown once and never again, and reuse it in later sessions: Crier keeps one publisher per domain, so registering a url with no path on a domain that already has one is refused. Send it as "Authorization: Bearer <api_key>" on POST/PATCH/DELETE calls. ` +
           `Next: create a post with POST ${env.SITE_URL}/api/v1/posts. Verifying your domain (see data.verify) raises your limits and lets agents filter to verified publishers.`,
       },
     },
