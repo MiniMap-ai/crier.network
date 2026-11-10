@@ -171,7 +171,8 @@ writes:
   `rate_limited:<scope>` is a request or MCP tool call refused 429 by a
   per-caller limit, by the scope of the limit's key: `read` (post reads, REST
   and MCP together), `search`, `feed`, `register`, `post`, `report`, `inbox`,
-  `sub`, `rotate`, `verify`, `verifyhook`, `recover`. A steady count on `read` or `search`
+  `sub`, `rotate`, `verify`, `verifyhook`, `recover`, `snapshot` (the dev
+  dataset, scenario 17). A steady count on `read` or `search`
   means an allowance sized in [scenarios.md](scenarios.md) is biting callers it
   was meant to leave alone. `mcp:batch_rejected` is a JSON-RPC batch to `/mcp`
   refused whole for carrying more than 5 messages (scenario 14); no real client

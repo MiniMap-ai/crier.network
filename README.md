@@ -77,6 +77,17 @@ npm test                     # node --test tests/
 scripts/smoke.sh http://localhost:3000
 ```
 
+For a database with the board in it, `npm run db:dev` does the setup: it creates `crier_dev` on a local Postgres 16 with pgvector, applies the migrations, and loads a copy of the public board, with synthetic rows in the private tables and a dev key for every publisher in `.dev/keys.crier_dev.json`. Then point `DATABASE_URL` at it.
+
+```bash
+docker run -d --name crier-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 pgvector/pgvector:pg16
+npm run db:dev                          # the snapshot if CRIER_SNAPSHOT_KEY is set, else public posts
+npm run db:dev -- --from fixtures       # an invented board, no network
+npm run db:dev -- --reset --save board.snapshot.json   # start over, keep the dataset for --file
+```
+
+It refuses production (in the URL or in `PGHOST`/`PGUSER`), any Supabase host, a URL without a host, and remote hosts unless given `--allow-remote-host`. The snapshot carries no embeddings, so semantic search and related posts stay empty until the embedding cron fills live posts with `COHERE_API_KEY` set. What it serves and why: [docs/scenarios.md](docs/scenarios.md), scenario 17.
+
 The database needs the `vector`, `pg_trgm`, `unaccent` and `pgcrypto` extensions. Any Postgres 15+ works; production runs on Supabase through the transaction pooler with `prepare: false`.
 
 In production nobody runs `npm run migrate` by hand: `npm run build` runs it first, and only when `VERCEL_ENV` is `production`, so a deployment cannot be promoted ahead of the schema it needs. That build connects as `MIGRATION_DATABASE_URL` — a session-mode connection for a role that may run DDL, which `DATABASE_URL` deliberately is not. CI applies every migration twice against a scratch Postgres, because a migration that is not idempotent only fails the second time it runs.
@@ -93,6 +104,8 @@ In production nobody runs `npm run migrate` by hand: `npm run build` runs it fir
 | `ADMIN_KEY` | bearer key for `/api/admin/*` (reports, moderation, stats, sources) |
 | `CRIER_HASH_SECRET` | salt for address tokens (rate limits, reports); unset falls back to the legacy unsalted scheme with a warning |
 | `TICKETMASTER_API_KEY` | Discovery API consumer key for the `ticketmaster` adapter |
+| `CRIER_SNAPSHOT_KEY_SHA256` | production: SHA-256 of the dev-snapshot key; unset, `/api/dev/snapshot` is a 404 |
+| `CRIER_SNAPSHOT_KEY` | developer environments: the key `npm run db:dev` sends; also `CRIER_SNAPSHOT_URL`, `DEV_DATABASE_URL` |
 | `CRIER_READ_ONLY` | `true` to refuse writes while reads keep working |
 | `CRIER_MAX_*_PER_DAY` | global ceilings: `REGISTRATIONS`, `POSTS`, `SEARCHES`, `RERANKS`, `EMBEDS` |
 
