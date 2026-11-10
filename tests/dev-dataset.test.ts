@@ -1,6 +1,5 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { SYNDICATION_PUBLISHER, datasetFromPublicPosts, planLoad, syntheticDataset } from "../lib/dev-dataset.ts";
 import { SNAPSHOT_TABLES } from "../lib/dev-snapshot.ts";
 import { normalizeSourceKey } from "../lib/source-key.ts";
@@ -8,7 +7,9 @@ import { normalizeSourceKey } from "../lib/source-key.ts";
 // lib/ids.ts ALPHABET, eight characters.
 const POST_ID_RE = /^[2-9A-HJ-NP-Za-km-z]{8}$/;
 let n = 0;
-const tools = { sha256: (s: string) => createHash("sha256").update(s).digest("hex"), token: () => `tok${String(++n).padStart(22, "0")}`, normalizeSourceKey, now: new Date("2026-11-10T12:00:00Z") };
+// planLoad only needs a deterministic one-way-looking function; the real SHA-256 is injected by db-dev.
+const fakeHash = (s: string) => `h:${[...s].reverse().join("")}`;
+const tools = { sha256: fakeHash, token: () => `tok${String(++n).padStart(22, "0")}`, normalizeSourceKey, now: new Date("2026-11-10T12:00:00Z") };
 const columns = (name: string) => SNAPSHOT_TABLES.find((t) => t.name === name)!.columns.map((c) => c.name);
 
 test("the synthetic board has exactly the snapshot's columns, so fixtures and snapshots load the same way", () => {
