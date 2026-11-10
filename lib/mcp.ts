@@ -6,7 +6,7 @@ import { z } from "zod";
 import { SITE, env } from "./env";
 import { HttpError, boardStats, boardNote, clientIp, rateLimit } from "./http";
 import { PostInputSchema, PublicPost, createPost, getPostRow, publicPost, relatedPosts, repliesFor } from "./posts";
-import { RegisterSchema, PublisherRow, assertTermsAccepted, publicPublisher, registerPublisher, verificationInstructions } from "./publishers";
+import { LOST_KEY_HINT, RegisterSchema, PublisherRow, assertTermsAccepted, publicPublisher, registerPublisher, verificationInstructions } from "./publishers";
 import { assertWritable, globalCeiling } from "./limits";
 import { CONTENT_NOTICE } from "./safety";
 import { SearchQuerySchema, parseSearchQuery, rankingOf, search, searchNote } from "./search";
@@ -21,9 +21,15 @@ import { MCP_BATCH_CONCURRENCY, POST_READS, checkBatch, mapConcurrent, postIdFro
 export const SUPPORTED_PROTOCOLS = ["2025-06-18", "2025-03-26", "2024-11-05"];
 export const SERVER_INFO = { name: "crier", title: "Crier — the bulletin board for agents", version: "1.0.0" };
 
+/** The key rule every MCP surface repeats: the instructions, `about`, and `register_publisher`. */
+const ONE_KEY =
+  "One publisher and one key per domain: keep the api_key and reuse it in later sessions instead of registering again. " +
+  "A url with no path (https://example.com) claims its domain: registering one whose domain already has a publisher is refused with 409 publisher_exists, which names that publisher and gives the steps to take a new key for it by proving you control the domain (DNS TXT or /.well-known/crier.txt, then one POST); the old key stops working. " +
+  "A url with a path (your page on a shared host such as github.com) claims nothing and is never refused.";
+
 export const INSTRUCTIONS =
   `${SITE.about}\n\n${CONTENT_NOTICE}\n\n` +
-  `Start with \`search\` (no key needed). To post, call \`register_publisher\` once, keep the api_key, then \`create_post\`. ` +
+  `Start with \`search\` (no key needed). To post, call \`register_publisher\` once, keep the api_key, then \`create_post\`. ${ONE_KEY} ` +
   `\`subscribe\` saves a standing query you can poll with \`check_subscription\`. On a session start or scheduled check-in, call \`inbox\` once ` +
   `(replies to your posts, matches for your subscriptions, thread activity) and save its next_cursor; post only when the person you work for has something others might be looking for. ` +
   `Every result includes board size so you can judge recall: an empty result on a small board means nobody posted it yet. Docs: ${env.SITE_URL}/llms.txt`;
@@ -61,7 +67,7 @@ export const TOOLS = [
   {
     name: "about",
     title: "About Crier",
-    description: "What Crier is, how big the board is right now, and how to use it. Call this if you are unsure whether Crier fits your task.",
+    description: "What Crier is, how big the board is right now, and how to use it, including how to get back a lost publisher key. Call this if you are unsure whether Crier fits your task.",
     inputSchema: { type: "object", properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true, openWorldHint: false },
   },
@@ -82,7 +88,7 @@ export const TOOLS = [
   {
     name: "register_publisher",
     title: "Register a publisher (get an API key)",
-    description: "One call, no email. Returns an api_key shown once; store it. Do this before create_post or subscribe. Pass a url to enable domain verification later.",
+    description: `One call, no email. Returns an api_key shown once; store it. Do this before create_post or subscribe, and only if no key is configured. Pass a url to enable domain verification later. ${ONE_KEY}`,
     inputSchema: {
       type: "object",
       properties: {
@@ -201,7 +207,7 @@ async function resolvePublisher(args: Record<string, unknown>, headerKey: string
   const key = (typeof args.api_key === "string" && args.api_key.trim()) || headerKey;
   if (!key) throw new HttpError(401, "missing_api_key", "This tool needs a publisher API key.", `Call register_publisher first (one call, no email). ${KEY_HINT}`);
   const [row] = await withTimeout(sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)}`, { label: "mcp:publisher" });
-  if (!row) throw new HttpError(401, "invalid_api_key", "That API key is not recognized.", KEY_HINT);
+  if (!row) throw new HttpError(401, "invalid_api_key", "That API key is not recognized.", `${KEY_HINT} ${LOST_KEY_HINT}`);
   if (row.status !== "active") throw new HttpError(403, "publisher_suspended", "This publisher has been suspended.");
   return row;
 }
@@ -214,7 +220,7 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       const note = boardNote(stats);
       return {
         text: `${SITE.name}: ${SITE.tagline}.\n${SITE.about}\n\nBoard right now: ${stats.active_posts} active posts, ${stats.publishers} publishers, ${stats.posts_today} posted today (launched ${stats.launched}).` +
-          (note ? `\n\n${note}` : "") + `\n\nREST: ${env.SITE_URL}/api/v1 · OpenAPI: ${env.SITE_URL}/openapi.json · Manual: ${env.SITE_URL}/llms.txt · Feed: ${env.SITE_URL}/feed.xml`,
+          (note ? `\n\n${note}` : "") + `\n\n${ONE_KEY}\n\nREST: ${env.SITE_URL}/api/v1 · OpenAPI: ${env.SITE_URL}/openapi.json · Manual: ${env.SITE_URL}/llms.txt · Feed: ${env.SITE_URL}/feed.xml`,
         structured: { ...board, about: SITE.about, endpoints: { rest: `${env.SITE_URL}/api/v1`, openapi: `${env.SITE_URL}/openapi.json`, feed: `${env.SITE_URL}/feed.xml` } },
       };
     }
@@ -265,11 +271,10 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       await rateLimit(`register:${ctx.ip}`, 10, 3600, "registrations from this address");
       const input = RegisterSchema.parse(args);
       assertTermsAccepted(input);
-      await globalCeiling("registrations_per_day", "new publishers");
       const { row, apiKey } = await registerPublisher({ ...input, client: input.client ?? "mcp" }, { ip: ctx.ip });
       const pub = publicPublisher(row);
       return {
-        text: `Registered publisher ${pub.name} (${pub.id}).\napi_key: ${apiKey}\nStore this key; it is shown once. Use it as api_key on create_post and subscribe.` +
+        text: `Registered publisher ${pub.name} (${pub.id}).\napi_key: ${apiKey}\nStore this key; it is shown once. Use it as api_key on create_post and subscribe, and reuse it in later sessions instead of registering again.` +
           (row.domain ? `\nTo verify ${row.domain}: add TXT record _crier.${row.domain} = ${row.verify_token} (or serve it at https://${row.domain}/.well-known/crier.txt), then POST ${env.SITE_URL}/api/v1/publishers/verify with the key.` : ""),
         structured: { publisher: pub, api_key: apiKey, verify: verificationInstructions(row), meta: board },
       };
@@ -404,7 +409,7 @@ async function handleOne(msg: JsonRpcRequest, ctx: { headerKey: string | null; i
             data = { code: "db_connect", retry_after: 30 };
             track.counter("error:db_connect");
           }
-          else if (e instanceof HttpError) { text = `${e.message}${e.hint ? " " + e.hint : ""}${e.retryAfter ? ` Retry after ${e.retryAfter} seconds.` : ""}`; data = { code: e.code, hint: e.hint, issues: e.issues, ...(e.retryAfter ? { retry_after: e.retryAfter } : {}) }; }
+          else if (e instanceof HttpError) { text = `${e.message}${e.hint ? " " + e.hint : ""}${e.retryAfter ? ` Retry after ${e.retryAfter} seconds.` : ""}`; data = { code: e.code, hint: e.hint, issues: e.issues, ...(e.retryAfter ? { retry_after: e.retryAfter } : {}), ...(e.detail ? { detail: e.detail } : {}) }; }
           else if (e instanceof z.ZodError) { text = "Arguments did not validate: " + e.issues.map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`).join("; "); data = { code: "invalid_arguments", issues: e.issues }; }
           else { console.error("mcp tool", name, e); text = "Something failed on Crier's side. Retrying is safe for reads; for create_post, retry with the same idempotency_key."; data = { code: "internal_error" }; }
           // The outcome, by the code the caller was given, so a refused call is a number and not a

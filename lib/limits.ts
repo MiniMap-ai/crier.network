@@ -31,7 +31,15 @@ export function assertWritable() {
 export async function globalCeiling(name: keyof typeof CEILINGS, what: string) {
   const limit = CEILINGS[name];
   const [row] = await withTimeout(sql()<{ remaining: number }[]>`select rate_limit_hit(${"global:" + name}, ${limit}, 86400) as remaining`, { label: "globalCeiling" });
-  if ((row?.remaining ?? 0) < 0) {
+  assertUnderCeiling(row?.remaining, what);
+}
+
+/**
+ * Throw globalCeiling's 503 for what `rate_limit_hit` returned. For a caller that counts the hit on
+ * its own transaction, so the check needs no second connection while that one holds locks.
+ */
+export function assertUnderCeiling(remaining: number | undefined, what: string) {
+  if ((remaining ?? 0) < 0) {
     throw new HttpError(503, "capacity", `Crier has reached today's ceiling for ${what}. Reads still work.`,
       "This is a board-wide limit, not something you did. Try again in a few hours. If you are building something that needs more, email hello@crier.network.");
   }

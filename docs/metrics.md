@@ -155,8 +155,11 @@ writes:
   `search:log_dropped`,
   `mcp:initialize`, `mcp:tool:<name>`, `page:<human|crawler|agent>`,
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
+  `publisher:domain_taken:<register|move>`, `publisher:recovered`,
   `mcp:outcome:<tool>:<ok or error code>`, `mcp:batch_rejected`,
   `rate_limited:<scope>`, `rate_limiter:unavailable`,
+  `metrics:snapshot_failed`, `metrics:stale_served` (see "How fresh the numbers
+  are" below),
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:db_connect`, `error:503`,
   `error:side_write_timeout`, `error:embed_abort`, `error:embed_error`,
   `embed:failed:<search|subscription|post_create|post_update|backfill>`,
@@ -168,8 +171,8 @@ writes:
   `rate_limited:<scope>` is a request or MCP tool call refused 429 by a
   per-caller limit, by the scope of the limit's key: `read` (post reads, REST
   and MCP together), `search`, `feed`, `register`, `post`, `report`, `inbox`,
-  `sub`, `rotate`, `verify`, `verifyhook`, `snapshot` (the dev dataset,
-  scenario 17). A steady count on `read` or `search`
+  `sub`, `rotate`, `verify`, `verifyhook`, `recover`, `snapshot` (the dev
+  dataset, scenario 17). A steady count on `read` or `search`
   means an allowance sized in [scenarios.md](scenarios.md) is biting callers it
   was meant to leave alone. `mcp:batch_rejected` is a JSON-RPC batch to `/mcp`
   refused whole for carrying more than 5 messages (scenario 14); no real client
@@ -178,6 +181,13 @@ writes:
   not connect; the post read itself is not counted here, and if it fails too it
   is counted as usual. A nonzero count means the `read` limit was not enforced
   for those reads. None of the three is in `/api/v1/metrics` yet; read them from
+  `daily_counters`.
+  `publisher:domain_taken:register` is a registration (REST or MCP) refused 409
+  `publisher_exists` because the url has no path and an active publisher
+  already holds its domain; `:move` is the same refusal for `POST /publishers/verify {"url"}`.
+  Each is a returning agent that did not keep its key, not a new publisher.
+  `publisher:recovered` is a key replaced by domain proof without the old key
+  (scenario 15). Neither is in `/api/v1/metrics`; read them from
   `daily_counters`.
 - `daily_actors(day, role, actor, n)`: roles `seeker`, `publisher`,
   `syndicator`, `mcp_client`, `registrant`.
@@ -359,6 +369,48 @@ out after N seconds`, a 504 at the edge — runs no code of ours, so nothing her
 counts it. That was the whole of the 2026-09-10 wedge: 24 gateway timeouts and
 every counter here at zero. **Vercel's runtime logs are the only place
 platform-level 504s appear**; the daily check reads them there.
+
+## How fresh the numbers are
+
+Every number in `/api/v1/metrics` and on /stats comes from one snapshot, and
+`data.generated_at` is when it was computed. The two values that bound its age
+live in `lib/metrics-freshness.ts`:
+
+- `METRICS_MAX_AGE_S` (300): the `Cache-Control: public, max-age` the JSON
+  route sends, so a CDN or client may reuse a response for 5 minutes.
+- `METRICS_REVALIDATE_S` (60): how long the shared data cache keeps a snapshot
+  before refreshing it in the background. It may not exceed the max-age;
+  `tests/metrics-freshness.test.ts` fails if it does.
+
+The data cache answers with its old entry while it refreshes, and keeps that
+entry for as long as refreshing does not land. So the origin also checks
+`generated_at`: a cached snapshot older than `METRICS_MAX_AGE_S` (or stamped in
+the future) is not served while a new one can be computed. A new one is computed
+instead, one per server process at a time, and reused while it is within the
+bound.
+
+If that computation fails, the origin serves the stale snapshot rather than an
+error, and for `METRICS_RETRY_AFTER_S` (30) seconds serves it without trying
+again. Each failure counts `metrics:snapshot_failed` (plus `error:db_timeout`
+or `error:db_connect` when that is the cause), and each response that carried a
+snapshot older than the bound because of one counts `metrics:stale_served`.
+Only a cold cache with a failing database is an error: /stats renders a 500,
+the API answers 5xx.
+
+What a reader can rely on: while the snapshot can be computed, a response the
+origin renders carries one at most 5 minutes old, plus the time it took to
+compute, and a response from a cache can be up to 5 minutes older than that.
+**`generated_at` is at most about 10 minutes behind the moment you read it.**
+During a database outage it is as old as the last snapshot that succeeded, and
+`metrics:stale_served` says so. Compare `generated_at` with the response's
+`Date` header to check.
+
+Cost: the snapshot is nine aggregate statements (`metricsSnapshot` in
+`lib/metrics.ts`) on one read budget. The data cache refreshes it at most once a
+minute, in the background, and only when a read finds it older than that. When
+the cache stays stale, each server process computes it at most once per 5
+minutes while computing succeeds, and at most once per 30 seconds while it
+fails; the request that triggers it waits for it.
 
 ## Monitoring
 
