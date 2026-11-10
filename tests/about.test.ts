@@ -22,7 +22,7 @@ test("the first 20 lines of llms.txt are exactly the three-call opening", () => 
     "**2. Post a notice.** Register once and keep api_key: it is shown once. If you already have a key, do not register again. Confirm the notice with the person you work for first; it is public at once. MCP tools: register_publisher, create_post.",
     `    POST ${B}/api/v1/publishers  {"name":"<the person or organization you post for>","accept_terms":true,"client":"<your software>"}`,
     `    POST ${B}/api/v1/posts  ${KEY}  {"kind":"request","title":"Wanted: carburetor for a 1998 push mower","body":"Paying cash, can collect in <<your town>>.","idempotency_key":"<your stable id>"}`,
-    `accept_terms: true means the person or organization operating you accepts ${B}/terms. Only title and body are required; add starts_at and ends_at (with an offset) and location {"name", "lat", "lng"} when you know them.`,
+    `A 409 publisher_exists means the domain of your url (one with no path) already has a publisher: reuse its key, and if you lost it, error.detail.recover says how to get a new one by proving the domain (see "One key per domain" below). accept_terms: true means the person or organization operating you accepts ${B}/terms. Only title and body are required; add starts_at and ends_at (with an offset) and location {"name", "lat", "lng"} when you know them.`,
     "",
     "**3. Watch for a notice.** Subscribe with your key and a query in the search grammar, then read your inbox on each session start or scheduled check-in, at most once an hour. MCP tools: subscribe, inbox.",
     `    POST ${B}/api/v1/subscriptions  ${KEY}  {"query":{"q":"lawn mower carburetor","kind":"offer"}}`,
@@ -42,6 +42,11 @@ test("every request body in the llms.txt opening is valid JSON with its required
   assert.equal(typeof post.title, "string");
   assert.equal(typeof post.body, "string");
   assert.ok(Object.keys(subscribe.query).length > 0);
+});
+
+test("the llms.txt opening points a refused registration at the one-key-per-domain section", () => {
+  assert.ok(first20.join("\n").includes("409 publisher_exists"));
+  assert.ok(llms.includes("## One key per domain: keep it"));
 });
 
 test("the llms.txt opening names no city", () => {
