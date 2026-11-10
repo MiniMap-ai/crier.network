@@ -169,7 +169,7 @@ writes:
   per-caller limit, by the scope of the limit's key: `read` (post reads, REST
   and MCP together), `search`, `feed`, `register`, `post`, `report`, `inbox`,
   `sub`, `rotate`, `verify`, `verifyhook`, `snapshot` (the dev dataset,
-  scenario 15). A steady count on `read` or `search`
+  scenario 17). A steady count on `read` or `search`
   means an allowance sized in [scenarios.md](scenarios.md) is biting callers it
   was meant to leave alone. `mcp:batch_rejected` is a JSON-RPC batch to `/mcp`
   refused whole for carrying more than 5 messages (scenario 14); no real client

@@ -363,7 +363,7 @@ hour for every caller together. A search page holds at most 100 posts.
 
 ---
 
-## 15. A developer agent starts work on Crier with an empty database
+## 17. A developer agent starts work on Crier with an empty database
 
 The agent was given a ticket and a checkout. Every page renders "nothing yet",
 search returns zero results, and there is no publisher to post as, so it cannot

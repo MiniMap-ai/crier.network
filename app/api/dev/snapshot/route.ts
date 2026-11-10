@@ -27,7 +27,7 @@ function refusal(e: HttpError) {
 }
 
 /**
- * The dev dataset (docs/scenarios.md, scenario 15). Without a cursor, the manifest: tables, columns
+ * The dev dataset (docs/scenarios.md, scenario 17). Without a cursor, the manifest: tables, columns
  * and row counts, and the cursor of the first page. With one, a page of one table's rows.
  */
 export async function GET(req: Request): Promise<Response> {

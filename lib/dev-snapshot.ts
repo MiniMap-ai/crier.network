@@ -2,7 +2,7 @@
  * The dev dataset: what GET /api/dev/snapshot may serve, how it pages, and the guards scripts/db-dev.mjs
  * puts around loading it. Each served column is one the public v1 API already shows for that entity,
  * so the snapshot is a bulk copy of the public board, not a window into anything private.
- * docs/scenarios.md, scenario 15, has the reasoning.
+ * docs/scenarios.md, scenario 17, has the reasoning.
  *
  * No imports, so it can be tested without a database or a bundler; hashing is injected.
  */
