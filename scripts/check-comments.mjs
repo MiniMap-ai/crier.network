@@ -35,13 +35,20 @@ function addedLines(text) {
 }
 
 const isComment = (t) => /^\s*(\/\/|\/\*|\*)/.test(t);
+/** The comment after code on the same line, if any; `://` inside a URL is not one. */
+const trailingComment = (t) => /(?:^|[^:])\/\/(.*)$/.exec(t)?.[1];
 const problems = [];
 
 for (const [file, lines] of addedLines(diff)) {
   let code = 0, comments = 0, block = null;
   for (const { line, text } of lines) {
     if (!text.trim()) continue;
-    if (!isComment(text)) { code++; block = null; continue; }
+    if (!isComment(text)) {
+      code++; block = null;
+      const tail = trailingComment(text);
+      if (tail !== undefined && DATE.test(tail)) problems.push(`${file}:${line}: a date in a comment is history; put it in docs/ or the commit message and state the rule here`);
+      continue;
+    }
     comments++;
     if (DATE.test(text)) problems.push(`${file}:${line}: a date in a comment is history; put it in docs/ or the commit message and state the rule here`);
     if (block && block.end === line - 1) { block.end = line; block.n++; } else block = { start: line, end: line, n: 1, reported: false };
