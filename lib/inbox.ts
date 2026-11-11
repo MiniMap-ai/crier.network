@@ -2,11 +2,13 @@
  * The publisher inbox: everything addressed to a publisher since a cursor, in one call.
  * Three sources, one keyset over (at, type, id). Nothing is consumed server-side; the cursor is the caller's.
  */
-import { sql, withTimeout } from "./db";
+import { Budget, DB_SIDE_TIMEOUT_MS, isDbFailure, sql, withTimeout } from "./db";
+import { env } from "./env";
 import { decodeCursor, encodeCursor } from "./http";
-import { track } from "./metrics";
+import { noteDbTimeout, track } from "./metrics";
 import { POST_COLUMNS, PostRow, PublicPost, publicPost } from "./posts";
 import { PublisherRow } from "./publishers";
+import { REACH_POST_LIMIT, Reach, ReachRow, reachFrom, readReach } from "./reach";
 
 export type InboxItemType = "reply" | "match" | "thread_activity";
 
@@ -30,8 +32,9 @@ type Row = PostRow & { item_type: InboxItemType; item_at: Date; item_id: string;
  * match: a delivery row for one of the publisher's active subscriptions (any status), for a post by someone else.
  * thread_activity: a reply by someone else in a thread (owned by someone else) that the publisher has replied in.
  * Hidden and deleted posts are excluded everywhere: the item itself, the parent thread, and the publisher's own participation.
+ * The read waits on `at`, the budget it shares with reachFor.
  */
-export async function inboxFor(publisher: PublisherRow, cursor: string | undefined, limit: number): Promise<{ items: InboxItem[]; next_cursor: string | null }> {
+export async function inboxFor(publisher: PublisherRow, cursor: string | undefined, limit: number, at: Budget): Promise<{ items: InboxItem[]; next_cursor: string | null }> {
   const cur = decodeCursor<Cursor>(cursor);
   const valid = cur && typeof cur.at === "string" && !Number.isNaN(Date.parse(cur.at)) && typeof cur.type === "string" && typeof cur.id === "string";
   const rows = await withTimeout(sql().unsafe<Row[]>(
@@ -56,7 +59,7 @@ export async function inboxFor(publisher: PublisherRow, cursor: string | undefin
       where $2::timestamptz is null or (i.item_at, i.item_type, i.item_id) > ($2::timestamptz, $3::text, $4::text)
       order by i.item_at asc, i.item_type asc, i.item_id asc
       limit $5`,
-    [publisher.id, valid ? new Date(cur.at) : null, valid ? cur.type : null, valid ? cur.id : null, limit]), { label: "inbox" });
+    [publisher.id, valid ? new Date(cur.at) : null, valid ? cur.type : null, valid ? cur.id : null, limit]), at("inbox"));
   const items: InboxItem[] = rows.map((r) => {
     const it: InboxItem = {
       type: r.item_type,
@@ -72,6 +75,35 @@ export async function inboxFor(publisher: PublisherRow, cursor: string | undefin
   track.counter(`heartbeat:client:${(publisher.client || "unknown").slice(0, 60)}`);
   track.actor("heartbeat", publisher.id);
   return { items, next_cursor: items.length < limit ? null : items[items.length - 1].cursor };
+}
+
+/**
+ * The inbox's `reach` section for this publisher, read after the items on what is left of the same
+ * budget `at`, so an inbox call holds one connection at a time and waits no longer than it did
+ * without reach. Resolves undefined, never rejects, when reach is left out: too little budget left,
+ * a database failure (counted as a dropped read under `where`), or any other error (logged under
+ * `where` and counted). lib/reach.ts, `readReach`, is the policy.
+ */
+export function reachFor(publisher: PublisherRow, at: Budget, where: string): Promise<Reach | undefined> {
+  const { ms: remainingMs, label } = at("inbox:reach");
+  // `live` lets the partial index on live rows serve a publisher with a long history; the sweep
+  // that clears it runs once a minute, so the clock is still checked.
+  const read = async (ms: number) => reachFrom(await withTimeout(sql()<ReachRow[]>`
+      select id, title, kind, created_at, expires_at, views, retrievals, reply_count,
+             count(*) over () as total_posts, sum(views) over () as total_views,
+             sum(retrievals) over () as total_retrievals, sum(reply_count) over () as total_replies
+        from posts
+       where publisher_id = ${publisher.id} and parent_id is null and live
+         and deleted_at is null and hidden_at is null and expires_at > now()
+       order by created_at desc, id desc
+       limit ${REACH_POST_LIMIT}`, { ms, label }), env.SITE_URL);
+  return readReach(remainingMs, read, {
+    capMs: DB_SIDE_TIMEOUT_MS,
+    isDbFailure,
+    noteDbFailure: (e) => noteDbTimeout(where, e),
+    count: (key) => track.counter(key),
+    logError: (e) => console.error("dropped read failed", where, e),
+  });
 }
 
 export function clampLimit(v: unknown, dflt = 50): number {

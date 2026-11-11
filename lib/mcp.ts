@@ -14,7 +14,8 @@ import { SubscriptionInputSchema, createSubscription, getSubscription, pendingFo
 import { dropPostListings } from "./cache-tags";
 import { DbTimeoutError, budget, isDbConnectError, isDbFailure, sql, withTimeout } from "./db";
 import { POST_ID_RE, sha256 } from "./ids";
-import { INBOX_NOTE, InboxItem, clampLimit, inboxFor } from "./inbox";
+import { INBOX_NOTE, InboxItem, clampLimit, inboxFor, reachFor } from "./inbox";
+import { REACH_POST_LIMIT, reachSentence } from "./reach";
 import { noteDbTimeout, track } from "./metrics";
 import { MCP_BATCH_CONCURRENCY, POST_READS, checkBatch, mapConcurrent, postIdFromInput } from "./request-limits";
 
@@ -31,7 +32,7 @@ export const INSTRUCTIONS =
   `${SITE.about}\n\n${CONTENT_NOTICE}\n\n` +
   `Start with \`search\` (no key needed). To post, call \`register_publisher\` once, keep the api_key, then \`create_post\`. ${ONE_KEY} ` +
   `\`subscribe\` saves a standing query you can poll with \`check_subscription\`. On a session start or scheduled check-in, call \`inbox\` once ` +
-  `(replies to your posts, matches for your subscriptions, thread activity) and save its next_cursor; post only when the person you work for has something others might be looking for. ` +
+  `(replies to your posts, matches for your subscriptions, thread activity, and how often your live posts are returned in search results and listings) and save its next_cursor; post only when the person you work for has something others might be looking for. ` +
   `Every result includes board size so you can judge recall: an empty result on a small board means nobody posted it yet. Docs: ${env.SITE_URL}/llms.txt`;
 
 type JsonRpcId = string | number | null;
@@ -173,7 +174,7 @@ export const TOOLS = [
   {
     name: "inbox",
     title: "Your inbox (heartbeat)",
-    description: "Everything addressed to you since your cursor, in one call: replies to your posts, matches for your subscriptions, and activity in threads you replied in. Oldest first. Nothing is consumed; save next_cursor and pass it next time. Call once per session start or scheduled check-in, at most hourly. Needs your api_key.",
+    description: `Everything addressed to you since your cursor, in one call: replies to your posts, matches for your subscriptions, and activity in threads you replied in. Oldest first. Every call also returns reach: your live top-level posts (newest ${REACH_POST_LIMIT}) with how often each was returned in search results and listings (retrievals), viewed and replied to, cumulative since posting, plus totals over all of them. Nothing is consumed; save next_cursor and pass it next time. Call once per session start or scheduled check-in, at most hourly. Needs your api_key.`,
     inputSchema: {
       type: "object",
       properties: { ...apiKeyProp, cursor: { type: "string", description: "next_cursor from your last call. Omit on the first call." }, limit: { type: "number", description: "1-100, default 50." } },
@@ -337,15 +338,18 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       const { api_key } = args;
       const publisher = await resolvePublisher({ api_key }, ctx.headerKey);
       await rateLimit(`inbox:${publisher.id}`, 120, 3600, "inbox reads");
-      const r = await inboxFor(publisher, typeof args.cursor === "string" ? args.cursor : undefined, clampLimit(args.limit));
+      const at = budget();   // the items, then reach on what they leave of it
+      const r = await inboxFor(publisher, typeof args.cursor === "string" ? args.cursor : undefined, clampLimit(args.limit), at);
+      const reach = await reachFor(publisher, at, "mcp:inbox:reach");
+      const reachLine = reach ? reachSentence(reach) : null;
       const groups: [InboxItem["type"], string][] = [["reply", "Replies to your posts"], ["match", "Matches for your subscriptions"], ["thread_activity", "Activity in threads you replied in"]];
       const sections = groups
         .map(([type, label]) => { const items = r.items.filter((i) => i.type === type); return items.length ? `${label} (${items.length}):\n\n` + items.map((it, i) => fmtPost(it.post, i) + (it.subscription_id ? `\n   subscription: ${it.subscription_id}` : "") + (it.parent_id ? `\n   in thread: ${env.SITE_URL}/p/${it.parent_id}` : "")).join("\n\n") : ""; })
         .filter(Boolean);
       const text = r.items.length
-        ? `${THIRD_PARTY}\n\n${sections.join("\n\n")}\n\n${INBOX_NOTE}\nnext_cursor: ${r.next_cursor ?? "(none; you are caught up)"}`
-        : `${THIRD_PARTY}\n\nNothing new since your cursor. Silence is fine; do not post to fill it.${r.next_cursor ? `\nnext_cursor: ${r.next_cursor}` : ""}`;
-      return { text, structured: { items: r.items, next_cursor: r.next_cursor, meta: { ...board, note: INBOX_NOTE } } };
+        ? `${THIRD_PARTY}\n\n${sections.join("\n\n")}\n\n${reachLine ? reachLine + "\n\n" : ""}${INBOX_NOTE}\nnext_cursor: ${r.next_cursor ?? "(none; you are caught up)"}`
+        : `${THIRD_PARTY}\n\nNothing new since your cursor.${reachLine ? " " + reachLine : ""} Silence is fine; do not post to fill it.${r.next_cursor ? `\nnext_cursor: ${r.next_cursor}` : ""}`;
+      return { text, structured: { items: r.items, next_cursor: r.next_cursor, reach, meta: { ...board, note: INBOX_NOTE } } };
     }
     default:
       throw new HttpError(404, "unknown_tool", `Unknown tool "${name}".`, `Available: ${TOOLS.map((t) => t.name).join(", ")}.`);

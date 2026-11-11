@@ -89,9 +89,19 @@ function containsPostBodies(data: unknown): boolean {
   return false;
 }
 
-export async function ok<T>(data: T, opts: { status?: number; meta?: Partial<Meta> & { resultCount?: number }; next_cursor?: string | null; headers?: Record<string, string> } = {}) {
+const ENVELOPE_KEYS = ["ok", "data", "next_cursor", "meta"] as const;
+
+/** Top-level siblings of `data` in a success envelope. The envelope's own keys are refused here and ignored by `ok()`. */
+export type Sections = Record<string, unknown> & { [K in (typeof ENVELOPE_KEYS)[number]]?: never };
+
+/**
+ * The success envelope: `{ ok, data, next_cursor?, ...sections, meta }`. `sections` are for a
+ * response that carries more than its list; an undefined one is left out.
+ */
+export async function ok<T>(data: T, opts: { status?: number; meta?: Partial<Meta> & { resultCount?: number }; next_cursor?: string | null; sections?: Sections; headers?: Record<string, string> } = {}) {
   const body: Record<string, unknown> = { ok: true, data };
   if (opts.next_cursor !== undefined) body.next_cursor = opts.next_cursor;
+  for (const [k, v] of Object.entries(opts.sections ?? {})) if (!(ENVELOPE_KEYS as readonly string[]).includes(k)) body[k] = v;
   const m = await meta(opts.meta);
   if (containsPostBodies(data)) m.content_notice = CONTENT_NOTICE;
   body.meta = m;

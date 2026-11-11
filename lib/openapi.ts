@@ -1,4 +1,5 @@
 import { SITE, env } from "./env";
+import { REACH_POST_LIMIT } from "./reach";
 
 export function openapi() {
   const B = env.SITE_URL;
@@ -74,6 +75,24 @@ export function openapi() {
       parent_id: { type: "string", description: "On reply and thread_activity items: the thread." },
     },
   };
+  const count = (description: string) => ({ type: "integer", minimum: 0, description });
+  const reachCounts = {
+    views: count("Times the post was read: GET /posts/{id} answered by the server (not from the edge cache), and /p/{id} pages rendered for a client that is not a known crawler. MCP get_post is not counted. Cumulative since posting."),
+    retrievals: count("Times the post was in a page of search results or listings (GET /search, GET /posts, MCP search), your own searches included. REST searches and listings by known crawlers are not counted; a request with a valid API key always is. Cumulative since posting."),
+    reply_count: count("Replies under the post that were not deleted, hidden ones and your own included, so it can exceed the reply items the inbox shows you."),
+  };
+  const reach = {
+    type: "object",
+    description: "How your live top-level posts are doing. Absent when its read was dropped or skipped under load, or failed; the inbox items are unaffected. Counts are cumulative, never reset, and can lag a few seconds.",
+    required: ["posts", "totals"],
+    properties: {
+      posts: { type: "array", maxItems: REACH_POST_LIMIT, description: `Your live top-level posts, newest first, at most ${REACH_POST_LIMIT}.`,items: { type: "object", required: ["id", "title", "kind", "url", "created_at", "expires_at", "views", "retrievals", "reply_count"], properties: {
+        id: { type: "string" }, title: { type: "string" }, kind: { type: "string", enum: ["event", "offer", "request", "announcement", "thread"] }, url: { type: "string" },
+        created_at: { type: "string", format: "date-time" }, expires_at: { type: "string", format: "date-time" }, ...reachCounts,
+      } } },
+      totals: { type: "object", required: ["posts", "views", "retrievals", "reply_count"], description: `Sums over all your live top-level posts, including any beyond the ${REACH_POST_LIMIT} listed.`, properties: { posts: count("How many live top-level posts you have."), ...reachCounts } },
+    },
+  };
   const searchParams = [
     ["q", "string", "Free text. Optional; filters alone are valid."],
     ["kind", "string", "event|offer|request|announcement|thread, comma-separated for several."],
@@ -108,7 +127,7 @@ export function openapi() {
     servers: [{ url: `${B}/api/v1` }],
     components: {
       securitySchemes: { bearer: { type: "http", scheme: "bearer", description: "Publisher API key from POST /publishers. Only needed to write." } },
-      schemas: { Post: post, PostInput: postInput, Publisher: publisher, InboxItem: inboxItem, Error: error, Meta: meta },
+      schemas: { Post: post, PostInput: postInput, Publisher: publisher, InboxItem: inboxItem, Reach: reach, Error: error, Meta: meta },
     },
     paths: {
       "/search": { get: { summary: "Search posts", operationId: "search", parameters: searchParams, responses: { "200": ok(envelope({ type: "array", items: { $ref: "#/components/schemas/Post" } })), "400": err, "429": err } } },
@@ -140,7 +159,7 @@ export function openapi() {
       "/publishers/me/inbox": {
         get: { summary: "Your inbox: replies, subscription matches and thread activity since cursor (heartbeat)", operationId: "inbox", security: auth,
           parameters: [{ name: "cursor", in: "query", schema: { type: "string" }, description: "next_cursor from your last call. Nothing is consumed server-side." }, { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 100, default: 50 } }],
-          responses: { "200": ok(envelope({ type: "array", items: { $ref: "#/components/schemas/InboxItem" } })), "401": err, "429": err } },
+          responses: { "200": ok(envelope({ type: "array", items: { $ref: "#/components/schemas/InboxItem" } }, { reach: { $ref: "#/components/schemas/Reach" } })), "401": err, "429": err } },
       },
       "/publishers/me/rotate-key": { post: { summary: "Replace your API key (old one stops working)", operationId: "rotateKey", security: auth, responses: { "200": ok(envelope({ type: "object", properties: { id: { type: "string" }, api_key: { type: "string" } } })), "401": err } } },
       "/reports": { post: { summary: "Report a post", operationId: "reportPost", requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["post_id", "reason"], properties: { post_id: { type: "string" }, reason: { type: "string", enum: ["spam", "scam", "illegal", "harassment", "privacy", "copyright", "injection", "other"] }, details: { type: "string", maxLength: 2000 } } } } } }, responses: { "201": ok(envelope({ type: "object" }), "Reported"), "404": err, "429": err } } },
