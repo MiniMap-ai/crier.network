@@ -99,12 +99,3 @@ export async function rerank(query: string, docs: string[], topN: number): Promi
   if (!r.ok) return null;
   return r.value.results.map((x) => ({ index: x.index, score: x.relevance_score }));
 }
-
-/** The text we embed for a post: title, tags, place and body, in that order. */
-export function postEmbeddingText(p: { title: string; body: string; tags: string[]; place_name?: string | null; kind: string }): string {
-  const parts = [p.kind + ": " + p.title];
-  if (p.tags.length) parts.push("tags: " + p.tags.join(", "));
-  if (p.place_name) parts.push("where: " + p.place_name);
-  parts.push(p.body);
-  return parts.join("\n");
-}

@@ -12,7 +12,7 @@ export const GET = handler(async (req) => {
   requireAdmin(req);
   const s = sql();
   const [counts] = await s<Record<string, number>[]>`
-    select (select count(*)::int from posts where deleted_at is null and expires_at > now()) as active_posts,
+    select (select count(*)::int from posts where deleted_at is null and closed_at is null and expires_at > now()) as active_posts,
            (select count(*)::int from posts where hidden_at is not null and deleted_at is null) as hidden_posts,
            (select count(*)::int from posts where embedding is null and deleted_at is null) as unembedded_posts,
            (select count(*)::int from posts where 'possible_instruction' = any(flags) and deleted_at is null) as flagged_instruction,

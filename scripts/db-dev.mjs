@@ -144,7 +144,7 @@ async function load(data) {
       await insert(tx, "reports", plan.reports);
       await insert(tx, "search_log", plan.search_log);
       await insert(tx, "unmet_queries", plan.unmet_queries);
-      await tx`update posts set live = (deleted_at is null and hidden_at is null and expires_at > now())`;
+      await tx`update posts set live = (deleted_at is null and hidden_at is null and closed_at is null and expires_at > now())`;
       await tx`update posts p set report_count = r.n from (select post_id, count(*)::int as n from reports group by post_id) r where r.post_id = p.id`;
     });
   } finally { await db.end(); }

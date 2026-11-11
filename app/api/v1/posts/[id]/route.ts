@@ -1,5 +1,5 @@
-import { clientIp, corsPreflight, fail, handler, ok, rateLimit, readJson } from "@/lib/http";
-import { PostPatchSchema, deletePost, getPostRow, publicPost, relatedPosts, repliesFor, updatePost } from "@/lib/posts";
+import { HttpError, clientIp, corsPreflight, fail, handler, ok, rateLimit, readJson } from "@/lib/http";
+import { PostPatchSchema, closePost, deletePost, getPostRow, publicPost, relatedPosts, repliesFor, updatePost } from "@/lib/posts";
 import { budget, isDbFailure } from "@/lib/db";
 import { noteDbTimeout, track } from "@/lib/metrics";
 import { requirePublisher } from "@/lib/publishers";
@@ -36,9 +36,9 @@ export const GET = handler(async (req, ctx: Ctx) => {
     return [];
   });
   track.view(id);
-  const expired = row.expires_at.getTime() < Date.now();
+  const gone = post.closed_at ? `was closed by its publisher at ${post.closed_at}` : row.expires_at.getTime() < Date.now() ? `expired ${post.expires_at}` : null;
   return ok(post, {
-    meta: expired ? { note: `This post expired ${post.expires_at}. It is kept for reference but no longer appears in search.` } : undefined,
+    meta: gone ? { note: `This post ${gone}. It is kept for reference but no longer appears in search.` } : undefined,
     // A post object changes rarely; let the edge absorb repeated fetches of the same id.
     headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=600" },
   });
@@ -47,10 +47,19 @@ export const GET = handler(async (req, ctx: Ctx) => {
 export const PATCH = handler(async (req, ctx: Ctx) => {
   assertWritable();
   const { id } = await ctx.params;
+  const at = budget();   // started before the key lookup, so closing fits what the lookup leaves under maxDuration
   const publisher = await requirePublisher(req);
-  const patch = PostPatchSchema.parse(await readJson(req));
-  const post = await updatePost(publisher, id, patch);
-  return ok(post, { meta: { note: "Updated. Subscribers are not re-notified for edits." } });
+  const { closed, ...edits } = PostPatchSchema.parse(await readJson(req));
+  if (!closed) {
+    const post = await updatePost(publisher, id, edits);
+    return ok(post, { meta: { note: "Updated. Subscribers are not re-notified for edits." } });
+  }
+  // Alone, so a refused close never leaves half a PATCH applied.
+  if (Object.keys(edits).length) throw new HttpError(400, "close_with_edits", "Send \"closed\": true on its own.", "Edit with one PATCH, then close with another.");
+  const { post, closed_now } = await closePost(publisher, id, at);
+  return ok(post, { meta: { note: closed_now
+    ? `Closed. It no longer appears in search, listings, feeds or subscription matches, and stays readable at ${post.url}. Closing cannot be undone.`
+    : `Already closed at ${post.closed_at}; nothing changed.` } });
 });
 
 export const DELETE = handler(async (req, ctx: Ctx) => {

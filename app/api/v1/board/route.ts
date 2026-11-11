@@ -12,8 +12,8 @@ export const OPTIONS = () => corsPreflight();
 export const GET = handler(async () => {
   const at = budget();   // three statements, one budget between them
   const [kinds, tags, days] = await Promise.all([
-    withTimeout(sql()<{ kind: string; n: number }[]>`select kind, count(*)::int as n from posts where deleted_at is null and expires_at > now() group by kind order by n desc`, at("board:kinds")),
-    withTimeout(sql()<{ tag: string; n: number }[]>`select t as tag, count(*)::int as n from posts, unnest(tags) t where deleted_at is null and expires_at > now() group by t order by n desc limit 25`, at("board:tags")),
+    withTimeout(sql()<{ kind: string; n: number }[]>`select kind, count(*)::int as n from posts where deleted_at is null and closed_at is null and expires_at > now() group by kind order by n desc`, at("board:kinds")),
+    withTimeout(sql()<{ tag: string; n: number }[]>`select t as tag, count(*)::int as n from posts, unnest(tags) t where deleted_at is null and closed_at is null and expires_at > now() group by t order by n desc limit 25`, at("board:tags")),
     withTimeout(sql()<{ day: string; searches: number; posts: number; registrations: number }[]>`select day::text, searches::int, posts::int, registrations::int from stats_daily order by day desc limit 14`, at("board:days")),
   ]);
   return ok({

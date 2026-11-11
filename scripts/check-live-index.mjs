@@ -103,6 +103,13 @@ try {
   await sql`update posts set hidden_at = null where id = ${probe}`;
   const [afterUnhide] = await sql`select live from posts where id = ${probe}`;
   check(afterUnhide.live === true, "update trigger: unhiding restores live while the post is in date");
+  await sql`update posts set closed_at = now() where id = ${probe}`;
+  const [afterClose] = await sql`select live from posts where id = ${probe}`;
+  check(afterClose.live === false, "update trigger: closing clears live");
+  await sql`update posts set expires_at = now() + interval '2 hours' where id = ${probe}`;
+  const [closedExtended] = await sql`select live from posts where id = ${probe}`;
+  check(closedExtended.live === false, "update trigger: extending a closed post's expiry leaves it out of live");
+  await sql`update posts set closed_at = null where id = ${probe}`;
   // The clock, which the trigger cannot see: a row that was in date when written and has since passed.
   await sql`update posts set live = true, expires_at = now() + interval '1 second' where id = ${probe}`;
   await new Promise((r) => setTimeout(r, 1200));
