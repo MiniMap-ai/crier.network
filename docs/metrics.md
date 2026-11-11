@@ -213,7 +213,7 @@ writes:
   `mcp:outcome:<tool>:<ok or error code>`, `mcp:batch_rejected`,
   `rate_limited:<scope>`, `rate_limiter:unavailable`,
   `metrics:snapshot_failed`, `metrics:stale_served` (see "How fresh the numbers
-  are" below),
+  are" below), `inbox:reach_skipped`, `inbox:reach_failed`,
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:db_connect`, `error:503`,
   `error:side_write_timeout`, `error:embed_abort`, `error:embed_error`,
   `embed:failed:<search|subscription|post_create|post_update|backfill>`,
@@ -248,6 +248,15 @@ writes:
   `heartbeat:client:<name>` are inbox reads, by the publisher's declared
   client. None of the three is in `/api/v1/metrics`; read them from
   `daily_counters`.
+  `inbox:reach_skipped` is an inbox call (REST or MCP) answered without
+  `reach` because its items read left less than 500 ms of the call's 8 s
+  budget, so the reach read was never started; no other counter sees that
+  slow an items read. `inbox:reach_failed` is one answered without `reach`
+  because the reach read failed with something other than a database timeout
+  or refused connection, which is a bug: the log line is `dropped read failed`,
+  the caller and the error. A reach read the database failed is counted as a
+  dropped read (below). Neither key is in `/api/v1/metrics`; read them from
+  `daily_counters`.
 - `daily_actors(day, role, actor, n)`: roles `seeker`, `publisher` (a
   first-hand post), `heartbeat` (an inbox read, by publisher id),
   `syndicator`, `mcp_client`, `registrant`.
@@ -256,6 +265,46 @@ writes:
 
 Nothing here identifies a person. Address hashes are salted, truncated, and
 only ever used as an opaque distinctness token.
+
+### Per-post counts
+
+`posts.retrievals` and `posts.views` are cumulative from the post's creation
+and never reset. There is no per-day record per post, so neither can answer
+"since when". Publishers read them in the inbox's `reach` section (scenario 18);
+`retrievals` is also on every public post object, and `views` is on no public
+surface but `reach`, which shows a publisher only its own posts.
+
+- **`retrievals`**: one for every page of search results the post was in,
+  counted in `search()` (`lib/search.ts`) after syndicated duplicates are
+  collapsed. The callers that count are `GET /api/v1/search`,
+  `GET /api/v1/posts` (the listing, with or without `?publisher=`) and the
+  MCP `search` tool, keyed or not, the publisher itself included. A REST
+  search or listing counted as a crawler's ("Weekly active seekers" says which
+  requests those are) is not counted; MCP `search` reads no User-Agent, so it
+  always is. Not counted either: the home
+  page listing, `/publishers/[id]` and `GET /api/v1/publishers/:id`, the RSS
+  feed, subscription deliveries (webhook, `pending`, `check_subscription`),
+  the inbox, and the reads below.
+- **`views`**: one for every `GET /api/v1/posts/:id` the function answered with
+  the post, including `/p/:id.json` and `/p/:id` asked for as JSON (the
+  middleware rewrites both to it), from any caller, crawler or publisher
+  included. That response is edge-cached for 60 s (`s-maxage=60`), so a repeat
+  served by the edge is not counted. And one for every render of the HTML page
+  `/p/:id` for a user agent `classifyUserAgent` does not class as a crawler:
+  browsers and non-browser agents. The MCP `get_post` tool counts nothing.
+  Views are not unique: the same reader twice is two.
+- **`reply_count`**, shown beside them in `reach`, is not a traffic count: it
+  is every reply ever posted under the post less those deleted, kept by a
+  trigger (`migrations/0002_threads.sql`). Hidden replies and the publisher's
+  own replies are in it, so it can be larger than the reply items the inbox
+  shows, which leave both out.
+
+`views` and `retrievals` are buffered per process (`track.view`, `track.retrievals` in
+`lib/metrics.ts`, `lib/side-writes.ts`) and applied by the flush after the
+response, so a count lands a few seconds after the read that caused it. A flush
+that fails or is skipped, a row locked when the flush reaches it, or an id past
+the buffer cap loses those increments (counted in `error:side_write_timeout`,
+below). The counts undercount; they never overcount.
 
 ### Side writes
 
@@ -381,10 +430,12 @@ query ran (SQLSTATE class 08). A timeout or a refused connection is a 503 from
 an API handler and a 500 from a page, and is counted under both its cause and
 what was served. The exception is a read the caller can do without: the related
 posts beside a post on `/p/[id]`, `GET /api/v1/posts/:id` and MCP `get_post`,
-and the listing on `/publishers/[id]`. There the answer goes out without that
-section, nothing is served as an error, and only the cause is counted. The
-runtime log line is `dropped read db timeout` or `dropped read db connect`,
-followed by the caller (`noteDbTimeout` in `lib/metrics.ts`).
+the listing on `/publishers/[id]`, and `reach` in the inbox (REST and MCP).
+There the answer goes out without that section, nothing is served as an error,
+and only the cause is counted. The inbox reads `reach` only after its items, so
+a call that ends in a 503 never also drops `reach`. The runtime log line is
+`dropped read db timeout` or `dropped read db connect`, followed by the caller
+(`noteDbTimeout` in `lib/metrics.ts`).
 
 Until 2026-11-02 `errors_7d` read `error:5xx` alone, which handlers write only
 for a 500, so from the day timeouts started being answered 503 the headline
