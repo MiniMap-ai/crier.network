@@ -217,12 +217,15 @@ export async function getPublisher(id: string, at: Budget = budget()): Promise<P
   return row ?? null;
 }
 
-/** The caller's publisher if a valid key was sent, else null. Never throws. */
-export async function optionalPublisher(req: Request): Promise<PublisherRow | null> {
+/**
+ * The caller's publisher if a valid key was sent, else null. Never throws. A request with no key
+ * makes no query. A caller that reads something else after this passes its budget in.
+ */
+export async function optionalPublisher(req: Request, at: Budget = budget()): Promise<PublisherRow | null> {
   const key = bearer(req);
   if (!key) return null;
   try {
-    const [row] = await withTimeout(sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)} and status = 'active'`, { label: "optionalPublisher" });
+    const [row] = await withTimeout(sql()<PublisherRow[]>`select * from publishers where api_key_hash = ${sha256(key)} and status = 'active'`, at("optionalPublisher"));
     return row ?? null;
   } catch { return null; }
 }

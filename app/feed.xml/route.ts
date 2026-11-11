@@ -3,6 +3,9 @@ import { clientIp, handler, rateLimit } from "@/lib/http";
 import { globalCeiling } from "@/lib/limits";
 import { track } from "@/lib/metrics";
 import { describeQuery, parseSearchQuery, search } from "@/lib/search";
+import { optionalPublisher } from "@/lib/publishers";
+import { budget } from "@/lib/db";
+import { searchCounting } from "@/lib/user-agent";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,8 +21,11 @@ export const GET = handler(async (req) => {
   const url = new URL(req.url);
   const q = parseSearchQuery(url.searchParams);
   if (!q.limit) q.limit = 50;
-  const r = await search(q, { track: false });
-  track.search(q, r.posts.length, clientIp(req), "feed", false, r.embed_failed);
+  const at = budget();
+  const who = await optionalPublisher(req, at);
+  const r = await search(q, { track: false, at });
+  if (searchCounting(req.headers.get("user-agent"), !!who) === "crawler") track.counter("search:crawler");
+  else track.search(q, r.posts.length, who ? who.id : clientIp(req), "feed", !!who?.internal, r.embed_failed);
   const B = env.SITE_URL;
   const title = `${SITE.name}: ${describeQuery(q)}`;
   const items = r.posts.map((p) => {

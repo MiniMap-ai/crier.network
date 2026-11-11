@@ -10,6 +10,9 @@ import type { DemandRow, SearchSource } from "./search-log";
 import { describeBatch, isEmptyBatch, orderBatch, transactOnce, writeBatch } from "./flush-batch";
 import type { ActorCount, Begin, TxSql } from "./flush-batch";
 import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, hasPendingCounts, noteRetrievals, noteSideWriteLost, noteView } from "./side-writes";
+import { classifyUserAgent } from "./user-agent";
+
+export { classifyUserAgent };
 
 /* ---------------- recording (batched, fire-and-forget) ----------------
  *
@@ -159,8 +162,11 @@ export const track = {
   view(id: string) { noteView(id); scheduleFlush(); },
   /** A page of search results was handed out: one retrieval for each post in it. */
   retrievals(ids: readonly string[]) { noteRetrievals(ids); scheduleFlush(); },
-  /** actor is a publisher id, a salted address token (clientIp), or an MCP client name; never a raw address. Rows are purged after 90 days. */
-  actor(role: "seeker" | "publisher" | "syndicator" | "mcp_client" | "registrant", actor: string) { const k = role + ":" + actor; const cur = pendingActors.get(k); if (cur) cur.n++; else pendingActors.set(k, { role, actor, n: 1 }); scheduleFlush(); },
+  /**
+   * actor is a publisher id, a salted address token (clientIp), or an MCP client name; never a raw address. Rows are purged after 90 days.
+   * `publisher` means a first-hand post that day and nothing else; an inbox read is `heartbeat`.
+   */
+  actor(role: "seeker" | "publisher" | "heartbeat" | "syndicator" | "mcp_client" | "registrant", actor: string) { const k = role + ":" + actor; const cur = pendingActors.get(k); if (cur) cur.n++; else pendingActors.set(k, { role, actor, n: 1 }); scheduleFlush(); },
   /** A stats_daily column (searches, retrievals, ...), batched like counters. */
   stat(col: "searches" | "retrievals", n = 1) { pendingStats.set(col, (pendingStats.get(col) ?? 0) + n); scheduleFlush(); },
   /** Write everything pending now. Cron handlers call this so their tick is never lost. */
@@ -249,16 +255,6 @@ export function notePageFailure(where: string, e: unknown): void {
   console.error("page failed", where, cause ?? "unhandled", e instanceof Error ? e.message : String(e));
   track.counter("error:5xx");
   if (cause) track.counter(`error:${cause}`);
-}
-
-const CRAWLER_RE = /bot|crawl|spider|slurp|fetch|scan|archiver|preview|facebookexternalhit|embedly|quora link|pinterest|whatsapp|telegram|discord|skype|slack|twitter|linkedin|google|bing|yandex|baidu|duckduck|applebot|petalbot|semrush|ahrefs|mj12|dotbot|gptbot|claudebot|perplexity|anthropic|openai|ccbot|bytespider|amazonbot|cohere-ai|meta-external/i;
-const BROWSER_RE = /Mozilla\/5\.0 .*(Chrome|Safari|Firefox|Edg|OPR)\//;
-
-export function classifyUserAgent(ua: string | null): "human" | "crawler" | "agent" {
-  if (!ua) return "agent";
-  if (CRAWLER_RE.test(ua)) return "crawler";
-  if (BROWSER_RE.test(ua)) return "human";
-  return "agent";
 }
 
 /* ---------------- milestones ---------------- */

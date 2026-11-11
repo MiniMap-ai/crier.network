@@ -6,6 +6,8 @@ import { requirePublisher } from "@/lib/publishers";
 import { parseSearchQuery, restSearchNote, search } from "@/lib/search";
 import { env } from "@/lib/env";
 import { assertWritable, globalCeiling } from "@/lib/limits";
+import { budget } from "@/lib/db";
+import { searchCounting } from "@/lib/user-agent";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,8 +39,11 @@ export const GET = handler(async (req) => {
   await rateLimit(`search:${clientIp(req)}`, 600, 600, "searches from this address");
   await globalCeiling("searches_per_day", "searches");
   const q = parseSearchQuery(new URL(req.url).searchParams);
-  const r = await search(q);
-  const who = await optionalPublisher(req);
-  track.search(q, r.posts.length, who ? who.id : clientIp(req), "rest", !!who?.internal, r.embed_failed);
+  const at = budget();
+  const who = await optionalPublisher(req, at);
+  const counted = searchCounting(req.headers.get("user-agent"), !!who);
+  const r = await search(q, { track: counted === "seeker", at });
+  if (counted === "crawler") track.counter("search:crawler");
+  else track.search(q, r.posts.length, who ? who.id : clientIp(req), "rest", !!who?.internal, r.embed_failed);
   return ok(r.posts, { next_cursor: r.next_cursor, meta: { resultCount: r.posts.length, query: q, note: await restSearchNote(r) } });
 });
