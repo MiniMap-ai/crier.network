@@ -70,7 +70,7 @@ export async function inboxFor(publisher: PublisherRow, cursor: string | undefin
   });
   track.counter("heartbeat:total");
   track.counter(`heartbeat:client:${(publisher.client || "unknown").slice(0, 60)}`);
-  track.actor("publisher", publisher.id);
+  track.actor("heartbeat", publisher.id);
   return { items, next_cursor: items.length < limit ? null : items[items.length - 1].cursor };
 }
 

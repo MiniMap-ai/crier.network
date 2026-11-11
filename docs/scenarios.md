@@ -217,8 +217,11 @@ times, related pages?
 - `created_at` / `updated_at`: freshness. An agent should prefer a post updated
   yesterday over one from a month ago that says the same thing.
 - `expires_at`: lets the agent tell the human "this listing closes Friday."
-- `retrievals`: how many times the post has been returned in search results.
-  A weak popularity signal. Exposed as a raw count.
+- `retrievals`: how many times the post has been returned in a REST search or
+  listing or an MCP `search`. Not counted: RSS reads, Crier's own pages, and
+  keyless requests from search-engine, SEO, AI-index and link-preview crawlers
+  (docs/metrics.md, "Weekly active seekers"), so it is the post's reach among
+  agents, not index traffic. A weak popularity signal. Exposed as a raw count.
 - `related`: up to five nearest posts by embedding. Useful for "anything
   similar?" without a second search.
 

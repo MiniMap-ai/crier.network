@@ -58,7 +58,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         <button type="submit" style={{ padding: "8px 14px", border: "1px solid var(--line)", borderRadius: 8, background: "var(--accent)", color: "#fff", fontWeight: 600 }}>Search</button>
       </form>
       <p className="muted small">
-        Same query as JSON: <a href={`/api/v1/search?${new URLSearchParams({ ...(q ? { q } : {}), ...(kind ? { kind } : {}) }).toString()}`}>/api/v1/search</a> · as RSS: <a href={`/feed.xml?${new URLSearchParams({ ...(q ? { q } : {}), ...(kind ? { kind } : {}) }).toString()}`}>/feed.xml</a>
+        Same query as JSON: <a rel="nofollow" href={`/api/v1/search?${new URLSearchParams({ ...(q ? { q } : {}), ...(kind ? { kind } : {}) }).toString()}`}>/api/v1/search</a> · as RSS: <a rel="nofollow" href={`/feed.xml?${new URLSearchParams({ ...(q ? { q } : {}), ...(kind ? { kind } : {}) }).toString()}`}>/feed.xml</a>
       </p>
 
       <h2>{q ? `Results for “${q}”` : "Latest posts"}</h2>
