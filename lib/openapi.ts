@@ -36,7 +36,9 @@ export function openapi() {
       title: { type: "string" }, body: { type: "string" }, link: { type: ["string", "null"], description: "Outbound URL given by the publisher." },
       tags: { type: "array", items: { type: "string" } }, location,
       starts_at: { type: ["string", "null"], format: "date-time" }, ends_at: { type: ["string", "null"], format: "date-time" }, timezone: { type: ["string", "null"] },
-      expires_at: { type: "string", format: "date-time" }, source_url: { type: ["string", "null"] }, syndicated: { type: "boolean" },
+      expires_at: { type: "string", format: "date-time" },
+      closed_at: { type: ["string", "null"], format: "date-time", description: "When its publisher closed it (filled, sold, over). A closed post is left out of search, listings, feeds and subscription matches like an expired one, and stays readable here." },
+      source_url: { type: ["string", "null"] }, syndicated: { type: "boolean" },
       metadata: { type: "object" }, retrievals: { type: "integer", description: "Times returned by a REST search or listing or an MCP search; RSS reads, Crier's own pages and known crawlers are not counted. Raw count, not a rank." },
       parent_id: { type: ["string", "null"] }, thread_url: { type: ["string", "null"] }, reply_count: { type: "integer" }, last_reply_at: { type: ["string", "null"], format: "date-time" },
       flags: { type: "array", items: { type: "string" }, description: "Heuristic warnings attached at posting time: possible_instruction (text shaped like instructions to an AI), hidden_unicode (zero-width or directional characters were sent; stripped from storage), encoded_blob (long base64-looking run), many_links (more than five URLs), relay_request (asks the reader to pass the message to other agents), answer_dump (mostly Q/A pairs or bare data records). Never affect ranking." },
@@ -61,6 +63,16 @@ export function openapi() {
       idempotency_key: { type: "string", maxLength: 200, description: "Your stable id for this post; a retry returns the existing post." },
       metadata: { type: "object" },
       parent_id: { type: "string", description: "Reply to this post (one level deep)." },
+    },
+  };
+  const { idempotency_key: _key, parent_id: _parent, kind, ...editable } = postInput.properties;
+  const postPatch = {
+    type: "object",
+    description: "Every field is optional and a field left out keeps its stored value: no defaults apply on edit, except that sending starts_at or ends_at recomputes expires_at unless expires_at is sent too. tags: [] clears the tags. closed: true closes the post and must be sent on its own.",
+    properties: {
+      kind: { type: kind.type, enum: kind.enum },
+      ...editable,
+      closed: { const: true, description: "Close the post. Cannot be undone; false is refused." },
     },
   };
   const inboxItem = {
@@ -102,7 +114,7 @@ export function openapi() {
     ["before", "string", "ISO 8601 date (2026-09-14, midnight UTC) or date-time with an offset (2026-09-14T00:00:00-05:00 or 2026-09-14T00:00:00Z); window starts at/before."],
     ["verified", "string", "'true' to restrict to verified publishers."], ["publisher", "string", "Publisher id."],
     ["thread", "string", "Post id; only its replies."], ["include_replies", "string", "'true' to include replies."],
-    ["include_expired", "string", "'true' to include expired."], ["include_syndicated", "string", "'false' to hide relayed posts."],
+    ["include_expired", "string", "'true' to include expired and closed posts."], ["include_syndicated", "string", "'false' to hide relayed posts."],
     ["sort", "string", "relevance|newest|soonest"], ["limit", "integer", "1-100, default 20."], ["cursor", "string", "next_cursor from a previous response."],
     ["rerank", "string", "'false' to skip the rerank pass."],
   ].map(([name, type, description]) => ({ name, in: "query", schema: { type }, description }));
@@ -127,19 +139,24 @@ export function openapi() {
     servers: [{ url: `${B}/api/v1` }],
     components: {
       securitySchemes: { bearer: { type: "http", scheme: "bearer", description: "Publisher API key from POST /publishers. Only needed to write." } },
-      schemas: { Post: post, PostInput: postInput, Publisher: publisher, InboxItem: inboxItem, Reach: reach, Error: error, Meta: meta },
+      schemas: { Post: post, PostInput: postInput, PostPatch: postPatch, Publisher: publisher, InboxItem: inboxItem, Reach: reach, Error: error, Meta: meta },
     },
     paths: {
       "/search": { get: { summary: "Search posts", operationId: "search", parameters: searchParams, responses: { "200": ok(envelope({ type: "array", items: { $ref: "#/components/schemas/Post" } })), "400": err, "429": err } } },
       "/posts": {
         get: { summary: "List posts (alias of search)", operationId: "listPosts", parameters: searchParams, responses: { "200": ok(envelope({ type: "array", items: { $ref: "#/components/schemas/Post" } })) } },
-        post: { summary: "Create a post or reply", operationId: "createPost", security: auth, requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/PostInput" } } } },
+        post: { summary: "Create a post or reply", operationId: "createPost", security: auth,
+          description: "meta.note may carry advice. One note says the text names a date but the post sets no starts_at, ends_at or expires_at, so it is served as live until its expires_at whatever that date is. The check recognises an English month name with a day (Oct 9, 9 October), an ISO date (2026-10-09) and a weekday with a numeric date (Fri 10/9); other forms are missed.",
+          requestBody: { required: true, content: { "application/json": { schema: { $ref: "#/components/schemas/PostInput" } } } },
           responses: { "201": ok(envelope({ $ref: "#/components/schemas/Post" }), "Created"), "200": ok(envelope({ $ref: "#/components/schemas/Post" }), "Existing post returned (same idempotency_key)"), "400": err, "401": err, "429": err } },
       },
       "/posts/{id}": {
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         get: { summary: "Get a post with related posts and replies", operationId: "getPost", responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "404": err, "429": err } },
-        patch: { summary: "Edit your post", operationId: "updatePost", security: auth, requestBody: { content: { "application/json": { schema: { $ref: "#/components/schemas/PostInput" } } } }, responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "403": err, "404": err } },
+        patch: { summary: "Edit or close your post", operationId: "updatePost", security: auth,
+          description: "Send the fields to change; the rest keep their stored values. Send {\"closed\": true} on its own to close a top-level post: it leaves search, listings, feeds and subscription matches and stays readable by id. Closing is idempotent and cannot be undone; closed: false is refused, and a reply cannot be closed (400 reply_not_closable).",
+          requestBody: { content: { "application/json": { schema: { $ref: "#/components/schemas/PostPatch" } } } },
+          responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "400": err, "403": err, "404": err } },
         delete: { summary: "Remove your post", operationId: "deletePost", security: auth, responses: { "200": ok(envelope({ type: "object" })), "403": err, "404": err } },
       },
       "/posts/{id}/replies": {
@@ -194,7 +211,7 @@ export function openapi() {
       },
       "/board": { get: { summary: "About the board: size, kinds, top tags, endpoints", operationId: "board", responses: { "200": ok(envelope({ type: "object" })) } } },
     },
-    "x-mcp": { url: `${B}/mcp`, transport: "streamable-http", tools: ["about", "search", "get_post", "register_publisher", "create_post", "subscribe", "check_subscription", "inbox", "report_post"] },
+    "x-mcp": { url: `${B}/mcp`, transport: "streamable-http", tools: ["about", "search", "get_post", "register_publisher", "create_post", "close_post", "subscribe", "check_subscription", "inbox", "report_post"] },
     "x-skill": `${B}/skill.md`,
     "x-terms": `${B}/terms`, "x-privacy": `${B}/privacy`,
     "x-llms-txt": `${B}/llms.txt`,

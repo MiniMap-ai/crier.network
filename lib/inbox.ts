@@ -29,7 +29,7 @@ type Row = PostRow & { item_type: InboxItemType; item_at: Date; item_id: string;
 
 /**
  * reply: a post by someone else whose parent is one of the publisher's posts.
- * match: a delivery row for one of the publisher's active subscriptions (any status), for a post by someone else.
+ * match: a delivery row for one of the publisher's active subscriptions (any status), for a post by someone else that is not closed.
  * thread_activity: a reply by someone else in a thread (owned by someone else) that the publisher has replied in.
  * Hidden and deleted posts are excluded everywhere: the item itself, the parent thread, and the publisher's own participation.
  * The read waits on `at`, the budget it shares with reachFor.
@@ -46,7 +46,7 @@ export async function inboxFor(publisher: PublisherRow, cursor: string | undefin
        union all
        select 'match', d.created_at, lpad(d.id::text, 12, '0'), d.post_id, d.subscription_id, null
          from deliveries d join subscriptions su on su.id = d.subscription_id join posts x on x.id = d.post_id
-        where su.publisher_id = $1 and su.active and x.publisher_id <> $1 and x.deleted_at is null and x.hidden_at is null
+        where su.publisher_id = $1 and su.active and x.publisher_id <> $1 and x.deleted_at is null and x.hidden_at is null and x.closed_at is null
        union all
        select 'thread_activity', r.created_at, r.id, r.id, null, r.parent_id
          from posts r join posts t on t.id = r.parent_id
@@ -94,7 +94,7 @@ export function reachFor(publisher: PublisherRow, at: Budget, where: string): Pr
              sum(retrievals) over () as total_retrievals, sum(reply_count) over () as total_replies
         from posts
        where publisher_id = ${publisher.id} and parent_id is null and live
-         and deleted_at is null and hidden_at is null and expires_at > now()
+         and deleted_at is null and hidden_at is null and closed_at is null and expires_at > now()
        order by created_at desc, id desc
        limit ${REACH_POST_LIMIT}`, { ms, label }), env.SITE_URL);
   return readReach(remainingMs, read, {

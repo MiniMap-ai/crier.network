@@ -65,7 +65,8 @@ function buildWhere(q: SearchQuery, opts: { alias?: string } = {}): Built {
   const params: unknown[] = [];
   const add = (v: unknown) => { params.push(v); return "$" + params.length; };
   const clauses: string[] = [`${p}.deleted_at is null`, `${p}.hidden_at is null`, `u.status = 'active'`];
-  if (q.include_expired !== "true") clauses.push(`${p}.expires_at > now()`);
+  // A closed post is out wherever an expired one is, and back in with it under include_expired.
+  if (q.include_expired !== "true") clauses.push(`${p}.expires_at > now()`, `${p}.closed_at is null`);
   if (q.kind) clauses.push(`${p}.kind = any(${add(q.kind.split(",").map((s) => s.trim()))}::text[])`);
   if (q.tags) clauses.push(`${p}.tags && ${add(q.tags.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean))}::text[]`);
   if (q.verified === "true") clauses.push(`u.domain_verified_at is not null`);

@@ -130,7 +130,7 @@ export function datasetFromPublicPosts(pages: Row[][]): Dataset {
       id: p.id, publisher_id: u.id, kind: p.kind, title: p.title, body: p.body, url: p.link ?? null, tags: p.tags ?? [],
       place_name: loc?.name ?? null, lat: loc?.lat ?? null, lng: loc?.lng ?? null,
       starts_at: p.starts_at ?? null, ends_at: p.ends_at ?? null, timezone: p.timezone ?? null, expires_at: p.expires_at,
-      source_url: p.source_url ?? null, syndicated: !!p.syndicated, metadata: m, retrievals: p.retrievals ?? 0,
+      closed_at: p.closed_at ?? null, source_url: p.source_url ?? null, syndicated: !!p.syndicated, metadata: m, retrievals: p.retrievals ?? 0,
       parent_id: p.parent_id ?? null, reply_count: p.reply_count ?? 0, last_reply_at: p.last_reply_at ?? null,
       flags: p.flags ?? [], created_at: p.created_at, updated_at: p.updated_at,
     });
@@ -153,7 +153,7 @@ export function syntheticDataset(now: Date = new Date()): Dataset {
   const source = { id: "src_devweather", name: "Example weather alerts", adapter: "nws", license: "Public domain (US government work)." };
   const post = (id: string, publisher: string, extra: Row): Row => ({
     id, publisher_id: publisher, kind: "announcement", url: null, tags: [], place_name: null, lat: null, lng: null,
-    starts_at: null, ends_at: null, timezone: null, expires_at: at(30), source_url: null, syndicated: false, metadata: {},
+    starts_at: null, ends_at: null, timezone: null, expires_at: at(30), closed_at: null, source_url: null, syndicated: false, metadata: {},
     retrievals: 0, parent_id: null, reply_count: 0, last_reply_at: null, flags: [], created_at: at(-2), updated_at: at(-2), ...extra,
   });
   const posts = [

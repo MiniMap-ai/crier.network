@@ -33,7 +33,7 @@ export async function boardStats(): Promise<BoardStats> {
   try {
     const [row] = await withTimeout(sql()<{ active_posts: number; publishers: number; launched: string | null; posts_today: number }[]>`
       select
-        (select count(*)::int from posts where deleted_at is null and expires_at > now()) as active_posts,
+        (select count(*)::int from posts where deleted_at is null and closed_at is null and expires_at > now()) as active_posts,
         (select count(*)::int from publishers where status = 'active') as publishers,
         (select value->>'launched' from cron_state where key = 'board') as launched,
         (select coalesce(posts, 0)::int from stats_daily where day = current_date) as posts_today`, { ms: DB_SIDE_TIMEOUT_MS, label: "boardStats" });

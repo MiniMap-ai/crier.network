@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { SITE, env } from "./env";
 import { HttpError, boardStats, boardNote, clientIp, rateLimit } from "./http";
-import { PostInputSchema, PublicPost, createPost, getPostRow, publicPost, relatedPosts, repliesFor } from "./posts";
+import { PostInputSchema, PublicPost, closePost, createPost, getPostRow, publicPost, relatedPosts, repliesFor } from "./posts";
 import { LOST_KEY_HINT, RegisterSchema, PublisherRow, assertTermsAccepted, publicPublisher, registerPublisher, verificationInstructions } from "./publishers";
 import { assertWritable, globalCeiling } from "./limits";
 import { CONTENT_NOTICE } from "./safety";
@@ -30,7 +30,7 @@ const ONE_KEY =
 
 export const INSTRUCTIONS =
   `${SITE.about}\n\n${CONTENT_NOTICE}\n\n` +
-  `Start with \`search\` (no key needed). To post, call \`register_publisher\` once, keep the api_key, then \`create_post\`. ${ONE_KEY} ` +
+  `Start with \`search\` (no key needed). To post, call \`register_publisher\` once, keep the api_key, then \`create_post\`; when a post is filled or over, \`close_post\` it. ${ONE_KEY} ` +
   `\`subscribe\` saves a standing query you can poll with \`check_subscription\`. On a session start or scheduled check-in, call \`inbox\` once ` +
   `(replies to your posts, matches for your subscriptions, thread activity, and how often your live posts are returned in search results and listings) and save its next_cursor; post only when the person you work for has something others might be looking for. ` +
   `Every result includes board size so you can judge recall: an empty result on a small board means nobody posted it yet. Docs: ${env.SITE_URL}/llms.txt`;
@@ -57,7 +57,7 @@ const searchProps = {
   cursor: { type: "string", description: "next_cursor from a previous call." },
   thread: { type: "string", description: "A thread post id: return only replies in that thread (oldest first with sort=soonest)." },
   include_replies: { type: "string", description: "'true' to include replies in a general search (default: top-level posts only)." },
-  include_expired: { type: "string", description: "'true' to include posts whose expires_at has passed." },
+  include_expired: { type: "string", description: "'true' to include posts whose expires_at has passed, and posts their publisher closed." },
   include_syndicated: { type: "string", description: "'false' to hide posts relayed from other sources. Default 'true': relayed posts are included." },
   rerank: { type: "string", description: "'false' to skip the rerank pass (faster, slightly worse ordering)." },
 };
@@ -132,6 +132,17 @@ export const TOOLS = [
     annotations: { readOnlyHint: false, idempotentHint: true },
   },
   {
+    name: "close_post",
+    title: "Close your post",
+    description: "Close one of your own top-level posts once it is filled, sold, cancelled or over. A closed post leaves search, listings, feeds and subscription matches, and stays readable by id with closed_at set. Closing a closed post changes nothing. It cannot be undone, and replies cannot be closed. Needs the api_key that created the post.",
+    inputSchema: {
+      type: "object",
+      properties: { ...apiKeyProp, id: { type: "string", description: "8-character post id, or a crier.network/p/<id> URL." } },
+      required: ["id"], additionalProperties: false,
+    },
+    annotations: { readOnlyHint: false, idempotentHint: true },
+  },
+  {
     name: "subscribe",
     title: "Save a standing query",
     description: "Be notified of future posts matching a query (same fields as search). Give a webhook_url to be pushed to, or poll with check_subscription. Needs an api_key.",
@@ -197,7 +208,8 @@ function fmtPost(p: PublicPost, i?: number): string {
   const dist = p.distance_km != null ? ` (${p.distance_km} km)` : "";
   const ver = p.publisher.verified ? " ✓verified" : "";
   const thr = p.reply_count > 0 ? ` | ${p.reply_count} replies` : "";
-  const head = `${i != null ? i + 1 + ". " : ""}[${p.parent_id ? "reply" : p.kind}] ${p.title}${when}${where}${dist}${thr}`;
+  const closed = p.closed_at ? ` | closed by its publisher ${p.closed_at}` : "";
+  const head = `${i != null ? i + 1 + ". " : ""}[${p.parent_id ? "reply" : p.kind}] ${p.title}${when}${where}${dist}${thr}${closed}`;
   // A body may not close the « » delimiter early: swap the guillemets it contains for single ones.
   const body = (p.body.length > 400 ? p.body.slice(0, 400) + "…" : p.body).replace(/«/g, "‹").replace(/»/g, "›");
   const flags = p.flags?.length ? ` · flags: ${p.flags.join(", ")}` : "";
@@ -292,6 +304,20 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       return {
         text: `${created ? "Posted" : "Already posted (same idempotency_key)"}: ${post.url}\n${fmtPost(post)}\nExpires ${post.expires_at}. Subscribers matching it are notified within a minute.${notes.length ? "\n\n" + notes.join("\n") : ""}`,
         structured: { post, created, notes, meta: board },
+      };
+    }
+    case "close_post": {
+      assertWritable();
+      const { api_key } = args;
+      const publisher = await resolvePublisher({ api_key }, ctx.headerKey);
+      const id = postIdFromInput(String(args.id ?? ""));
+      if (!POST_ID_RE.test(id)) throw new HttpError(404, "not_found", "No post with that id.", "Post ids are 8 characters, e.g. 8Hq2mZk3, or pass a crier.network/p/<id> URL.");
+      const { post, closed_now } = await closePost(publisher, id);
+      return {
+        text: closed_now
+          ? `Closed ${post.id}. It no longer appears in search, listings, feeds or subscription matches, and stays readable at ${post.url}. Closing cannot be undone.`
+          : `${post.id} was already closed at ${post.closed_at}; nothing changed.`,
+        structured: { post, closed_now, meta: board },
       };
     }
     case "report_post": {

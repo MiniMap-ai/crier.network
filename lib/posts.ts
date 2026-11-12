@@ -1,52 +1,24 @@
-import { z } from "zod";
 import { dropPostCache, dropPostListings } from "./cache-tags";
-import { DB_SIDE_TIMEOUT_MS, budget, sql, toVectorLiteral, withTimeout, withTimeoutOr } from "./db";
+import { DB_SIDE_TIMEOUT_MS, budget, sideWrite, sql, toVectorLiteral, withTimeout, withTimeoutOr } from "./db";
 import type { Budget } from "./db";
 import { env } from "./env";
 import { HttpError } from "./http";
 import { POST_ID_RE, newPostId } from "./ids";
 import { normalizeSourceKey } from "./source-key";
-import { embedDocuments, postEmbeddingText } from "./cohere";
+import { embedDocuments } from "./cohere";
 import { PublicPublisher, PublisherRow, publicPublisher } from "./publishers";
 import { contentFlags, piiNote, stripHiddenUnicode } from "./safety";
 import { hasBudget } from "./limits";
 import { track } from "./metrics";
 import { indexNow } from "./indexnow";
 import { lastResult, nearestLiveStatement, relatedPostsStatement } from "./live-sql";
+import { mentionsCalendarDate } from "./date-mention";
+import { mergeEdit, postEmbeddingText } from "./post-schema";
+import type { Kind, PostEdit, PostInput } from "./post-schema";
 
 export { normalizeSourceKey };
-
-export const KINDS = ["event", "offer", "request", "announcement", "thread"] as const;
-export type Kind = (typeof KINDS)[number];
-
-export const LocationSchema = z.object({
-  name: z.string().trim().max(200).optional(),
-  lat: z.number().min(-90).max(90).optional(),
-  lng: z.number().min(-180).max(180).optional(),
-}).refine((l) => (l.lat === undefined) === (l.lng === undefined), { message: "lat and lng must be given together" });
-
-const isoDate = z.string().refine((s) => !Number.isNaN(Date.parse(s)), { message: "must be an ISO 8601 date-time, e.g. 2026-09-12T21:00:00-05:00" });
-
-export const PostInputSchema = z.object({
-  kind: z.enum(KINDS).default("announcement"),
-  title: z.string().trim().min(1).max(200),
-  body: z.string().trim().min(1).max(8000),
-  url: z.url().max(1000).optional(),
-  tags: z.array(z.string().trim().toLowerCase().min(1).max(40)).max(20).default([]),
-  location: LocationSchema.optional(),
-  starts_at: isoDate.optional(),
-  ends_at: isoDate.optional(),
-  timezone: z.string().max(64).optional(),
-  expires_at: isoDate.optional(),
-  source_url: z.url().max(1000).optional(),
-  syndicated: z.boolean().optional(),
-  idempotency_key: z.string().trim().min(1).max(200).optional(),
-  metadata: z.record(z.string(), z.unknown()).refine((m) => JSON.stringify(m).length <= 4096, { message: "metadata must serialize to 4 KB or less" }).optional(),
-  parent_id: z.string().trim().min(1).max(60).optional(),
-});
-export type PostInput = z.infer<typeof PostInputSchema>;
-
-export const PostPatchSchema = PostInputSchema.partial().omit({ idempotency_key: true, parent_id: true });
+export { KINDS, PostInputSchema, PostPatchSchema } from "./post-schema";
+export type { Kind, PostEdit, PostInput } from "./post-schema";
 
 export type PostRow = {
   id: string;
@@ -63,6 +35,7 @@ export type PostRow = {
   ends_at: Date | null;
   timezone: string | null;
   expires_at: Date;
+  closed_at: Date | null;
   source_url: string | null;
   source_key: string | null;
   syndicated: boolean;
@@ -100,6 +73,7 @@ export type PublicPost = {
   ends_at: string | null;
   timezone: string | null;
   expires_at: string;
+  closed_at: string | null;   // set when its publisher closed it; a closed post is out of search like an expired one
   source_url: string | null;
   syndicated: boolean;
   metadata: Record<string, unknown>;
@@ -132,6 +106,7 @@ export function publicPost(r: PostRow, opts: { withDistance?: boolean } = {}): P
     ends_at: r.ends_at ? r.ends_at.toISOString() : null,
     timezone: r.timezone,
     expires_at: r.expires_at.toISOString(),
+    closed_at: r.closed_at ? r.closed_at.toISOString() : null,
     source_url: r.source_url,
     syndicated: r.syndicated,
     metadata: r.metadata ?? {},
@@ -210,9 +185,16 @@ export async function createPost(publisher: PublisherRow, input: PostInput, opts
     if (!parent || parent.deleted_at) throw new HttpError(404, "parent_not_found", `No post ${pid} to reply to.`);
     if (parent.parent_id) throw new HttpError(400, "nested_reply", "Replies are one level deep; reply to the thread itself.", `Use parent_id ${parent.parent_id}.`);
     parentId = parent.id;
+    if (parent.closed_at) notes.push(`The post you replied to was closed by its publisher at ${parent.closed_at.toISOString()}; they may no longer be looking. Your reply was posted.`);
   }
   const id = newPostId();
   const expires_at = computeExpiry(input);
+  if (!parentId && !input.starts_at && !input.ends_at && !input.expires_at && (mentionsCalendarDate(input.title) || mentionsCalendarDate(input.body))) {
+    notes.push(`This post names a date in its text but sets no starts_at, ends_at or expires_at. It will be served as live until its expires_at, ${expires_at.toISOString()}, whatever date its text names: ` +
+      `if that date comes first the post stays live after it, and if it comes later the post expires before it. ` +
+      `Set starts_at and ends_at (or expires_at) with PATCH ${env.SITE_URL}/api/v1/posts/${id} so it expires when it should. ` +
+      `To retire it early, once it is filled or over, close it: PATCH with {"closed": true}, or the MCP close_post tool.`);
+  }
   const tags = [...new Set(input.tags)];
   const [vec] = (await hasBudget("embeds_per_day")) ? await embedDocuments([postEmbeddingText({ ...input, tags, place_name: input.location?.name ?? null })], { site: "post_create", deadline: opts.embedDeadline }) : [null];
   if (vec && !parentId) {
@@ -259,35 +241,24 @@ export async function createPost(publisher: PublisherRow, input: PostInput, opts
 }
 
 /**
- * Edit a post. A text change re-embeds it; if Cohere fails, the embedding is cleared rather than
+ * Edit a post. Fields the patch omits keep their stored values (mergeEdit in lib/post-schema.ts).
+ * A change to the embedded text re-embeds it; if Cohere fails, the embedding is cleared rather than
  * left describing the old text, and backfillEmbeddings fills it in. `embedDeadline` as in createPost.
  */
-export async function updatePost(publisher: PublisherRow, id: string, patch: z.infer<typeof PostPatchSchema>, opts: { embedDeadline?: number } = {}): Promise<PublicPost> {
+export async function updatePost(publisher: PublisherRow, id: string, patch: PostEdit, opts: { embedDeadline?: number } = {}): Promise<PublicPost> {
   const existing = await getPostRow(id);
   if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
   const flags = contentFlags(patch.title ?? existing.title, patch.body ?? existing.body);   // on the text as sent, before stripping
-  const merged = {
-    kind: patch.kind ?? existing.kind,
-    title: stripHiddenUnicode(patch.title ?? existing.title),
-    body: stripHiddenUnicode(patch.body ?? existing.body),
-    url: patch.url !== undefined ? patch.url : existing.url,
-    tags: patch.tags ? [...new Set(patch.tags)] : existing.tags,
-    place_name: patch.location ? patch.location.name ?? null : existing.place_name,
-    lat: patch.location ? patch.location.lat ?? null : existing.lat,
-    lng: patch.location ? patch.location.lng ?? null : existing.lng,
-    starts_at: patch.starts_at !== undefined ? new Date(patch.starts_at) : existing.starts_at,
-    ends_at: patch.ends_at !== undefined ? new Date(patch.ends_at) : existing.ends_at,
-    timezone: patch.timezone !== undefined ? patch.timezone : existing.timezone,
-    source_url: patch.source_url !== undefined ? patch.source_url : existing.source_url,
-    syndicated: patch.syndicated ?? existing.syndicated,
-    metadata: patch.metadata ?? existing.metadata,
-  };
+  const { merged, textChanged } = mergeEdit(existing, {
+    ...patch,
+    title: patch.title === undefined ? undefined : stripHiddenUnicode(patch.title),
+    body: patch.body === undefined ? undefined : stripHiddenUnicode(patch.body),
+  });
   validateWindow({ starts_at: merged.starts_at?.toISOString(), ends_at: merged.ends_at?.toISOString() });
   const expires_at = patch.expires_at || patch.ends_at || patch.starts_at
     ? computeExpiry({ expires_at: patch.expires_at, ends_at: merged.ends_at?.toISOString(), starts_at: merged.starts_at?.toISOString() })
     : existing.expires_at;
-  const textChanged = patch.title !== undefined || patch.body !== undefined || patch.tags !== undefined || patch.location !== undefined || patch.kind !== undefined;
   let vecLiteral: string | null | undefined = undefined;
   if (textChanged) {
     const [vec] = await embedDocuments([postEmbeddingText({ ...merged })], { site: "post_update", deadline: opts.embedDeadline });
@@ -314,6 +285,33 @@ export async function deletePost(publisher: PublisherRow, id: string): Promise<v
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
   await sql()`update posts set deleted_at = now(), updated_at = now() where id = ${id}`;
   dropPostListings();
+}
+
+/**
+ * Close a top-level post for its publisher: from then on it is left out wherever an expired post
+ * is, and stays readable by id with closed_at set. Idempotent: closing a closed post changes nothing
+ * and returns `closed_now: false`. One-way; a reply cannot be closed (it is deleted instead).
+ */
+export async function closePost(publisher: PublisherRow, id: string, at: Budget = budget()): Promise<{ post: PublicPost; closed_now: boolean }> {
+  const existing = await getPostRow(id, undefined, at);
+  if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
+  if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
+  if (existing.parent_id) {
+    throw new HttpError(400, "reply_not_closable", "Only a top-level post can be closed; this is a reply.",
+      `Delete the reply with DELETE ${env.SITE_URL}/api/v1/posts/${id} if it should go. Closing the thread is for the publisher of ${existing.parent_id}.`);
+  }
+  if (existing.closed_at) return { post: publicPost(existing), closed_now: false };
+  const closed = await withTimeout(sql()<{ id: string }[]>`
+    update posts set closed_at = now(), updated_at = now() where id = ${id} and closed_at is null and deleted_at is null returning id`, at("closePost"));
+  if (closed.length) {
+    track.counter("post:closed");
+    dropPostListings();
+    // deliverWebhooks skips a closed post; settling its rows keeps that scan from revisiting them every minute.
+    sideWrite("closePost:deliveries", () => sql()`update deliveries set status = 'failed' where post_id = ${id} and status = 'pending'`);
+  }
+  const row = await getPostRow(id, undefined, at);
+  if (!row || row.deleted_at) throw new HttpError(404, "not_found", "No such post.");
+  return { post: publicPost(row), closed_now: closed.length > 0 };
 }
 
 export async function getPostRow(id: string | null, by?: { publisherId: string; idempotencyKey: string }, at: Budget = budget()): Promise<PostRow | null> {
@@ -384,10 +382,21 @@ export async function backfillEmbeddings(limit = 5): Promise<number> {
   return n;
 }
 
-/** Hard-delete posts long after they expired or were deleted. Aggregates in stats_daily survive. */
+/**
+ * Hard-delete posts 90 days after they expired, 30 after they were deleted, and a closed post 90 days
+ * after the later of its closing and its last reply's thread extension, so replies to a closed thread
+ * are kept at least as long as an expired thread keeps them. Replies go with their thread (on delete
+ * cascade). Aggregates in stats_daily survive.
+ */
 export async function purgeOldPosts(): Promise<number> {
+  // A reply extends its thread's expires_at to the reply's created_at + 7 days (posts_reply_trigger,
+  // migrations/0002), and last_reply_at is that created_at: the + 7 days gives a closed thread the same floor.
   const rows = await sql()<{ id: string }[]>`
-    delete from posts where (expires_at < now() - interval '90 days') or (deleted_at is not null and deleted_at < now() - interval '30 days') returning id`;
+    delete from posts
+     where (expires_at < now() - interval '90 days')
+        or (closed_at is not null and greatest(closed_at, last_reply_at + interval '7 days') < now() - interval '90 days')
+        or (deleted_at is not null and deleted_at < now() - interval '30 days')
+    returning id`;
   return rows.length;
 }
 

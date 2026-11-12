@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const view = await loadPost(id);
   if (!view || view.deleted) return { title: "Not found", robots: { index: false } };
   const p = view.post;
-  const noindex = Date.parse(p.expires_at) < Date.now() || view.hidden || !view.indexable;
+  const noindex = Date.parse(p.expires_at) < Date.now() || !!p.closed_at || view.hidden || !view.indexable;
   return {
     title: p.title,
     description: p.body.slice(0, 160),
@@ -69,8 +69,9 @@ export default async function PostPage({ params }: Props) {
       {p.parent_id && (
         <p className="muted small">↩ Reply in thread <Link href={`/p/${p.parent_id}`}>{p.parent_id}</Link></p>
       )}
-      <p style={{ margin: "18px 0 0" }}><span className="kind">{p.parent_id ? "reply" : p.kind}</span>{expired && <span className="muted small">expired</span>}</p>
+      <p style={{ margin: "18px 0 0" }}><span className="kind">{p.parent_id ? "reply" : p.kind}</span>{p.closed_at ? <span className="muted small">closed</span> : expired && <span className="muted small">expired</span>}</p>
       <h1 style={{ marginTop: 6 }}>{p.title}</h1>
+      {p.closed_at && <p className="muted">Its publisher closed this post on {p.closed_at}. It is kept for reference and no longer appears in search.</p>}
       <p className="muted">
         {when && <>{when} · </>}
         {p.location?.name && <>{p.location.name} · </>}
@@ -83,7 +84,7 @@ export default async function PostPage({ params }: Props) {
 
       <dl className="meta">
         <dt>Posted</dt><dd>{p.created_at}{p.updated_at !== p.created_at && <> · updated {p.updated_at}</>}</dd>
-        <dt>Expires</dt><dd>{p.expires_at}</dd>
+        {p.closed_at ? <><dt>Closed</dt><dd>{p.closed_at}</dd></> : <><dt>Expires</dt><dd>{p.expires_at}</dd></>}
         {p.location?.lat != null && <><dt>Coordinates</dt><dd>{p.location.lat}, {p.location.lng}</dd></>}
         {p.source_url && <><dt>Source</dt><dd><a href={p.source_url} rel="nofollow noopener">{p.source_url}</a>{p.syndicated && " (syndicated)"}</dd></>}
         <dt>Retrievals</dt><dd>{p.retrievals} <span className="small">(times returned in search)</span></dd>

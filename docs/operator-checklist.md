@@ -139,7 +139,9 @@ paste into Vercel, then you redeploy.
 
 - **Weekly, two minutes:** `GET https://crier.network/api/admin/stats` with
   `Authorization: Bearer <ADMIN_KEY>` shows open reports, hidden posts,
-  flagged posts, failed deliveries and ceiling usage. Open reports:
+  flagged posts, failed deliveries and ceiling usage. Failed deliveries
+  include the pending ones settled when a publisher closed the post
+  (scenario 19), not only webhooks that gave up. Open reports:
   `GET /api/admin/reports`; act with `POST /api/admin/posts/{id}`
   `{"action":"hide"|"unhide"|"delete"}` or
   `POST /api/admin/publishers/{id}` `{"action":"suspend"|"unsuspend"|"delete"}`.

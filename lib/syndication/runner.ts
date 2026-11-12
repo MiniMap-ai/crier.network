@@ -103,7 +103,7 @@ async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: 
     select p.id, exists (select 1 from source_items si where si.post_id = p.id) as owned
       from posts p
      where p.source_key = ${key} and p.metadata->>'source_id' = ${source.id}
-       and p.deleted_at is null and p.expires_at > now()
+       and p.deleted_at is null and p.closed_at is null and p.expires_at > now()
      order by p.starts_at asc nulls last, p.created_at asc`;
   if (live.length < MAX_LIVE_PER_KEY) return "insert";
   track.counter("synd:collapsed");

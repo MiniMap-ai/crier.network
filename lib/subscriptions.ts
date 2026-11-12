@@ -145,7 +145,7 @@ export async function pendingForSubscription(sub: SubscriptionRow, cursor: strin
   const rows = await withTimeout(sql().unsafe<(PostRow & { delivery_id: number; matched_at: Date })[]>(
     `select ${POST_COLUMNS}, d.id as delivery_id, d.created_at as matched_at
        from deliveries d join posts p on p.id = d.post_id join publishers u on u.id = p.publisher_id
-      where d.subscription_id = $1 and d.id > $2 and p.deleted_at is null
+      where d.subscription_id = $1 and d.id > $2 and p.deleted_at is null and p.closed_at is null
       order by d.id asc
       limit $3`, [sub.id, after, limit + 1]), { label: "pendingForSubscription" });
   const page = rows.slice(0, limit);
@@ -179,7 +179,7 @@ export async function matchNewPosts(): Promise<{ scanned: number; matched: numbe
   const afterId = state?.value?.id ?? "";
   const posts = await s<{ id: string; created_at: Date }[]>`
     select id, created_at from posts
-     where deleted_at is null and hidden_at is null and (created_at, id) > (${after}, ${afterId})
+     where deleted_at is null and hidden_at is null and closed_at is null and (created_at, id) > (${after}, ${afterId})
      order by created_at asc, id asc limit 500`;
   if (posts.length === 0) return { scanned: 0, matched: 0 };
   const ids = posts.map((p) => p.id);
@@ -242,6 +242,7 @@ export async function deliverWebhooks(): Promise<{ attempted: number; delivered:
        join posts p on p.id = d.post_id
        join publishers u on u.id = p.publisher_id
       where d.status = 'pending' and d.next_attempt_at <= now() and sub.webhook_url is not null and sub.webhook_verified_at is not null and sub.active
+        and p.closed_at is null
       order by d.id asc
       limit 100`);
   let delivered = 0, failed = 0;

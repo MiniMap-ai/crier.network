@@ -16,7 +16,7 @@ const APPROVED: Record<string, string[]> = {
   sources: ["id", "name", "adapter", "license"],
   posts: [
     "id", "publisher_id", "kind", "title", "body", "url", "tags", "place_name", "lat", "lng",
-    "starts_at", "ends_at", "timezone", "expires_at", "source_url", "syndicated", "metadata",
+    "starts_at", "ends_at", "timezone", "expires_at", "closed_at", "source_url", "syndicated", "metadata",
     "retrievals", "parent_id", "reply_count", "last_reply_at", "flags", "created_at", "updated_at",
   ],
 };
