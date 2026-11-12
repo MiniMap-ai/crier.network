@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { dropPostCache, dropPostListings } from "./cache-tags";
 import { DB_SIDE_TIMEOUT_MS, budget, sql, toVectorLiteral, withTimeout, withTimeoutOr } from "./db";
 import type { Budget } from "./db";
@@ -6,47 +5,19 @@ import { env } from "./env";
 import { HttpError } from "./http";
 import { POST_ID_RE, newPostId } from "./ids";
 import { normalizeSourceKey } from "./source-key";
-import { embedDocuments, postEmbeddingText } from "./cohere";
+import { embedDocuments } from "./cohere";
 import { PublicPublisher, PublisherRow, publicPublisher } from "./publishers";
 import { contentFlags, piiNote, stripHiddenUnicode } from "./safety";
 import { hasBudget } from "./limits";
 import { track } from "./metrics";
 import { indexNow } from "./indexnow";
 import { lastResult, nearestLiveStatement, relatedPostsStatement } from "./live-sql";
+import { mergeEdit, postEmbeddingText } from "./post-schema";
+import type { Kind, PostEdit, PostInput } from "./post-schema";
 
 export { normalizeSourceKey };
-
-export const KINDS = ["event", "offer", "request", "announcement", "thread"] as const;
-export type Kind = (typeof KINDS)[number];
-
-export const LocationSchema = z.object({
-  name: z.string().trim().max(200).optional(),
-  lat: z.number().min(-90).max(90).optional(),
-  lng: z.number().min(-180).max(180).optional(),
-}).refine((l) => (l.lat === undefined) === (l.lng === undefined), { message: "lat and lng must be given together" });
-
-const isoDate = z.string().refine((s) => !Number.isNaN(Date.parse(s)), { message: "must be an ISO 8601 date-time, e.g. 2026-09-12T21:00:00-05:00" });
-
-export const PostInputSchema = z.object({
-  kind: z.enum(KINDS).default("announcement"),
-  title: z.string().trim().min(1).max(200),
-  body: z.string().trim().min(1).max(8000),
-  url: z.url().max(1000).optional(),
-  tags: z.array(z.string().trim().toLowerCase().min(1).max(40)).max(20).default([]),
-  location: LocationSchema.optional(),
-  starts_at: isoDate.optional(),
-  ends_at: isoDate.optional(),
-  timezone: z.string().max(64).optional(),
-  expires_at: isoDate.optional(),
-  source_url: z.url().max(1000).optional(),
-  syndicated: z.boolean().optional(),
-  idempotency_key: z.string().trim().min(1).max(200).optional(),
-  metadata: z.record(z.string(), z.unknown()).refine((m) => JSON.stringify(m).length <= 4096, { message: "metadata must serialize to 4 KB or less" }).optional(),
-  parent_id: z.string().trim().min(1).max(60).optional(),
-});
-export type PostInput = z.infer<typeof PostInputSchema>;
-
-export const PostPatchSchema = PostInputSchema.partial().omit({ idempotency_key: true, parent_id: true });
+export { KINDS, PostInputSchema, PostPatchSchema } from "./post-schema";
+export type { Kind, PostEdit, PostInput } from "./post-schema";
 
 export type PostRow = {
   id: string;
@@ -259,35 +230,24 @@ export async function createPost(publisher: PublisherRow, input: PostInput, opts
 }
 
 /**
- * Edit a post. A text change re-embeds it; if Cohere fails, the embedding is cleared rather than
+ * Edit a post. Fields the patch omits keep their stored values (mergeEdit in lib/post-schema.ts).
+ * A change to the embedded text re-embeds it; if Cohere fails, the embedding is cleared rather than
  * left describing the old text, and backfillEmbeddings fills it in. `embedDeadline` as in createPost.
  */
-export async function updatePost(publisher: PublisherRow, id: string, patch: z.infer<typeof PostPatchSchema>, opts: { embedDeadline?: number } = {}): Promise<PublicPost> {
+export async function updatePost(publisher: PublisherRow, id: string, patch: PostEdit, opts: { embedDeadline?: number } = {}): Promise<PublicPost> {
   const existing = await getPostRow(id);
   if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
   const flags = contentFlags(patch.title ?? existing.title, patch.body ?? existing.body);   // on the text as sent, before stripping
-  const merged = {
-    kind: patch.kind ?? existing.kind,
-    title: stripHiddenUnicode(patch.title ?? existing.title),
-    body: stripHiddenUnicode(patch.body ?? existing.body),
-    url: patch.url !== undefined ? patch.url : existing.url,
-    tags: patch.tags ? [...new Set(patch.tags)] : existing.tags,
-    place_name: patch.location ? patch.location.name ?? null : existing.place_name,
-    lat: patch.location ? patch.location.lat ?? null : existing.lat,
-    lng: patch.location ? patch.location.lng ?? null : existing.lng,
-    starts_at: patch.starts_at !== undefined ? new Date(patch.starts_at) : existing.starts_at,
-    ends_at: patch.ends_at !== undefined ? new Date(patch.ends_at) : existing.ends_at,
-    timezone: patch.timezone !== undefined ? patch.timezone : existing.timezone,
-    source_url: patch.source_url !== undefined ? patch.source_url : existing.source_url,
-    syndicated: patch.syndicated ?? existing.syndicated,
-    metadata: patch.metadata ?? existing.metadata,
-  };
+  const { merged, textChanged } = mergeEdit(existing, {
+    ...patch,
+    title: patch.title === undefined ? undefined : stripHiddenUnicode(patch.title),
+    body: patch.body === undefined ? undefined : stripHiddenUnicode(patch.body),
+  });
   validateWindow({ starts_at: merged.starts_at?.toISOString(), ends_at: merged.ends_at?.toISOString() });
   const expires_at = patch.expires_at || patch.ends_at || patch.starts_at
     ? computeExpiry({ expires_at: patch.expires_at, ends_at: merged.ends_at?.toISOString(), starts_at: merged.starts_at?.toISOString() })
     : existing.expires_at;
-  const textChanged = patch.title !== undefined || patch.body !== undefined || patch.tags !== undefined || patch.location !== undefined || patch.kind !== undefined;
   let vecLiteral: string | null | undefined = undefined;
   if (textChanged) {
     const [vec] = await embedDocuments([postEmbeddingText({ ...merged })], { site: "post_update", deadline: opts.embedDeadline });

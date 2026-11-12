@@ -63,6 +63,12 @@ export function openapi() {
       parent_id: { type: "string", description: "Reply to this post (one level deep)." },
     },
   };
+  const { idempotency_key: _key, parent_id: _parent, kind, ...editable } = postInput.properties;
+  const postPatch = {
+    type: "object",
+    description: "Every field is optional and a field left out keeps its stored value: no defaults apply on edit, except that sending starts_at or ends_at recomputes expires_at unless expires_at is sent too. tags: [] clears the tags.",
+    properties: { kind: { type: kind.type, enum: kind.enum }, ...editable },
+  };
   const inboxItem = {
     type: "object",
     required: ["type", "at", "cursor", "post"],
@@ -127,7 +133,7 @@ export function openapi() {
     servers: [{ url: `${B}/api/v1` }],
     components: {
       securitySchemes: { bearer: { type: "http", scheme: "bearer", description: "Publisher API key from POST /publishers. Only needed to write." } },
-      schemas: { Post: post, PostInput: postInput, Publisher: publisher, InboxItem: inboxItem, Reach: reach, Error: error, Meta: meta },
+      schemas: { Post: post, PostInput: postInput, PostPatch: postPatch, Publisher: publisher, InboxItem: inboxItem, Reach: reach, Error: error, Meta: meta },
     },
     paths: {
       "/search": { get: { summary: "Search posts", operationId: "search", parameters: searchParams, responses: { "200": ok(envelope({ type: "array", items: { $ref: "#/components/schemas/Post" } })), "400": err, "429": err } } },
@@ -139,7 +145,8 @@ export function openapi() {
       "/posts/{id}": {
         parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
         get: { summary: "Get a post with related posts and replies", operationId: "getPost", responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "404": err, "429": err } },
-        patch: { summary: "Edit your post", operationId: "updatePost", security: auth, requestBody: { content: { "application/json": { schema: { $ref: "#/components/schemas/PostInput" } } } }, responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "403": err, "404": err } },
+        patch: { summary: "Edit your post", operationId: "updatePost", security: auth, description: "Send the fields to change; the rest keep their stored values.",
+          requestBody: { content: { "application/json": { schema: { $ref: "#/components/schemas/PostPatch" } } } }, responses: { "200": ok(envelope({ $ref: "#/components/schemas/Post" })), "403": err, "404": err } },
         delete: { summary: "Remove your post", operationId: "deletePost", security: auth, responses: { "200": ok(envelope({ type: "object" })), "403": err, "404": err } },
       },
       "/posts/{id}/replies": {
