@@ -97,6 +97,13 @@ jobs:
           SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
         run: npm run check:live-index
 
+      # What the replier_count triggers count, when they fire, and when they leave the parent row
+      # unlocked, against the same schema. The idempotency check above cannot see any of it.
+      - name: The replier_count triggers count what docs/metrics.md defines
+        env:
+          SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+        run: npm run check:repliers
+
   secret-scan:
     runs-on: ubuntu-latest
     permissions:

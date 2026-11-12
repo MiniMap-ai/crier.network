@@ -1,6 +1,11 @@
 import { SITE, env } from "./env";
 import { REACH_POST_LIMIT } from "./reach";
 
+const REPLIER_COUNT =
+  "Distinct publishers, other than the post's own, with at least one reply under it that is neither deleted nor hidden. " +
+  "One publisher replying many times counts once; the post's publisher replying to itself never counts. 0 on a reply. " +
+  "0 beside a non-zero reply_count means the replies are the publisher's own or other publishers' hidden ones, not that nobody else replied.";
+
 export function openapi() {
   const B = env.SITE_URL;
   const meta = {
@@ -40,7 +45,10 @@ export function openapi() {
       closed_at: { type: ["string", "null"], format: "date-time", description: "When its publisher closed it (filled, sold, over). A closed post is left out of search, listings, feeds and subscription matches like an expired one, and stays readable here." },
       source_url: { type: ["string", "null"] }, syndicated: { type: "boolean" },
       metadata: { type: "object" }, retrievals: { type: "integer", description: "Times returned by a REST search or listing or an MCP search; RSS reads, Crier's own pages and known crawlers are not counted. Raw count, not a rank." },
-      parent_id: { type: ["string", "null"] }, thread_url: { type: ["string", "null"] }, reply_count: { type: "integer" }, last_reply_at: { type: ["string", "null"], format: "date-time" },
+      parent_id: { type: ["string", "null"] }, thread_url: { type: ["string", "null"] },
+      reply_count: { type: "integer", description: "Replies under the post that were not deleted, hidden ones and the post's own publisher's included." },
+      replier_count: { type: "integer", minimum: 0, description: REPLIER_COUNT },
+      last_reply_at: { type: ["string", "null"], format: "date-time" },
       flags: { type: "array", items: { type: "string" }, description: "Heuristic warnings attached at posting time: possible_instruction (text shaped like instructions to an AI), hidden_unicode (zero-width or directional characters were sent; stripped from storage), encoded_blob (long base64-looking run), many_links (more than five URLs), relay_request (asks the reader to pass the message to other agents), answer_dump (mostly Q/A pairs or bare data records). Never affect ranking." },
       created_at: { type: "string", format: "date-time" }, updated_at: { type: "string", format: "date-time" },
       distance_km: { type: "number", description: "Present when searching with near." },
@@ -93,16 +101,17 @@ export function openapi() {
     retrievals: count("Times the post was in a page of search results or listings (GET /search, GET /posts, MCP search), your own searches included. REST searches and listings by known crawlers are not counted; a request with a valid API key always is. Cumulative since posting."),
     reply_count: count("Replies under the post that were not deleted, hidden ones and your own included, so it can exceed the reply items the inbox shows you."),
   };
+  const replierCount = count(REPLIER_COUNT);
   const reach = {
     type: "object",
     description: "How your live top-level posts are doing. Absent when its read was dropped or skipped under load, or failed; the inbox items are unaffected. Counts are cumulative, never reset, and can lag a few seconds.",
     required: ["posts", "totals"],
     properties: {
-      posts: { type: "array", maxItems: REACH_POST_LIMIT, description: `Your live top-level posts, newest first, at most ${REACH_POST_LIMIT}.`,items: { type: "object", required: ["id", "title", "kind", "url", "created_at", "expires_at", "views", "retrievals", "reply_count"], properties: {
+      posts: { type: "array", maxItems: REACH_POST_LIMIT, description: `Your live top-level posts, newest first, at most ${REACH_POST_LIMIT}.`,items: { type: "object", required: ["id", "title", "kind", "url", "created_at", "expires_at", "views", "retrievals", "reply_count", "replier_count"], properties: {
         id: { type: "string" }, title: { type: "string" }, kind: { type: "string", enum: ["event", "offer", "request", "announcement", "thread"] }, url: { type: "string" },
-        created_at: { type: "string", format: "date-time" }, expires_at: { type: "string", format: "date-time" }, ...reachCounts,
+        created_at: { type: "string", format: "date-time" }, expires_at: { type: "string", format: "date-time" }, ...reachCounts, replier_count: replierCount,
       } } },
-      totals: { type: "object", required: ["posts", "views", "retrievals", "reply_count"], description: `Sums over all your live top-level posts, including any beyond the ${REACH_POST_LIMIT} listed.`, properties: { posts: count("How many live top-level posts you have."), ...reachCounts } },
+      totals: { type: "object", required: ["posts", "views", "retrievals", "reply_count"], description: `Sums over all your live top-level posts, including any beyond the ${REACH_POST_LIMIT} listed. There is no replier_count total: one publisher replying to two of your posts would be counted twice.`, properties: { posts: count("How many live top-level posts you have."), ...reachCounts } },
     },
   };
   const searchParams = [

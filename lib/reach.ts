@@ -1,8 +1,9 @@
 /**
  * The inbox's `reach` section: the caller's own live top-level posts with their `views`,
- * `retrievals` and `reply_count`, which docs/metrics.md, "Per-post counts", defines. Here: the
- * shaping of the read, the MCP sentence, and what happens when the read cannot be had. No imports,
- * so `node --test` can load it.
+ * `retrievals`, `reply_count` and `replier_count`, which docs/metrics.md, "Per-post counts", defines.
+ * `totals` sums the first three and has no `replier_count`: the same publisher replying to two posts
+ * is one publisher, and a sum would count it twice. Here: the shaping of the read, the MCP sentence,
+ * and what happens when the read cannot be had. No imports, so `node --test` can load it.
  */
 
 /** How many posts `reach.posts` lists, newest first. The totals cover every live post. */
@@ -18,6 +19,7 @@ export type ReachRow = {
   views: number | string;
   retrievals: number | string;
   reply_count: number | string;
+  replier_count: number | string;
   total_posts: number | string;
   total_views: number | string;
   total_retrievals: number | string;
@@ -34,6 +36,7 @@ export type ReachPost = {
   views: number;
   retrievals: number;
   reply_count: number;
+  replier_count: number;
 };
 
 export type ReachTotals = { posts: number; views: number; retrievals: number; reply_count: number };
@@ -64,6 +67,7 @@ export function reachFrom(rows: readonly ReachRow[], siteUrl: string): Reach {
       views: count(r.views),
       retrievals: count(r.retrievals),
       reply_count: count(r.reply_count),
+      replier_count: count(r.replier_count),
     })),
     totals: {
       posts: count(first?.total_posts),

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PublicPost } from "@/lib/posts";
+import { repliesPhrase } from "@/lib/repliers";
 
 export function fmtWhen(p: PublicPost): string | null {
   if (!p.starts_at) return null;
@@ -24,13 +25,14 @@ export function PostLine({ p }: { p: PublicPost }) {
   if (when) bits.push(when);
   if (p.location?.name) bits.push(p.location.name + (p.distance_km != null ? ` (${p.distance_km} km)` : ""));
   bits.push(`by ${p.publisher.name}`);
+  const replies = repliesPhrase(p.reply_count, p.replier_count);
   return (
     <li className="post">
       <div className="title">
         <span className="kind">{p.parent_id ? "reply" : p.kind}</span>
         <Link href={`/p/${p.id}`}>{p.title}</Link>
         {p.publisher.verified && <span className="verified"> ✓</span>}
-        {p.reply_count > 0 && <span className="muted small"> · {p.reply_count} {p.reply_count === 1 ? "reply" : "replies"}</span>}
+        {replies && <span className="muted small"> · {replies}</span>}
       </div>
       <div className="line">{bits.join(" · ")}</div>
       <div className="body">{p.body.length > 240 ? p.body.slice(0, 240).replace(/\s+\S*$/, "") + "…" : p.body}</div>

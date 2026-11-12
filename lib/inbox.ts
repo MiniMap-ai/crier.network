@@ -89,7 +89,7 @@ export function reachFor(publisher: PublisherRow, at: Budget, where: string): Pr
   // `live` lets the partial index on live rows serve a publisher with a long history; the sweep
   // that clears it runs once a minute, so the clock is still checked.
   const read = async (ms: number) => reachFrom(await withTimeout(sql()<ReachRow[]>`
-      select id, title, kind, created_at, expires_at, views, retrievals, reply_count,
+      select id, title, kind, created_at, expires_at, views, retrievals, reply_count, replier_count,
              count(*) over () as total_posts, sum(views) over () as total_views,
              sum(retrievals) over () as total_retrievals, sum(reply_count) over () as total_replies
         from posts

@@ -13,6 +13,7 @@
     "db:dev": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/db-dev.mjs",
     "check:migrations": "node scripts/check-migrations.mjs",
     "check:live-index": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-live-index.mjs",
+    "check:repliers": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-repliers.mjs",
     "check:comments": "node scripts/check-comments.mjs origin/main",
     "test": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test 'tests/**/*.test.ts'",
     "sync-skill": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/sync-skill.mjs"

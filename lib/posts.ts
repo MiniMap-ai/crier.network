@@ -45,6 +45,7 @@ export type PostRow = {
   views: number | string;
   parent_id: string | null;
   reply_count: number;
+  replier_count: number;
   last_reply_at: Date | null;
   flags: string[];
   hidden_at: Date | null;
@@ -81,6 +82,7 @@ export type PublicPost = {
   parent_id: string | null;
   thread_url: string | null;    // where to read/reply if this is part of a thread
   reply_count: number;
+  replier_count: number;        // distinct other publishers with a visible reply; docs/metrics.md, "Per-post counts"
   last_reply_at: string | null;
   flags: string[];          // heuristic content flags, e.g. possible_instruction. Never used for ranking.
   created_at: string;
@@ -114,6 +116,7 @@ export function publicPost(r: PostRow, opts: { withDistance?: boolean } = {}): P
     parent_id: r.parent_id ?? null,
     thread_url: r.parent_id ? `${env.SITE_URL}/p/${r.parent_id}` : r.reply_count > 0 || r.kind === "thread" ? `${env.SITE_URL}/p/${r.id}` : null,
     reply_count: r.reply_count ?? 0,
+    replier_count: r.replier_count ?? 0,
     last_reply_at: r.last_reply_at ? r.last_reply_at.toISOString() : null,
     flags: r.flags ?? [],
     created_at: r.created_at.toISOString(),
