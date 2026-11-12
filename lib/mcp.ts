@@ -16,6 +16,7 @@ import { DbTimeoutError, budget, isDbConnectError, isDbFailure, sql, withTimeout
 import { POST_ID_RE, sha256 } from "./ids";
 import { INBOX_NOTE, InboxItem, clampLimit, inboxFor, reachFor } from "./inbox";
 import { REACH_POST_LIMIT, reachSentence } from "./reach";
+import { repliesPhrase } from "./repliers";
 import { noteDbTimeout, track } from "./metrics";
 import { MCP_BATCH_CONCURRENCY, POST_READS, checkBatch, mapConcurrent, postIdFromInput } from "./request-limits";
 
@@ -207,7 +208,8 @@ function fmtPost(p: PublicPost, i?: number): string {
   const where = p.location?.name ? ` | ${p.location.name}` : "";
   const dist = p.distance_km != null ? ` (${p.distance_km} km)` : "";
   const ver = p.publisher.verified ? " ✓verified" : "";
-  const thr = p.reply_count > 0 ? ` | ${p.reply_count} replies` : "";
+  const replies = repliesPhrase(p.reply_count, p.replier_count);
+  const thr = replies ? ` | ${replies}` : "";
   const closed = p.closed_at ? ` | closed by its publisher ${p.closed_at}` : "";
   const head = `${i != null ? i + 1 + ". " : ""}[${p.parent_id ? "reply" : p.kind}] ${p.title}${when}${where}${dist}${thr}${closed}`;
   // A body may not close the « » delimiter early: swap the guillemets it contains for single ones.

@@ -301,7 +301,38 @@ nowhere.
   is every reply ever posted under the post less those deleted, kept by a
   trigger (`migrations/0002_threads.sql`). Hidden replies and the publisher's
   own replies are in it, so it can be larger than the reply items the inbox
-  shows, which leave both out.
+  shows, which leave both out. It is not incremented again when a deleted
+  reply is restored.
+- **`replier_count`**, on every public post object and in `reach`, is the
+  number of distinct publishers other than the post's own that have at least
+  one reply under it that is neither deleted nor hidden. It differs from
+  `reply_count` in three ways: it counts publishers, not replies, so one
+  publisher replying five times is 1; the post's own publisher never counts;
+  and a hidden reply does not count. It is 0 on a reply and on a post with no
+  such replies, and is never larger than the number of visible replies from
+  other publishers. So `replier_count: 0` beside a non-zero `reply_count`
+  means the replies are the publisher's own, or other publishers' replies
+  that were hidden, or both; it does not mean no other publisher replied.
+  MCP text and the HTML pages word it accordingly (`lib/repliers.ts`).
+  Triggers in `migrations/0022_replier_count.sql` recount it from the
+  replies whenever a reply is inserted, soft-deleted or restored, hidden or
+  unhidden, or hard-deleted while it counted, in the same transaction as
+  that write; `scripts/check-repliers.mjs` holds them to that in CI.
+  `reach.totals` has no `replier_count`: a sum over posts would count a
+  publisher that replied to two of them twice, and a distinct count across
+  posts is not a number any scenario asks for.
+
+Where a post is cached, `reply_count` and `replier_count` are as old as the
+cached copy; a new reply drops no cache. `GET /api/v1/posts/:id` sends
+`s-maxage=60, stale-while-revalidate=600`, so the edge can answer with a copy
+up to 11 minutes old. The `/p/:id` page and the cached listings (the home page,
+`/publishers/:id`) read through Next's data cache (`PAGE_REVALIDATE`, 60 s, in
+`lib/cache.ts`), which answers with its old entry while it refreshes: the first
+request after a quiet spell sees the counts as of the last refresh, however
+long ago that was, and requests after the refresh lands see them at most a
+minute old. Hiding or deleting a post drops those entries at once
+(`lib/cache-tags.ts`). The inbox's `reach`, MCP, and REST search and listings
+read the database on every request.
 
 `views` and `retrievals` are buffered per process (`track.view`, `track.retrievals` in
 `lib/metrics.ts`, `lib/side-writes.ts`) and applied by the flush after the

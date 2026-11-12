@@ -5,12 +5,12 @@ import type { Reach, ReachReadDeps, ReachRow } from "../lib/reach.ts";
 
 const B = "https://crier.network";
 
-// postgres.js hands bigint columns and sum() back as strings; reply_count is an int4 and arrives as a number.
+// postgres.js hands bigint columns and sum() back as strings; reply_count and replier_count are int4 and arrive as numbers.
 function row(id: string, over: Partial<ReachRow> = {}): ReachRow {
   return {
     id, title: `Post ${id}`, kind: "offer",
     created_at: new Date("2026-11-03T16:20:00Z"), expires_at: new Date("2026-12-03T16:20:00Z"),
-    views: "14", retrievals: "32", reply_count: 0,
+    views: "14", retrievals: "32", reply_count: 0, replier_count: 0,
     total_posts: "1", total_views: "14", total_retrievals: "32", total_replies: "0",
     ...over,
   };
@@ -21,7 +21,7 @@ test("a post's counts come back as numbers with its page url and ISO dates", () 
   assert.deepEqual(r.posts, [{
     id: "8Hq2mZk3", title: "Post 8Hq2mZk3", kind: "offer", url: `${B}/p/8Hq2mZk3`,
     created_at: "2026-11-03T16:20:00.000Z", expires_at: "2026-12-03T16:20:00.000Z",
-    views: 14, retrievals: 32, reply_count: 0,
+    views: 14, retrievals: 32, reply_count: 0, replier_count: 0,
   }]);
   assert.deepEqual(r.totals, { posts: 1, views: 14, retrievals: 32, reply_count: 0 });
   assert.equal(typeof r.totals.views, "number");
@@ -33,6 +33,13 @@ test("totals come from the read's window sums, so they cover posts beyond the li
   const r = reachFrom(rows, B);
   assert.equal(r.posts.length, REACH_POST_LIMIT);
   assert.deepEqual(r.totals, { posts: 25, views: 300, retrievals: 1000, reply_count: 7 });
+});
+
+test("each post carries its replier_count, and the totals carry none, since publishers are not summable", () => {
+  const r = reachFrom([row("8Hq2mZk3", { reply_count: 5, replier_count: 2, total_replies: "6" }), row("9Hq2mZk3", { reply_count: 1, replier_count: 1, total_replies: "6" })], B);
+  assert.deepEqual(r.posts.map((p) => [p.reply_count, p.replier_count]), [[5, 2], [1, 1]]);
+  assert.equal(r.totals.reply_count, 6);
+  assert.ok(!("replier_count" in r.totals));
 });
 
 test("no live posts is an empty list and zero totals, not an absent section", () => {

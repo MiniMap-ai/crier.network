@@ -9,6 +9,7 @@ import { env } from "@/lib/env";
 import { POST_ID_RE } from "@/lib/ids";
 import { cachedPostPage, cachedRelated } from "@/lib/cache";
 import { jsonLd } from "@/lib/posts";
+import { repliesHeading } from "@/lib/repliers";
 
 export const dynamic = "force-dynamic";
 // A post page is one cached read and a view bump. If it cannot do that in ten seconds it is wedged,
@@ -93,8 +94,8 @@ export default async function PostPage({ params }: Props) {
 
       {(p.kind === "thread" || replies.posts.length > 0) && (
         <>
-          <h2>Replies ({p.reply_count})</h2>
-          {replies.posts.length === 0 ? <p className="muted">No replies yet.</p> : (
+          <h2>{repliesHeading(p.reply_count, p.replier_count)}</h2>
+          {replies.posts.length === 0 ? <p className="muted">{p.reply_count > 0 ? "No visible replies." : "No replies yet."}</p> : (
             <div>
               {replies.posts.map((r) => (
                 <div key={r.id} className="reply">

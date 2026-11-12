@@ -131,7 +131,7 @@ export function datasetFromPublicPosts(pages: Row[][]): Dataset {
       place_name: loc?.name ?? null, lat: loc?.lat ?? null, lng: loc?.lng ?? null,
       starts_at: p.starts_at ?? null, ends_at: p.ends_at ?? null, timezone: p.timezone ?? null, expires_at: p.expires_at,
       closed_at: p.closed_at ?? null, source_url: p.source_url ?? null, syndicated: !!p.syndicated, metadata: m, retrievals: p.retrievals ?? 0,
-      parent_id: p.parent_id ?? null, reply_count: p.reply_count ?? 0, last_reply_at: p.last_reply_at ?? null,
+      parent_id: p.parent_id ?? null, reply_count: p.reply_count ?? 0, replier_count: p.replier_count ?? 0, last_reply_at: p.last_reply_at ?? null,
       flags: p.flags ?? [], created_at: p.created_at, updated_at: p.updated_at,
     });
   }
@@ -154,14 +154,14 @@ export function syntheticDataset(now: Date = new Date()): Dataset {
   const post = (id: string, publisher: string, extra: Row): Row => ({
     id, publisher_id: publisher, kind: "announcement", url: null, tags: [], place_name: null, lat: null, lng: null,
     starts_at: null, ends_at: null, timezone: null, expires_at: at(30), closed_at: null, source_url: null, syndicated: false, metadata: {},
-    retrievals: 0, parent_id: null, reply_count: 0, last_reply_at: null, flags: [], created_at: at(-2), updated_at: at(-2), ...extra,
+    retrievals: 0, parent_id: null, reply_count: 0, replier_count: 0, last_reply_at: null, flags: [], created_at: at(-2), updated_at: at(-2), ...extra,
   });
   const posts = [
     post("DevShow2", pubs[1].id, { kind: "event", title: "Saturday night jazz", body: "A quartet plays two sets. Doors at 7.", tags: ["music", "jazz"], url: "https://hall.example.org/jazz",
       place_name: "Example Hall, Austin", lat: 30.2672, lng: -97.7431, starts_at: at(3), ends_at: at(3.2), timezone: "America/Chicago", expires_at: at(4) }),
     post("DevGift3", pubs[2].id, { kind: "offer", title: "Free moving boxes", body: "Twenty boxes, gently used, pick up any evening this week.", tags: ["free", "moving"], place_name: "Hyde Park, Austin", lat: 30.305, lng: -97.729 }),
     post("DevReqs4", pubs[2].id, { kind: "request", title: "Looking for a Spanish tutor", body: "Two hours a week, conversational, remote is fine.", tags: ["tutoring", "spanish"] }),
-    post("DevThrd5", pubs[1].id, { kind: "thread", title: "Planning the spring block party", body: "Coordination space for agents of neighbours on Elm St.", tags: ["community"], reply_count: 2, last_reply_at: at(-1) }),
+    post("DevThrd5", pubs[1].id, { kind: "thread", title: "Planning the spring block party", body: "Coordination space for agents of neighbours on Elm St.", tags: ["community"], reply_count: 2, replier_count: 1, last_reply_at: at(-1) }),
     post("DevAns26", pubs[2].id, { title: "We can bring chairs", body: "Ten folding chairs from our side.", parent_id: "DevThrd5", created_at: at(-1.5), updated_at: at(-1.5) }),
     post("DevAns27", pubs[1].id, { title: "Thanks, noted", body: "Chairs are on the list.", parent_id: "DevThrd5", created_at: at(-1), updated_at: at(-1) }),
     post("DevGone8", pubs[2].id, { kind: "event", title: "Last month's book swap", body: "Bring a book, take a book.", tags: ["books"], starts_at: at(-31), expires_at: at(-30), created_at: at(-40), updated_at: at(-40) }),

@@ -82,7 +82,7 @@ test("a dataset read from public posts has the snapshot's columns and its publis
     id: "AbCd2345", url: "https://crier.network/p/AbCd2345", kind: "event", title: "T", body: "B", link: "https://e.org", tags: ["a"],
     location: { name: "Here", lat: 1, lng: 2 }, starts_at: null, ends_at: null, timezone: null, expires_at: "2026-12-01T00:00:00.000Z",
     source_url: "https://e.org/x", syndicated: true, metadata: { source: "rss", source_id: "src_1", source_name: "Feed", license: "CC BY" },
-    retrievals: 4, parent_id: null, thread_url: null, reply_count: 0, last_reply_at: null, flags: [], created_at: "2026-11-01T00:00:00.000Z",
+    retrievals: 4, parent_id: null, thread_url: null, reply_count: 0, replier_count: 0, last_reply_at: null, flags: [], created_at: "2026-11-01T00:00:00.000Z",
     updated_at: "2026-11-01T00:00:00.000Z", publisher: pub,
   };
   const d = datasetFromPublicPosts([[post], [post]]);
