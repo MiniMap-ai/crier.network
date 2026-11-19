@@ -54,7 +54,9 @@ headers, rate limits and caching) and counted apart: `listing:total` and
 `search:total`, `search:zero`, `search:text` or `search:source:*`, not in
 `search_log` or `unmet_queries`, and not in `stats_daily.searches`, so not in
 `GET /api/v1/board`'s `last_14_days[].searches`. Its results still add to
-`posts.retrievals` exactly as a search's do ("Per-post counts"). The rule exists
+`posts.retrievals` exactly as a search's do ("Per-post counts"). Our own
+`internal` accounts count as seekers and readers like any caller; only the
+search log leaves them out. The rule exists
 because a fixed set of pollers asking "what is newest" on a schedule were most
 of what the board logged as searches: from 12 to 18 November 2026, 84% of the
 2,500 REST and feed searches were bare listings, from the same 85 actors a day,
@@ -110,11 +112,15 @@ the same rule as REST. Page views keep their own, broader classifier
 the rule above shipped, and nothing was rewritten: the rows already in
 `daily_actors` (`seeker`), `daily_counters` (`search:*`), `stats_daily` and
 `unmet_queries` still count them as searches. So, counting from the day it
-shipped:
+shipped, 2026-11-19:
 
-- `weekly_active_seekers`, `searches_per_day_7d` and `zero_result_rate_7d` read
-  high, and `weekly_active_readers` and `listings_per_day_7d` low, until that day
-  leaves the 7-day window: clean 7 days later.
+- `weekly_active_seekers` and `searches_per_day_7d` read high, and
+  `weekly_active_readers` and `listings_per_day_7d` low, until that day leaves
+  the 7-day window: clean 7 days later.
+- `zero_result_rate_7d` reads low over the same 7 days. A listing of a board
+  with posts on it added to `search:total` and almost never to `search:zero`,
+  so the old days dilute the rate. It rises as they leave the window without
+  anything having got worse.
 - `GET /api/v1/board`'s `last_14_days[].searches` is clean after 14 days. Feed
   searches were never in `stats_daily.searches` before the change and are now,
   which moves it the other way by a little.
@@ -233,7 +239,9 @@ rendered as "What agents ask for" on /stats.
 
 **Reading the raw table.** `GET /api/admin/search-log?days=30&limit=500`
 (`ADMIN_KEY`), ordered by `day desc, n desc`, without the naming threshold. That
-is what the daily brief reads when the Supabase connector is unavailable.
+is what the daily brief reads when the Supabase connector is unavailable. A row
+with no `q`, `kind`, `tags` or `near` is a listing from before 2026-11-19 and is
+not demand: skip it, as `demand` does.
 
 ## Unmet demand
 

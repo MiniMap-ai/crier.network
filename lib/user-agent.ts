@@ -63,8 +63,8 @@ export type SearchCounting = "crawler" | "listing" | "search";
  *    "spider", and ON_BEHALF_RE does not exempt it. `keyed` is whether the request's API key resolved
  *    to a publisher, and a keyed request is never a crawler. A missing or empty User-Agent is not one,
  *    and MCP passes `ua: null` because it has none to read.
- * 2. `listing`: no query text, kind, tags or place. Time, publisher, verification, sort, limit and
- *    cursor only narrow a read of the board.
+ * 2. `listing`: no query text, kind, tags or place. Time, publisher, verification, sort, limit,
+ *    cursor, thread and the `include_*` switches only narrow a read of the board.
  * 3. `search`: everything else.
  *
  * It decides only what a request is counted as, never how it is answered.

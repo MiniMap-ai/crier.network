@@ -133,10 +133,11 @@ const RERANK_MIN_SCORE = Number(process.env.CRIER_RERANK_MIN_SCORE || 0.05);
 
 /**
  * Run a query. `retrievals` adds one to `posts.retrievals` for each post returned (docs/metrics.md,
- * "Per-post counts"); it is off unless asked for. Nothing else is counted here: the caller counts the
- * request itself through `track.searchRequest`.
+ * "Per-post counts"), and every caller says which it is: a page render or a crawler does not, a
+ * listing or a search does. Nothing else is counted here: the caller counts the request itself through
+ * `track.searchRequest`.
  */
-export async function search(q: SearchQuery, opts: { retrievals?: boolean; at?: Budget } = {}): Promise<SearchResult> {
+export async function search(q: SearchQuery, opts: { retrievals: boolean; at?: Budget }): Promise<SearchResult> {
   const limit = q.limit ?? 20;
   const s = sql();
   // Shared across every statement below, so a hybrid search is bounded once rather than per query.

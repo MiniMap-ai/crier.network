@@ -23,7 +23,7 @@ export const GET = handler(async (req) => {
   if (!q.limit) q.limit = 50;
   const at = budget();
   const who = await optionalPublisher(req, at);
-  const r = await search(q, { at });
+  const r = await search(q, { retrievals: false, at });
   const counted = searchCounting({ ua: req.headers.get("user-agent"), keyed: !!who, query: q });
   track.searchRequest(counted, q, r, who ? who.id : clientIp(req), "feed", !!who?.internal);
   const B = env.SITE_URL;

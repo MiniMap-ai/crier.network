@@ -184,8 +184,8 @@ function bump(m: Map<string, { n: number; zero: number }>, key: string, n: numbe
 
 /**
  * Aggregate the rows of one window (the caller decides which rows are in it) into the public block.
- * A row with no text, kind, tags or place is a listing logged before listings were told apart from
- * searches, so it is left out of every total.
+ * A row with no text, kind, tags or place is a listing, not a search (docs/metrics.md, "Numbers that
+ * straddle the change"), so it is left out of every total.
  *
  * A public shape is (q, kind, near), so several rows can land on one shape: the log splits a shape
  * further by tags, radius and source, and the same shape recurs on later days. `days` and the poller
