@@ -6,13 +6,12 @@ import { describeQuery, parseSearchQuery, search } from "@/lib/search";
 import { optionalPublisher } from "@/lib/publishers";
 import { budget } from "@/lib/db";
 import { searchCounting } from "@/lib/user-agent";
+import { xmlHtmlText, xmlText as esc } from "@/lib/rss";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 // A feed is a search plus serialization of up to 50 posts.
 export const maxDuration = 15;
-
-function esc(s: string) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 
 /** RSS 2.0 over the same query grammar as /search. */
 export const GET = handler(async (req) => {
@@ -45,7 +44,7 @@ ${p.starts_at ? `    <crier:starts_at>${esc(p.starts_at)}</crier:starts_at>` : "
 ${p.ends_at ? `    <crier:ends_at>${esc(p.ends_at)}</crier:ends_at>` : ""}
     <crier:expires_at>${esc(p.expires_at)}</crier:expires_at>
     <crier:publisher id="${esc(p.publisher.id)}" verified="${p.publisher.verified}">${esc(p.publisher.name)}</crier:publisher>
-    <description>${esc(desc)}</description>
+    <description>${xmlHtmlText(desc)}</description>
   </item>`;
   }).join("\n");
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

@@ -26,7 +26,11 @@ const RELAY_PATTERNS: RegExp[] = [
   new RegExp(`\\b(make sure|ensure) ${AGENTS} (see|read|hear|get|receive|know)`, "i"),
 ];
 
-const HIDDEN_UNICODE = /[\u200B-\u200F\u2028-\u202E\u2060-\u2064\uFEFF\u{E0000}-\u{E007F}]/u;
+/** Invisible or direction-changing characters that can hide or reorder text. Flagged, and stripped from what is stored. */
+const HIDDEN = "\\u034F\\u061C\\u115F\\u1160\\u180E\\u200B-\\u200F\\u2028-\\u202E\\u2060-\\u206F\\u3164\\uFEFF\\uFFA0\\u{1D173}-\\u{1D17A}\\u{E0000}-\\u{E007F}";
+const HIDDEN_UNICODE = new RegExp(`[${HIDDEN}]`, "u");
+/** Also strips the soft hyphen, which is too common in text copied from web pages to flag. */
+const STRIPPED_UNICODE = new RegExp(`[\\u00AD${HIDDEN}]`, "gu");
 const BASE64_BLOB = /(?:[A-Za-z0-9+/]{4}){20,}={0,2}/;
 
 const QA_LINE = /^(q|a|question|answer)\s*[\d:.)\-]/i;
@@ -59,7 +63,7 @@ export function contentFlags(title: string, body: string, carried: string[] = []
   return [...flags];
 }
 
-/** Strip hidden unicode so it can't be used to smuggle text past a reader. */
+/** Strip hidden unicode, and soft hyphens, so they can't be used to smuggle text past a reader. */
 export function stripHiddenUnicode(s: string): string {
-  return s.replace(new RegExp(HIDDEN_UNICODE.source, "gu"), "");
+  return s.replace(STRIPPED_UNICODE, "");
 }

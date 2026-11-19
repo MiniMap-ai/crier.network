@@ -17,6 +17,40 @@ test("hidden_unicode fires on the text as sent and the characters strip cleanly"
   assert.ok(!has("Show", stripHiddenUnicode(body), "hidden_unicode"));
 });
 
+const cp = (...points: number[]) => String.fromCodePoint(...points);
+const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+const flaggedAndStripped = [0x034F, 0x061C, 0x115F, 0x1160, 0x180E, 0x3164, 0xFFA0, ...range(0x2065, 0x2069), ...range(0x206A, 0x206F), ...range(0x1D173, 0x1D17A)];
+const SOFT_HYPHEN = 0x00AD;
+
+test("bidi isolates, fillers, joiners and format controls raise hidden_unicode and strip cleanly", () => {
+  for (const c of flaggedAndStripped) {
+    const body = `Doors${cp(c)} at 8`;
+    assert.ok(has("Show", body, "hidden_unicode"), c.toString(16));
+    assert.equal(stripHiddenUnicode(body), "Doors at 8", c.toString(16));
+  }
+});
+
+test("a soft hyphen is stripped but does not raise hidden_unicode", () => {
+  const body = `co${cp(SOFT_HYPHEN)}operative`;
+  assert.ok(!has("Show", body, "hidden_unicode"));
+  assert.equal(stripHiddenUnicode(body), "cooperative");
+});
+
+test("ordinary text in many scripts, with emoji, is untouched and unflagged", () => {
+  const samples = [
+    `Caf${cp(0xE9)} na${cp(0xEF)}ve ${cp(0xC5)}ngstr${cp(0xF6)}m, se${cp(0xF1)}or`,
+    cp(0x0645, 0x0631, 0x062D, 0x0628, 0x0627, 0x0020, 0x0628, 0x0643, 0x0645),
+    cp(0x05E9, 0x05DC, 0x05D5, 0x05DD, 0x0020, 0x05E2, 0x05D5, 0x05DC, 0x05DD),
+    cp(0xC548, 0xB155, 0xD558, 0xC138, 0xC694, 0x0020, 0xAC00, 0xD7A3),
+    cp(0x4F60, 0x597D, 0x4E16, 0x754C, 0x0020, 0x65E5, 0x672C, 0x8A9E),
+    `Party ${cp(0x1F389)} ${cp(0x1F44D, 0x1F3FD)} ${cp(0x1F1FA, 0x1F1F8)} ${cp(0x2764, 0xFE0F)}`,
+  ];
+  for (const s of samples) {
+    assert.equal(stripHiddenUnicode(s), s, s);
+    assert.ok(!has(s, s, "hidden_unicode"), s);
+  }
+});
+
 test("encoded_blob", () => {
   assert.ok(has("Show", "payload: " + "QUJDRA==".slice(0, 4).repeat(30), "encoded_blob"));
   assert.ok(!has("Show", clean, "encoded_blob"));

@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { stripHiddenUnicode } from "./flags.ts";
 
 /**
  * What a post body may say, on create and on edit, and how an edit lands on the stored post. Its
- * only import is zod, so tests load it without a database or Next.
+ * only imports are zod and the import-free lib/flags.ts, so tests load it without a database or Next.
  */
 
 export const KINDS = ["event", "offer", "request", "announcement", "thread"] as const;
@@ -18,10 +19,14 @@ const isoDate = z.string().refine((s) => !Number.isNaN(Date.parse(s)), { message
 
 // No defaults here: zod's .partial() keeps a default, so a PATCH schema built from a defaulted field
 // would fill in a value the caller never sent and overwrite the stored one.
+/** Text of at most `max` characters that still has something to read once the write strips its hidden Unicode. */
+const visibleText = (max: number) => z.string().trim().min(1).max(max)
+  .refine((s) => stripHiddenUnicode(s).trim().length > 0, { message: "must contain visible text; only invisible characters were sent" });
+
 const PostFields = z.object({
   kind: z.enum(KINDS),
-  title: z.string().trim().min(1).max(200),
-  body: z.string().trim().min(1).max(8000),
+  title: visibleText(200),
+  body: visibleText(8000),
   url: z.url().max(1000).optional(),
   tags: z.array(z.string().trim().toLowerCase().min(1).max(40)).max(20),
   location: LocationSchema.optional(),

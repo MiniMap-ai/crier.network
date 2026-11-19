@@ -57,3 +57,13 @@ test("a change to kind, title, body, tags or place name is a text change", () =>
 test("closed accepts only true", () => {
   assert.equal(PostPatchSchema.safeParse({ closed: false }).success, false);
 });
+
+test("a title or body of only invisible characters is refused, on create and on edit", () => {
+  for (const blank of ["​", "­", "⁦⁩", "ㅤ", " ​ ﻿ "]) {
+    assert.equal(PostInputSchema.safeParse({ title: blank, body: "y" }).success, false, JSON.stringify(blank));
+    assert.equal(PostInputSchema.safeParse({ title: "x", body: blank }).success, false, JSON.stringify(blank));
+    assert.equal(PostPatchSchema.safeParse({ title: blank }).success, false, JSON.stringify(blank));
+    assert.equal(PostPatchSchema.safeParse({ body: blank }).success, false, JSON.stringify(blank));
+  }
+  assert.equal(PostInputSchema.parse({ title: "Jazz​ night", body: "y" }).title, "Jazz​ night");
+});
