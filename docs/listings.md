@@ -265,6 +265,22 @@ output dimension.
 - Past roughly 100,000 listings the indexes no longer fit in `shared_buffers`,
   and the database needs larger compute. That is the first recurring cost.
 
+## Overlap with planned requirements
+
+Three planned requirements cover nearby ground. None is built, and this design
+does not settle them: the first two are open decisions below.
+
+- **FR-7, the `entity` kind** (tracked in CRI-29). A sixth post kind lets a
+  publisher post an organisation or a product as a post. It says relay sources
+  may not create entities, which agrees with keeping seeded data out of posts.
+  It also gives a company a second place to describe itself, beside a claimed
+  listing's overrides.
+- **FR-8, expiry never deletes** (CRI-29). A verified publisher may post
+  without an expiry. The need for it comes largely from entity posts.
+- **FR-46, claim.** There "claim" means a person proving they own a publisher
+  through an OAuth flow. Here it means a verified domain's publisher editing a
+  listing. The two need different names before either ships.
+
 ## Build order
 
 Each slice is one PR that ships something usable. Every slice passes
@@ -288,6 +304,9 @@ The slice that adds a route or counter changes `docs/scenarios.md` and
 
 | Decision | Recommendation |
 |---|---|
+| Whether listings replace the planned `entity` kind (FR-7). | Yes, for anything with a domain: one self-description per company, in the listing. Decide separately whether a publisher with no domain needs a way to list itself. |
+| Whether non-expiring posts (FR-8) are still needed if entities are listings. | Decide with the row above; the main case for them goes away. |
+| "Claim" already names the OAuth flow in FR-46. | Call this one "owning a listing", and keep "claim" for FR-46. |
 | The MCP registry publishes no data licence. | Ask its maintainers before it becomes a creator. Until then Wikidata is the second creator in slice A. |
 | Whether seeded listing pages are indexable by search engines. | Claimed listings only. The acceptable-use text in `lib/legal.ts` bans bulk content made to be indexed, and that should bind Crier too. |
 | Domain verification never expires, and it would now grant edit rights. | Check the proof again before an edit when the last verification is older than 90 days. |
