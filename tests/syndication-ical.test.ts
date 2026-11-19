@@ -53,7 +53,7 @@ test("a Trumba event with no URL links to its X-TRUMBA-LINK", async () => {
   const visions = byUid(await relay(fixture("trumba-seattlegov.ics")), "/211497880");
   const link = "https://www.seattle.gov/event-calendar?trumbaEmbed=view%3Devent%26eventid%3D211497880";
   assert.equal(visions.url, link);
-  assert.match(visions.body, new RegExp(`^Details: ${link.replace(/[?.]/g, "\\$&")}$`, "m"));
+  assert.ok(visions.body.split("\n").includes(`Details: ${link}`), "the body carries the link on its own Details line");
 });
 
 test("URL wins over X-TRUMBA-LINK when an event has both", async () => {
