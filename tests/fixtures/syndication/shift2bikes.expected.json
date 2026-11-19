@@ -2,14 +2,14 @@
   {
     "uid": "event-24850@shift2bikes.org",
     "title": "Bike Social Hour",
-    "body": "* Build Community * Hatch Ideas * Ride Bikes *\nJoin other bike-minded folks for drinks, food and community every Wednesday from 4-7 (or so). Bike Social Hour is a place where everyone is welcomed and embraced by our community. Just show up and hang out. That's it!\nFamily Night: all ages are welcome any night, but first Wednesday of the month is Family Night, when kiddos can expect extra activities & more other kids to play with.\n5:30 pm - Open Mic. Special guest speeches and announcements.…\nWhere: Migration Brewing\n3947 N Williams Ave, Portland, OR 97227\nDetails: https://shift2bikes.org/calendar/event-24850\nSource: Test calendar (https://example.org), relayed by Crier.",
+    "body": "* Build Community * Hatch Ideas * Ride Bikes *\nJoin other bike-minded folks for drinks, food and community every Wednesday from 4-7 (or so). Bike Social Hour is a place where everyone is welcomed and embraced by our community. Just show up and hang out. That's it!\nFamily Night: all ages are welcome any night, but first Wednesday of the month is Family Night, when kiddos can expect extra activities & more other kids to play with.\n5:30 pm - Open Mic. Special guest speeches and announcements.…\nWhere: Migration Brewing, 3947 N Williams Ave, Portland, OR 97227\nDetails: https://shift2bikes.org/calendar/event-24850\nSource: Test calendar (https://example.org), relayed by Crier.",
     "url": "https://shift2bikes.org/calendar/event-24850",
     "kind": "event",
     "starts_at": "2026-11-19T00:00:00.000Z",
     "ends_at": "2026-11-19T01:00:00.000Z",
     "timezone": "America/Los_Angeles",
     "location": {
-      "name": "Migration Brewing\n3947 N Williams Ave, Portland, OR 97227"
+      "name": "Migration Brewing, 3947 N Williams Ave, Portland, OR 97227"
     },
     "tags": [
       "portland"
@@ -28,14 +28,14 @@
   {
     "uid": "event-25072@shift2bikes.org",
     "title": "Thursday Night Ride",
-    "body": "TNR #607: Mitch\nThursday Night Ride is Portland’s longest-running weekly social ride, rolling out from Salmon Street Springs every Thursday night since 2015!\nRoutes and ride leaders change weekly, but expect an energetic, party-paced social ride with warmth and weirdness from our welcoming “rolling dive bar” regulars. Most rides feature regularly spaced park and store stops, generally leading to a lively end spot around 11 PM. Come prepared to have fun and celebrate cycling together—other…\nWhere: Salmon Street Springs\n1000 SW Naito Pkwy, Portland, OR 97204\nDetails: https://shift2bikes.org/calendar/event-25072\nSource: Test calendar (https://example.org), relayed by Crier.",
+    "body": "TNR #607: Mitch\nThursday Night Ride is Portland’s longest-running weekly social ride, rolling out from Salmon Street Springs every Thursday night since 2015!\nRoutes and ride leaders change weekly, but expect an energetic, party-paced social ride with warmth and weirdness from our welcoming “rolling dive bar” regulars. Most rides feature regularly spaced park and store stops, generally leading to a lively end spot around 11 PM. Come prepared to have fun and celebrate cycling together—other…\nWhere: Salmon Street Springs, 1000 SW Naito Pkwy, Portland, OR 97204\nDetails: https://shift2bikes.org/calendar/event-25072\nSource: Test calendar (https://example.org), relayed by Crier.",
     "url": "https://shift2bikes.org/calendar/event-25072",
     "kind": "event",
     "starts_at": "2026-11-20T03:00:00.000Z",
     "ends_at": "2026-11-20T04:00:00.000Z",
     "timezone": "America/Los_Angeles",
     "location": {
-      "name": "Salmon Street Springs\n1000 SW Naito Pkwy, Portland, OR 97204"
+      "name": "Salmon Street Springs, 1000 SW Naito Pkwy, Portland, OR 97204"
     },
     "tags": [
       "portland"

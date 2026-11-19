@@ -34,7 +34,7 @@ it up.
 | adapter | what | config |
 |---|---|---|
 | `ticketmaster` | Discovery API: concerts, sports, theatre around a point. Needs `TICKETMASTER_API_KEY`. Terms require attribution and a link, which every post carries. | `{lat, lng, radius_km, city, segment?}` |
-| `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, Trumba, Communico, venue calendars. Recurring series (`RRULE`) are not expanded. | `{url, timezone?, location_name?, lat?, lng?, event_url_template?}` |
+| `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, Trumba, Communico, venue calendars. Recurring series (`RRULE`) are not expanded. | `{url, timezone?, location_name?, lat?, lng?, event_url_template?, fold_repeats?, omit_description?}` |
 | `rss` | Any RSS/Atom feed of notices. Items become announcements with a TTL. | `{url, ttl_days?, location_name?, lat?, lng?}` |
 | `localist` | Localist calendars (most universities). Public JSON API, paged, at most 500 rows a run. Placeholder venues are dropped, not published; one event published twice is relayed once. | `{base, location_name?, lat?, lng?}` |
 | `nws` | National Weather Service active alerts for a state (public domain). One post per CAP segment, titled and placed by its area. Zone alerts get a centroid from the zone geometry. | `{area, min_severity?}` |
@@ -57,8 +57,13 @@ and `rss` do, except on online events.
 ### What the ical adapter reads
 
 One item per `VEVENT` with a `UID`, a parseable `DTSTART` and a non-empty `SUMMARY`, inside the
-horizon. A `VEVENT` with an `RRULE` is skipped, and `STATUS:CANCELLED` retires the item's post.
-`config.timezone`, else the feed's `X-WR-TIMEZONE`, places floating times; `GEO`, else
+horizon. A `VEVENT` with an `RRULE` is skipped. `STATUS:CANCELLED` retires the item's post, and so
+does a `SUMMARY` that begins or ends with "cancelled", "canceled" or "postponed", in any case, with
+or without brackets, a colon, a dash or asterisks around it (`cancelledTitle` in
+`lib/syndication/feeds.ts`): "CANCELLED - Council Briefing" and "Story Time [Postponed]" are never
+posted, "How to cope with a cancelled flight" is. On the feeds of 2026-11-18, 21 events in the
+horizon were cancelled only in their title, 12 from the City of Seattle and 9 from Seattle Public
+Library. `config.timezone`, else the feed's `X-WR-TIMEZONE`, places floating times; `GEO`, else
 `config.lat`/`config.lng`, places the event; `LOCATION`, else `config.location_name`, names it.
 
 **The link.** An event links to its `URL`; else to Trumba's `X-TRUMBA-LINK`; else, when the source
@@ -79,7 +84,7 @@ fold and the live-row guard key on (below), and the body's "Details:" line.
 linked item also carries its `UID` as an alias (see "Ticketmaster records, one post each" for how
 the runner uses aliases): a row stored under the `UID` before the feed published a link is found
 when the link appears, and a row stored under the link holds the `UID` as an alias, so it is found
-if the link goes away. A `STATUS:CANCELLED` event gets its link and alias the same way, so it
+if the link goes away. A cancelled event gets its link and alias the same way, so it
 reaches the row its live twin was stored under and retires it in that run. Two limits. A row the
 fold made from several instances under one link gathers, as aliases, the `UID` of each instance
 that was the next one when a run wrote it; cancelling every instance retires it at once only when
@@ -102,8 +107,10 @@ are left as written and `&amp;lt;` stays the text `&lt;`. Then, by field:
 - `SUMMARY` is decoded and nothing is removed, so `Intro to <html> for kids` and `Lab <B>` stay as
   written. The post page renders a title as text, JSON-LD escapes its `<`, MCP returns it as plain
   text, and `feed.xml` XML-escapes it into `<title>`.
-- `LOCATION` has each `<br>` (any case, with or without a slash or attributes) turned into ", ",
-  is decoded, and nothing else is removed.
+- `LOCATION` has each `<br>` (any case, with or without a slash or attributes) and each line break
+  turned into ", ", is decoded, and nothing else is removed. Shift2Bikes writes a place on several
+  lines ("Migration Brewing", then the street), so its `location.name` and "Where:" line read
+  "Migration Brewing, 3947 N Williams Ave, Portland, OR 97227".
 - `DESCRIPTION` is read as HTML: `<br>` and `</p>` become line breaks, tags are removed,
   references decoded, control characters and hidden Unicode removed, and then tags removed again
   until none is left, so `&lt;script&gt;`, `&lt;scr&lt;script&gt;ipt&gt;` and
@@ -130,13 +137,113 @@ Trumba's City of Seattle feed folds long lines with `\r\r\n `, so the parser dro
 return and ends a line at its line feed alone; otherwise "participate" folded across lines reads
 `pa\rrticipate` and a `<br>` folded across lines stops being a line break.
 
+**What a description keeps.** A relayed description must not carry a way to reach a person, so
+`descriptionText` in `lib/syndication/feeds.ts` does three things to every `ical` source's
+`DESCRIPTION`, and then it is clipped to 500 characters:
+
+- A Communico description holding "This field is for internal use only" or "update long
+  description" is dropped whole: those are the template text of the library's staff-only field,
+  which is what Communico serves as `DESCRIPTION`. On Multnomah County Library's feed of
+  2026-11-19, 157 of 500 descriptions carried one. About 170 more read as staff notes too (setup
+  and breakdown times, attendance caps, a staff member's first name) with no marker, so nothing
+  tells them from the public descriptions ("One-on-one appointment with Tech Helper…"). That is
+  why `omit_description` exists (below).
+- A Trumba description is `<br>`-separated "Label: value" custom fields, then a blank line, then
+  the event's own text. The value of a field labelled as a description ("Detailed Description",
+  "Event Description") comes first, then the text after the blank, then the other fields in feed
+  order (audience, cost, pre-registration, neighbourhoods, the organiser's link), so the clip keeps
+  the prose. After the blank a label is read only to drop a contact field: the event's own text
+  opens lines with "Learn more:" and "Join us for a restoration work party at …:", and Seattle
+  Public Library's rich fields hold blank lines of their own. A description that does not open
+  with a field is left in its order.
+- `withoutContacts` then removes every way to reach a person:
+  - A field or line whose label is a contact label goes whole, with every piece of its value. The
+    labels are "Contact", optionally after "Site", "Event", "Program", "Staff", "Media", "Press"
+    or "Presenter" and optionally before "Us", "Name", "Person", "Email", "Phone", "Info",
+    "Information" or "Details"; and "Email", "Phone", "Telephone", "Tel", "Fax", "Contacto",
+    "Correo" and "Teléfono". Each is followed by ":" or " - ". "First Contact: A Sci-Fi Book Club"
+    and "Contact Improv: dance jam" are not contact labels.
+  - A sentence holding an email address, a phone number, or the verb "contact" directly before a
+    capitalised word ("contact Pat Example", "contact Executive Assistant …") goes whole. A line
+    with no sentence end goes whole, so a dial-in line leaves no ",,150836598# United States"
+    behind. In a labelled line with no sentence end only the comma-separated segment goes, so
+    "Committee Chair: <name>, <address>, <number>" keeps the name. A line left holding only its
+    label ("Call in:") or punctuation goes too.
+  - An email address is also read when written "name at example dot org", "name [at] example
+    [dot] org" or "name (at) example.org". The dot part is required, so "at 5 pm" is untouched.
+    "Meet at Central dot org" would be taken for an address; no description in the feeds of
+    2026-11-19 says a thing that way.
+  - A phone number is a North American number whose groups are set apart by a dot, a hyphen or
+    any dash, or by spaces (so "503-988- 5123", left by a stripped tag, is one), or an
+    international number: "+" and 8 to 15 digits. Seven digits ("988-5123") or ten run together
+    count only on a line that says call, phone, tel, text, fax, line or dial, so "ISBN 2065551234"
+    and "Permit #2065551234" stay. Nothing inside a URL counts.
+
+  Web links, organisers ("Organizer:", "Hosted by"), officials and presenters named in Committee
+  Chair, Presenter and Sponsoring Organization fields, and social handles stay. The removal runs
+  before the last tag pass, so it cannot join a tag together. Meeting IDs, permit numbers and
+  dates stay; a public dial-in number does not.
+
+`LOCATION` is cleaned the same way, a comma-separated segment at a time (`placeWithoutContacts`):
+"Meeting link: …, Listen Line: 206-…, Seattle Municipal Tower" loses its middle segment. A place
+is cleaned without hidden Unicode, which could split an address; a place that loses a segment
+keeps none, and the item carries `hidden_unicode` for it instead.
+
+On the feeds of 2026-11-19, of the City of Seattle's 500 events 351 had a `Contact` field, 292 a
+`Contact Email` and 145 a `Contact Phone`, and 189 of Seattle Public Library's 200 a `Contact Us`
+field with a phone number. Of the clipped descriptions a relay writes, 195 of the City's 276 held
+an email address and 112 a phone number or a long run of digits, and 24 of the Library's 200 a
+phone number. After cleaning, none holds an address, a phone number or a name after "contact",
+and none of the six feeds' places holds an address or a phone number. The digit runs left are
+meeting IDs, a permit number, dates, ZIP+4 codes and coordinates. The other adapters' text is not
+cleaned this way.
+
+**Relaying no description.** A source that sets `"omit_description": true` relays no description
+text at all: the body is the Where, Details and Source lines, and the fold's "Also at:" line. No
+flag is carried from the description either, since none of it is relayed. Multnomah County
+Library is added this way, because about 170 of its descriptions are staff notes no marker gives
+away. The admin routes refuse a value that is not true or false, and the adapter fails the run on
+one.
+
 **Repeats.** Trumba and Communico give every instance of a recurring event its own `UID` and its
-own link, and no `RRULE` or series id; the fold below keys on the link, so their instances stay
-one post each. On the feeds of 2026-11-19, over the next 30 days: Seattle Public Library 194
-events under 82 titles ("Family Story Time" 19, at a dozen branches); Multnomah County Library 500
-events under 153 titles ("Tech Help Drop-in" 65); the City of Seattle 282 events, which fold to
-228 items only through the organisers' `URL`s some instances share ("Open Adoption Hours", 27
-instances under one URL). Every run writes at most `max_per_run` of them, nearest first.
+own link, and no `RRULE` or series id, so the fold below, which keys on the link, leaves them one
+post each. A source that sets `"fold_repeats": true` folds instead on its series key (`seriesKey` in
+`lib/syndication/adapters.ts`), hashed into `series:<32 hex>` from two parts:
+- the title, without a cancel marker or the brackets and punctuation at its ends, lower-cased;
+- the whole `LOCATION` with only its letters and digits kept, lower-cased, so "100 Dexter Ave N."
+  and "100 Dexter Ave. N" are one place.
+
+The admin routes refuse a `fold_repeats` that is not true or false, and the adapter fails the run
+on one that reached the row another way. Instances sharing both parts become one post standing
+for the next upcoming one, its start, end and link, with the rest in `metadata.recurrence` and the
+"Also at:" line as the fold makes them. One title at two branches, at two rooms of one branch, or
+at "Virtual" and "Hybrid" is two posts. An event with no `LOCATION` has no series key and folds by
+link as before. A title-cancelled instance's key is read with the marker taken off, so it lands in
+its series. Without the flag nothing changes.
+
+The series key is the row's uid, so when the instance a post stands for passes, the next run
+writes the next instance into the same row and post rather than retiring and recreating it. A
+series item carries no instance `UID` as an alias: an instance can leave its series (retitled,
+moved to another room) and form a series of its own. An alias it left on the old row would pull
+that row onto it, so the two would take turns writing one post.
+
+When a series post retires and returns:
+- One cancelled instance leaves the post up while another remains in the horizon.
+- When every instance in the horizon is cancelled, the post retires in that run, even if a live
+  instance lies past the horizon. It returns, on the same uid, in the run in which a live instance
+  enters the horizon ("When a relayed post comes back", below).
+- A feed that edits a title or a place makes a new series key and so a new post. The old one is
+  left to the missing-item sweep.
+
+Turning the flag on leaves the source's per-instance posts unrelayed, and the missing-item sweep
+retires the future ones over three runs. Turning it off does the same to the series posts, and the
+per-instance posts come back, each on its own uid.
+
+On the feeds of 2026-11-19, the posts a full relay would write without and with `fold_repeats`:
+City of Seattle 210 and 158 ("Open Adoption Hours" one post for 26 instances), Seattle Public
+Library 191 and 120, Multnomah County Library 500 and 301 ("Tech Help Drop-in" 23 posts, one per
+library room, for 66 instances). Before cancelled titles were read, the City's relay wrote 224
+and the Library's 200. Every run writes at most `max_per_run` of them, nearest first.
 
 ## Runner
 
@@ -151,6 +258,25 @@ adapter, folds the instances of one upstream thing into one item, then:
   consecutive fetches while still in the future — unless another item of the
   same source is still relaying that post.
 
+### When a relayed post comes back
+
+`createPost` returns the post an idempotency key already names, whatever state it is in. What the
+runner does with it is `keyedPostAction` in `lib/syndication/keyed-post.ts`:
+- When no post holds the key, the item is inserted.
+- When the post that holds it is only expired, or live with no other row relaying it, the item is
+  written into it like any changed item. The update sets the post's times, so `expires_at` is
+  recomputed and the `live` trigger takes an expired post back. This is how a link-folded series
+  whose row the sweep dropped during a gap resumes on its old post rather than being pinned to
+  what that post said before.
+- When the post was deleted, closed or hidden, or another row relays it, nothing is written.
+
+Every post the runner deletes itself (a cancelled item, the missing-item sweep, a merge's
+retire) has its idempotency key set to null in the same statement. So when upstream brings the
+uid back (a series whose one cancelled month is followed by a live one, or posts the sweep took
+while `fold_repeats` was on), it is inserted afresh. A relayed post deleted any other way, by
+moderation or on a source's request, keeps its key, and that is what keeps it deleted. A post the
+runner deleted before keys were freed still holds its key and stays deleted.
+
 State lives in `source_items` (uid → post, hash, last seen, aliases) and `source_runs`
 (one row per run with counts and errors). A run's `status` is `ok`, `partial`
 (the fetch stopped early, everything it read was written, and `error` says
@@ -158,6 +284,14 @@ where it stopped), or `error` (the fetch failed before anything was read, or
 something threw while writing; a fetch failure names the URL, the elapsed
 milliseconds and the HTTP status when there was one). Credentials in a URL are
 redacted before it reaches either column.
+
+A response body is read in chunks and refused past 8 MiB (`MAX_BODY_BYTES` in
+`lib/syndication/types.ts`), or at once when its `Content-Length` says it is larger: the request
+fails like any other, naming the cap, rather than being held in memory whole or relayed cut short.
+Either way the body is cancelled, which releases the connection. A read the run's deadline aborts
+part way says how many bytes of the body it had read.
+The largest feed relayed or proposed on 2026-11-19 was Seattle Public Library's Trumba calendar at
+1.96 MB; NWS alerts for California were 0.27 MB.
 
 `partial` is not a failure. `sources.last_error` carries the note of a partial
 run as it does the error of a failed one, so read `last_status`, not whether
@@ -231,7 +365,8 @@ database.
 
 `lib/syndication/collapse.ts` makes the write path agree with the read path.
 Items are grouped on the same `source_key` search collapses on — the item's URL,
-normalized — and each group becomes one item:
+normalized — or on the item's series key when an `ical` source sets `fold_repeats` ("Repeats",
+above), and each group becomes one item:
 
 - `starts_at` is the next instance still upcoming, so the post moves forward as
   instances pass rather than being replaced,
@@ -296,8 +431,8 @@ they are stored under. A fetch reads one page sorted by date, so a show's twins
 can fall on either side of its end: one twin arriving cancelled alone says
 nothing about the other. Such a row is left to the missing-item sweep, which
 retires it after three runs in which no live record reaches it. The `ical` adapter's linked items
-carry their `UID` as an alias ("What the ical adapter reads", above). Items from every other adapter
-carry no aliases and take the path they took before.
+carry their `UID` as an alias ("What the ical adapter reads", above), except an item folded on a
+series key. Items from every other adapter carry no aliases and take the path they took before.
 
 What the mapping does to each record: the timezone is the event's, else its
 venue's; the end comes only from `dates.end.dateTime`, never when

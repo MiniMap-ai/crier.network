@@ -108,12 +108,197 @@ export function htmlToText(s: string, scrub: (t: string) => string = dropControl
 }
 
 /**
- * A place name from upstream HTML: the pieces between `<br>`s joined with ", ", references decoded
- * once, and nothing else removed, so "Lab <B>" stays as written. Without a `<br>` or a reference,
- * the trimmed input comes back unchanged.
+ * A place name from upstream HTML: the pieces between `<br>`s and line breaks joined with ", ",
+ * references decoded once, and nothing else removed, so "Lab <B>" stays as written. A line break a
+ * reference decodes to splits too. Without a `<br>`, a line break or a reference, the trimmed input
+ * comes back unchanged.
  */
 export function placeText(s: string): string {
-  return s.split(BR).map((piece) => decodeEntities(piece).trim()).filter(Boolean).join(", ");
+  return s.split(BR).flatMap((piece) => decodeEntities(piece).split(/[\n\u2028\u2029]/)).map((piece) => piece.trim()).filter(Boolean).join(", ");
+}
+
+/**
+ * Template text of Communico's staff-only field, which is what its iCalendar `DESCRIPTION` serves:
+ * a description with either phrase in it is staff notes (docs/syndication.md, "What a description
+ * keeps").
+ */
+const STAFF_ONLY = /this\s+field\s+is\s+for\s+internal\s+use\s+only|\bupdate\s+long\s+description\b/i;
+
+/** A labelled field at the start of a line or a `<br>` piece: "Contact Email: …", "Building/Room #: …". */
+const FIELD = /^\s*([A-Za-z][A-Za-z0-9 /&'()#.-]{0,59}):(?=\s|$)/;
+
+/** A label of at most three words: longer, the "label" is a sentence ending in a colon. */
+const shortLabel = (label: string) => label.trim().split(/\s+/).length <= 3;
+
+/**
+ * Labels whose value is how to reach someone: "Contact", "Contact Us", "Event Contact Email", "Site
+ * Contact Details", "Email", "Teléfono". "First Contact" and "Contact Improv" are not.
+ */
+const CONTACT_LABEL = String.raw`(?:(?:site|event|program|staff|media|press|presenter)\s+)?contacts?(?:\s+(?:us|name|person|e-?mail|phone|information|info|details))?|e-?mail|phone|telephone|tel|fax|contacto|correo(?:\s+electr[oó]nico)?|tel[eé]fono`;
+const CONTACT_FIELD = new RegExp(String.raw`^\s*(?:${CONTACT_LABEL})\s*$`, "iu");
+/** A line opening with a contact label and ":" or " - ": "Contact - Pat Example". */
+const CONTACT_LINE = new RegExp(String.raw`^\s*(?:${CONTACT_LABEL})[ \t]*(?::|[ \t]-[ \t])`, "iu");
+
+/** Whether a field's label says its value is how to reach someone. */
+const contactLabel = (label: string) => CONTACT_FIELD.test(label);
+
+const EMAIL = String.raw`(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+`;
+/** "name at example dot org", "name [at] example [dot] org", "name (at) example.org": a dot part is required, so "at 5 pm" is no address. */
+const SPOKEN_EMAIL = String.raw`(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+[ \t]{1,3}at[ \t]{1,3}[A-Za-z0-9-]+(?:[ \t]{1,3}dot[ \t]{1,3}[A-Za-z0-9-]+)+`;
+const BRACKET_EMAIL = String.raw`(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+[ \t]{0,3}[[({]at[\])}][ \t]{0,3}[A-Za-z0-9-]+(?:(?:\.|[ \t]{0,3}[[({]dot[\])}][ \t]{0,3}|[ \t]{1,3}dot[ \t]{1,3})[A-Za-z0-9-]+)+`;
+/** Between digit groups: a dot, a hyphen or any dash, with up to two spaces either side, or one or two spaces. */
+const SEP = String.raw`(?:[ \t]{0,2}[.\-‐-—][ \t]{0,2}|[ \t]{1,2})`;
+const NOT_BEFORE = String.raw`(?<![\w/=?&.%+@\-‐-—])`;
+const NOT_AFTER = String.raw`(?![\w/@]|[.\-‐-—]\d)`;
+/** A North American number with its groups set apart, or an international one: "+" and 8 to 15 digits. */
+const PHONE = String.raw`${NOT_BEFORE}(?:(?:\+?1${SEP}?)?(?:\([2-9]\d\d\)${SEP}?|[2-9]\d\d${SEP})[2-9]\d\d${SEP}\d{4}|\+\d(?:[ \t.\-‐-—()]{0,2}\d){7,14})${NOT_AFTER}`;
+/** Read as a number only on a line with a phone cue: ten digits run together, or seven. */
+const CUED_PHONE = String.raw`${NOT_BEFORE}(?:(?:\+?1)?[2-9]\d\d[2-9]\d{6}|[2-9]\d\d${SEP}\d{4})${NOT_AFTER}`;
+const PHONE_CUE = /\b(?:call|phone|tel|text|fax|line|dial)/i;
+const REACH = new RegExp(`${EMAIL}|${SPOKEN_EMAIL}|${BRACKET_EMAIL}|${PHONE}`, "i");
+const REACH_CUED = new RegExp(`${EMAIL}|${SPOKEN_EMAIL}|${BRACKET_EMAIL}|${PHONE}|${CUED_PHONE}`, "i");
+/** The verb "contact" naming whom: "contact Pat Example", "contact Executive Assistant …". */
+const NAMED_CONTACT = /\bcontact[ \t]+\p{Lu}/u;
+const SENTENCE_BREAK = /(?<=[.!?])[ \t]+/;
+/** What is left of a trimmed line that only named a way to reach someone: a bare label, or punctuation. */
+const EMPTIED = /^(?:[A-Za-z][A-Za-z0-9 /&'()#.-]{0,59}:)?[\s\p{P}]*$/u;
+
+/** A test for a way to reach someone in a piece of `line`, reading cued number shapes when the line has a cue. */
+function reachTest(line: string): (piece: string) => boolean {
+  const re = PHONE_CUE.test(line) ? REACH_CUED : REACH;
+  return (piece) => re.test(piece) || NAMED_CONTACT.test(piece);
+}
+
+/** Without leading or trailing spaces, commas or semicolons. */
+function trimSeparators(s: string): string {
+  let start = 0, end = s.length;
+  while (start < end && /[\s,;]/.test(s[start])) start++;
+  while (end > start && /[\s,;]/.test(s[end - 1])) end--;
+  return s.slice(start, end);
+}
+
+/** The comma- or semicolon-separated segments of `s` that name no way to reach someone. */
+function keptSegments(s: string, reaches: (piece: string) => boolean): string {
+  return trimSeparators(s.split(/(?<=[,;])/).filter((seg) => !reaches(seg)).join(""));
+}
+
+/**
+ * Plain text with no way to reach a person in it. A line opening with a contact label ("Contact",
+ * "Contact Phone", "Event Contact Email", "Contact Us", "Contacto") goes whole. A sentence holding
+ * an email address (spelled out or bracketed too), a phone number, or the verb "contact" before a
+ * capitalised name goes whole, and a line with no sentence end goes whole; but in a labelled line
+ * with no sentence end only the comma-separated segment goes, so "Committee Chair: <name>, <address>"
+ * keeps the name. A line left holding only its label or punctuation goes too. Seven digits, or ten
+ * run together, are a number only on a line that says call, phone, tel, text, fax, line or dial.
+ * Web links and social handles stay. Lines are kept, so `htmlToText` can trim and drop empty ones.
+ */
+export function withoutContacts(text: string): string {
+  return text.split("\n").map((line) => {
+    if (CONTACT_LINE.test(line)) return "";
+    const reaches = reachTest(line);
+    if (!reaches(line)) return line;
+    const found = FIELD.exec(line)?.[0];
+    const label = found !== undefined && !reaches(found) ? found : "";
+    const value = line.slice(label.length);
+    const sentences = value.split(SENTENCE_BREAK);
+    const kept = sentences.length > 1 || /[.!?]$/.test(value.trimEnd()) ? sentences.filter((s) => !reaches(s)).join(" ")
+      : label ? keptSegments(value, reaches) : "";
+    const out = label + (label && kept ? " " : "") + kept.trim();
+    return EMPTIED.test(out.trim()) ? "" : out;
+  }).join("\n");
+}
+
+/** A place with every comma-separated segment that names a way to reach someone removed ("Listen Line: 206-…"). */
+export function placeWithoutContacts(place: string): string {
+  const reaches = reachTest(place);
+  return reaches(place) ? keptSegments(place, reaches) : place;
+}
+
+/**
+ * Trumba's custom fields reordered behind the prose. A Trumba description is `<br>`-separated
+ * "Label: value" fields, each value running on until the next label, then a blank piece
+ * (`<br><br>`) and the event's own text. What comes back: the value of any field whose label names a
+ * description ("Detailed Description"), then the text after the first blank, then the other fields
+ * as written, so a clip keeps the description. After the blank a label is read only to drop a
+ * contact field, since the event's own text can open a line with "Learn more:", and a rich field
+ * value can itself hold a blank. Contact fields are dropped with every piece of their value.
+ * Anything that does not open with a field, or has no `<br>`, comes back unchanged.
+ */
+export function proseFirst(html: string): string {
+  const pieces = html.split(BR);
+  const first = pieces.find((p) => p.trim());
+  if (pieces.length < 2 || first === undefined || !FIELD.test(first)) return html;
+  type Field = { label: string; pieces: string[] };
+  const prose: string[] = [], fields: Field[] = [];
+  let open: Field | undefined, inProse = false;
+  for (const piece of pieces) {
+    if (!piece.trim()) { open = undefined; inProse = fields.length > 0; continue; }
+    const label = FIELD.exec(piece)?.[1];
+    if (label !== undefined && (!inProse || contactLabel(label))) fields.push(open = { label, pieces: [piece] });
+    else if (open && !(inProse && label !== undefined)) open.pieces.push(piece);
+    else { open = undefined; prose.push(piece); }
+  }
+  const described = (f: Field) => shortLabel(f.label) && /\bdescription\b/i.test(f.label);
+  const kept = fields.filter((f) => !contactLabel(f.label));
+  return [
+    ...kept.filter(described).flatMap((f) => [f.pieces[0].replace(FIELD, ""), ...f.pieces.slice(1)]),
+    ...prose,
+    ...kept.filter((f) => !described(f)).flatMap((f) => f.pieces),
+  ].join("<br>");
+}
+
+/**
+ * An iCalendar `DESCRIPTION` as the text a relayed post may carry: empty for Communico staff notes,
+ * Trumba's fields put behind the prose (`proseFirst`), read as HTML (`htmlToText`, with `scrub`),
+ * and then every way to reach a person removed (`withoutContacts`) before the last tag pass, so a
+ * removal cannot join a tag together. Not clipped.
+ */
+export function descriptionText(html: string, scrub: (t: string) => string = dropControls): string {
+  if (STAFF_ONLY.test(html)) return "";
+  return htmlToText(proseFirst(html), (t) => withoutContacts(scrub(t)));
+}
+
+/** The brackets, colon, dash, asterisks and spaces that may set a cancel marker off. */
+const MARKER_EDGE = String.raw`[\s*\[\](){}:\-–—!.]*`;
+const CANCEL_START = new RegExp(String.raw`^${MARKER_EDGE}(?:cancell?ed|postponed)(?![\p{L}\p{N}])`, "iu");
+/** No edge before the marker: unanchored, a leading run would be rescanned from every position in it. */
+const CANCEL_END = new RegExp(String.raw`(?<![\p{L}\p{N}])(?:cancell?ed|postponed)${MARKER_EDGE}$`, "iu");
+const isEdge = (c: string) => /[\s*\[\](){}:\-–—!.]/u.test(c);
+const isWordChar = (c: string | undefined) => c !== undefined && /[\p{L}\p{N}]/u.test(c);
+const CANCEL_WORDS = ["cancelled", "canceled", "postponed"];
+
+/**
+ * Whether a title says the event is off: it begins or ends with "cancelled", "canceled" or
+ * "postponed", in any case, bracketed or set off by a colon, dash or asterisks or not
+ * ("CANCELLED - Council Briefing", "Story Time [Postponed]"). A title with the word inside it ("How
+ * to cope with a cancelled flight") does not.
+ */
+export function cancelledTitle(title: string): boolean {
+  return CANCEL_START.test(title) || CANCEL_END.test(title);
+}
+
+/**
+ * The title without the markers `cancelledTitle` looks for, however many open or close it
+ * ("CANCELLED - CANCELLED: Commission Meeting"), and without the spaces, brackets, dashes and other
+ * marks that may set a marker off at either end, whether or not a marker is there.
+ */
+export function withoutCancelMarker(title: string): string {
+  // Indices, not repeated replaces: a title of a thousand markers must not be copied a thousand times.
+  const markerAt = (at: number) => CANCEL_WORDS.find((w) => title.slice(at, at + w.length).toLowerCase() === w);
+  let start = 0, end = title.length;
+  for (;;) {
+    while (start < end && isEdge(title[start])) start++;
+    const w = markerAt(start);
+    if (!w || start + w.length > end || isWordChar(title[start + w.length])) break;
+    start += w.length;
+  }
+  for (;;) {
+    while (end > start && isEdge(title[end - 1])) end--;
+    const w = CANCEL_WORDS.find((m) => end - m.length >= start && markerAt(end - m.length) === m);
+    if (!w || isWordChar(title[end - w.length - 1])) break;
+    end -= w.length;
+  }
+  return title.slice(start, end).trim();
 }
 
 /** Every C0 and C1 control character except newline and tab removed. */

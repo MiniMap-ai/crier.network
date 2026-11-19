@@ -1,0 +1,99 @@
+BEGIN:VCALENDAR
+PRODID:-//Trumba Corporation//Trumba Calendar Services 0.11.26318//EN
+VERSION:2.0
+X-WR-TIMEZONE:America/Los_Angeles
+BEGIN:VEVENT
+SUMMARY:Sturtevant Ravine Work Party!
+LOCATION:Sturtevant Ave S\, Seattle\, WA 98118
+DTSTART;TZID=America/Los_Angeles:20261122T090000
+DTEND;TZID=America/Los_Angeles:20261122T110000
+URL:http://seattle.greencitypartnerships.org/event/44874/
+DTSTAMP:20260918T094148Z
+DESCRIPTION:Neighborhoods: Rainier Beach/Othello<br>Sponsoring Organizatio
+ n: Green Seattle Partnership<br>Contact: Pat Example<br>Contact Phone: 20
+ 6-555-0100<br>Contact Email: pat.example@example.org<br>Audience: All<br>
+ Pre-Register: No<br>Link: http://seattle.greencitypartnerships.org/event/
+ 44874/<br><br>Join us for a restoration work party at Sturtevant Ravine -
+  See website for important details on what to bring and where to meet.
+CATEGORIES:Volunteer
+UID:http://uid.trumba.com/event/209131488
+X-TRUMBA-LINK:https://www.seattle.gov/event-calendar?trumbaEmbed=view%3Dev
+ ent%26eventid%3D209131488
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:High Point Community Center Thanksgiving Dinner
+LOCATION:6920 34th Ave SW <br>Seattle\, WA 98126
+DTSTART;TZID=America/Los_Angeles:20261119T113000
+DTEND;TZID=America/Los_Angeles:20261119T183000
+DTSTAMP:20261117T135531Z
+DESCRIPTION:Parks Event Category: Volunteer Opportunities<br>Neighborhoods
+ : High Point<br>Location Type: Indoor<br>Community Center: High Point Com
+ munity Center<br>Contact: Sam Sample<br>Contact Email: Sam.Sample@example
+ .org<br>Audience: Adults\,Family\,Senior\,Special Needs\,Teen<br>Pre-Regi
+ ster: No<br>Cost: Free<br><br>Assist in serving\, cleaning and packaging 
+ plates for carry out at the High Point Thanksgiving Dinner! Volunteers ar
+ e needed for all or part of the day. Please email <a href="mailto:Sam.Sam
+ ple@example.org" target="_blank" rel="noopener">Sam.Sample@example.org</a
+ > or call (206) 555-0101 to sign up and confirm the hours you are able to
+  volunteer.
+CATEGORIES:Volunteer
+UID:http://uid.trumba.com/event/214035853
+X-TRUMBA-LINK:https://www.seattle.gov/event-calendar?trumbaEmbed=view%3Dev
+ ent%26eventid%3D214035853
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Select Budget Committee
+LOCATION:City Hall\, Council Chambers<br>600 4th Ave<br>Seattle\, WA 98104
+DTSTART;TZID=America/Los_Angeles:20261120T093000
+DTEND;TZID=America/Los_Angeles:20261120T120000
+URL:https://www.seattle.gov/council/meetings/committees-and-agendas/select
+ -budget-committee
+DTSTAMP:20261101T120000Z
+DESCRIPTION:Venue Location: City Hall\, Council Chambers<br>City Council M
+ eeting Type: Budget<br>Committee Chair: Alex Placeholder \, Alex.Placehol
+ der@example.org\, 206-555-0102<br>Neighborhoods: Downtown Commercial Core
+ <br>Audience: Adults\,All<br>Additional Information: Visiting City Hall<b
+ r>Event Description: The committee reviews the proposed budget. Public co
+ mment is taken in person and by phone.\nCall in: 206-555-0104
+UID:http://uid.trumba.com/event/195091480
+X-TRUMBA-LINK:https://www.seattle.gov/event-calendar?trumbaEmbed=view%3Dev
+ ent%26eventid%3D195091480
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:CANCELLED - Family Story Time
+LOCATION:Magnolia Branch
+DTSTART;TZID=America/Los_Angeles:20261121T103000
+DTEND;TZID=America/Los_Angeles:20261121T110000
+DTSTAMP:20261110T120000Z
+DESCRIPTION:Location Link: Magnolia Branch<br>Detailed Description: Early 
+ Learning is a great way for kids ages 0-5 and their families.<br><br>At s
+ torytime\, kids ages 0-5 and their families can enjoy stories\, songs\, a
+ nd fun learning activities.
+UID:http://uid.trumba.com/event/205883900
+X-TRUMBA-LINK:https://www.spl.org/event-calendar?trumbaEmbed=view%3Devent%
+ 26eventid%3D205883900
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Family Story Time
+LOCATION:Magnolia Branch
+DTSTART;TZID=America/Los_Angeles:20261128T103000
+DTEND;TZID=America/Los_Angeles:20261128T110000
+DTSTAMP:20261110T120000Z
+DESCRIPTION:Location Link: Magnolia Branch<br>Room Location: Meeting Room<
+ br>Registration Required: Registration is not required.<br>Detailed Descr
+ iption: <img src="https://www.trumba.com/i/DgBohZRAtMKeE3LJerr2C-0L.png" 
+ alt=" Image of a label with the words: About this event" width="147" heig
+ ht="77">\nEarly Learning is a great way for kids ages 0-5 and their famil
+ ies to develop learning\, literacy\, and language skills.<br>Contact Us: 
+ <img alt=" Image of a label with the words: Contact us" height="77" src="
+ https://www.trumba.com/i/DgB32CYHnGABZQ0H91yPaGlC.png" width="147" />\nIf
+  you have questions about this event\, <a href="https://www.spl.org/ask">
+ Ask Us</a> or call 206-555-0103.<br>ADA Accommodations: We can provide ac
+ commodations for people with disabilities at Library events.<br><br>At st
+ orytime\, kids ages 0-5 and their families can enjoy stories\, songs\, an
+ d fun learning activities.
+UID:http://uid.trumba.com/event/205883901
+X-TRUMBA-LINK:https://www.spl.org/event-calendar?trumbaEmbed=view%3Devent%
+ 26eventid%3D205883901
+END:VEVENT
+END:VCALENDAR
