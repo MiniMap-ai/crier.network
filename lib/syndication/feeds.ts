@@ -157,8 +157,8 @@ const CUED_PHONE = String.raw`${NOT_BEFORE}(?:(?:\+?1)?[2-9]\d\d[2-9]\d{6}|[2-9]
 const PHONE_CUE = /\b(?:call|phone|tel|text|fax|line|dial)/i;
 const REACH = new RegExp(`${EMAIL}|${SPOKEN_EMAIL}|${BRACKET_EMAIL}|${PHONE}`, "i");
 const REACH_CUED = new RegExp(`${EMAIL}|${SPOKEN_EMAIL}|${BRACKET_EMAIL}|${PHONE}|${CUED_PHONE}`, "i");
-/** The verb "contact" naming whom: "contact Pat Example", "contact Executive Assistant …". */
-const NAMED_CONTACT = /\bcontact[ \t]+\p{Lu}/u;
+/** The verb "contact" before a name of two capitalised words or more: "contact Pat Example", "contact Executive Assistant …". One word, as in "contact LEAP", is an organisation. */
+const NAMED_CONTACT = /\bcontact[ \t]+\p{Lu}[\p{L}.'’-]*[ \t]+\p{Lu}/u;
 const SENTENCE_BREAK = /(?<=[.!?])[ \t]+/;
 /** What is left of a trimmed line that only named a way to reach someone: a bare label, or punctuation. */
 const EMPTIED = /^(?:[A-Za-z][A-Za-z0-9 /&'()#.-]{0,59}:)?[\s\p{P}]*$/u;
@@ -186,7 +186,7 @@ function keptSegments(s: string, reaches: (piece: string) => boolean): string {
  * Plain text with no way to reach a person in it. A line opening with a contact label ("Contact",
  * "Contact Phone", "Event Contact Email", "Contact Us", "Contacto") goes whole. A sentence holding
  * an email address (spelled out or bracketed too), a phone number, or the verb "contact" before a
- * capitalised name goes whole, and a line with no sentence end goes whole; but in a labelled line
+ * name of two capitalised words or more goes whole, and a line with no sentence end goes whole; but in a labelled line
  * with no sentence end only the comma-separated segment goes, so "Committee Chair: <name>, <address>"
  * keeps the name. A line left holding only its label or punctuation goes too. Seven digits, or ten
  * run together, are a number only on a line that says call, phone, tel, text, fax, line or dial.

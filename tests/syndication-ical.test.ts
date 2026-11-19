@@ -522,6 +522,8 @@ test("withoutContacts drops the sentence or line holding an address, a number or
     ["Please contact the branch for this week's movie title.", "Please contact the branch for this week's movie title."],
     ["Please contact us at the front desk: we open at 10.", "Please contact us at the front desk: we open at 10."],
     ["Doors open at 5 pm. To RSVP, contact Pat Example by Friday.", "Doors open at 5 pm."],
+    ["Please contact LEAP at least seven days before the event to request accommodations.", "Please contact LEAP at least seven days before the event to request accommodations."],
+    ["Questions? Contact Pat at the front desk.", "Questions? Contact Pat at the front desk."],
     ["Please contact Executive Assistant Sam Sample to book a slot. Slots are 30 minutes.", "Slots are 30 minutes."],
     ["Organizer: Friends of the Library", "Organizer: Friends of the Library"],
     ["Hosted by: Pat Example", "Hosted by: Pat Example"],

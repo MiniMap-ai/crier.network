@@ -79,9 +79,11 @@ export type EditableFields = {
  * the tags, and `location` replaces place and coordinates together. The caller strips hidden
  * Unicode from the patch's title and body first, so `textChanged` compares the text as it would be
  * stored. `textChanged` is true only when the embedded text differs, so an edit to dates, link or
- * metadata keeps the post's embedding.
+ * metadata keeps the post's embedding. With `wholeWindow` the patch states the post's whole
+ * schedule: a start or end it omits is cleared, not kept.
  */
-export function mergeEdit(existing: EditableFields, patch: PostEdit): { merged: EditableFields; textChanged: boolean } {
+export function mergeEdit(existing: EditableFields, patch: PostEdit, opts: { wholeWindow?: boolean } = {}): { merged: EditableFields; textChanged: boolean } {
+  const stored = (at: Date | null) => (opts.wholeWindow ? null : at);
   const merged: EditableFields = {
     kind: patch.kind ?? existing.kind,
     title: patch.title ?? existing.title,
@@ -91,8 +93,8 @@ export function mergeEdit(existing: EditableFields, patch: PostEdit): { merged: 
     place_name: patch.location ? patch.location.name ?? null : existing.place_name,
     lat: patch.location ? patch.location.lat ?? null : existing.lat,
     lng: patch.location ? patch.location.lng ?? null : existing.lng,
-    starts_at: patch.starts_at !== undefined ? new Date(patch.starts_at) : existing.starts_at,
-    ends_at: patch.ends_at !== undefined ? new Date(patch.ends_at) : existing.ends_at,
+    starts_at: patch.starts_at !== undefined ? new Date(patch.starts_at) : stored(existing.starts_at),
+    ends_at: patch.ends_at !== undefined ? new Date(patch.ends_at) : stored(existing.ends_at),
     timezone: patch.timezone !== undefined ? patch.timezone : existing.timezone,
     source_url: patch.source_url !== undefined ? patch.source_url : existing.source_url,
     syndicated: patch.syndicated ?? existing.syndicated,

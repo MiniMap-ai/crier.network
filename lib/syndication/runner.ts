@@ -114,7 +114,7 @@ async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: 
   const target = live.find((r) => !r.owned);
   if (!target) return "held";
   const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
-  await updatePost(publisher, target.id, patch, { embedDeadline: deadline, flags });
+  await updatePost(publisher, target.id, patch, { embedDeadline: deadline, flags, wholeWindow: true });
   await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${uid}, ${target.id}, ${hash})
           on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;
   return { adopted: target.id };
@@ -245,7 +245,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         const row = await getPostRow(ex.post_id);
         if (row && !row.deleted_at) {
           const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
-          await updatePost(publisher, ex.post_id, patch, { embedDeadline: deadline, flags: item.flags });
+          await updatePost(publisher, ex.post_id, patch, { embedDeadline: deadline, flags: item.flags, wholeWindow: true });
           await s`update source_items set hash = ${hash}, last_seen = now(), missing_runs = 0 where source_id = ${source.id} and uid = ${uid}`;
           counts.updated++;
           continue;
@@ -268,7 +268,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
       const action = keyedPostAction(held && { deleted: !!held.deleted_at, closed: !!held.closed_at, hidden: !!held.hidden_at, owned: (other?.n ?? 0) > 0 });
       if (action === "update") {
         const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
-        await updatePost(publisher, post.id, patch, { embedDeadline: deadline, flags: item.flags });
+        await updatePost(publisher, post.id, patch, { embedDeadline: deadline, flags: item.flags, wholeWindow: true });
       }
       await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${uid}, ${post.id}, ${hash})
               on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;

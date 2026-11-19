@@ -163,8 +163,9 @@ return and ends a line at its line feed alone; otherwise "participate" folded ac
     "Information" or "Details"; and "Email", "Phone", "Telephone", "Tel", "Fax", "Contacto",
     "Correo" and "Teléfono". Each is followed by ":" or " - ". "First Contact: A Sci-Fi Book Club"
     and "Contact Improv: dance jam" are not contact labels.
-  - A sentence holding an email address, a phone number, or the verb "contact" directly before a
-    capitalised word ("contact Pat Example", "contact Executive Assistant …") goes whole. A line
+  - A sentence holding an email address, a phone number, or the verb "contact" directly before
+    two capitalised words or more ("contact Pat Example", "contact Executive Assistant …") goes
+    whole. One capitalised word, as in "contact LEAP", is read as an organisation and stays. A line
     with no sentence end goes whole, so a dial-in line leaves no ",,150836598# United States"
     behind. In a labelled line with no sentence end only the comma-separated segment goes, so
     "Committee Chair: <name>, <address>, <number>" keeps the name. A line left holding only its
@@ -265,7 +266,9 @@ runner does with it is `keyedPostAction` in `lib/syndication/keyed-post.ts`:
 - When no post holds the key, the item is inserted.
 - When the post that holds it is only expired, or live with no other row relaying it, the item is
   written into it like any changed item. The update sets the post's times, so `expires_at` is
-  recomputed and the `live` trigger takes an expired post back. This is how a link-folded series
+  recomputed and the `live` trigger takes an expired post back. Every update the runner makes
+  states the event's whole schedule (`wholeWindow`): an item with no end clears the end the post
+  had, so a later start can never sit after a stale end and be refused. This is how a link-folded series
   whose row the sweep dropped during a gap resumes on its old post rather than being pinned to
   what that post said before.
 - When the post was deleted, closed or hidden, or another row relays it, nothing is written.
