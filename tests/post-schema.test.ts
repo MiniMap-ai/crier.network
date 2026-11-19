@@ -67,3 +67,13 @@ test("a title or body of only invisible characters is refused, on create and on 
   }
   assert.equal(PostInputSchema.parse({ title: "Jazz​ night", body: "y" }).title, "Jazz​ night");
 });
+
+test("an edit keeps the stored start and end it omits, unless it states the whole schedule", () => {
+  const dated: EditableFields = { ...stored, starts_at: new Date("2026-11-20T02:00:00Z"), ends_at: new Date("2026-11-20T03:00:00Z") };
+  const later = { starts_at: "2026-12-10T02:00:00Z" };
+  assert.equal(mergeEdit(dated, later).merged.ends_at?.toISOString(), "2026-11-20T03:00:00.000Z");
+  const whole = mergeEdit(dated, later, { wholeWindow: true }).merged;
+  assert.equal(whole.starts_at?.toISOString(), "2026-12-10T02:00:00.000Z");
+  assert.equal(whole.ends_at, null);
+  assert.equal(mergeEdit(dated, { title: "x" }, { wholeWindow: true }).merged.starts_at, null);
+});

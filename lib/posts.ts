@@ -248,9 +248,9 @@ export async function createPost(publisher: PublisherRow, input: PostInput, opts
  * Edit a post. Fields the patch omits keep their stored values (mergeEdit in lib/post-schema.ts).
  * A change to the embedded text re-embeds it; if Cohere fails, the embedding is cleared rather than
  * left describing the old text, and backfillEmbeddings fills it in. `embedDeadline` and `flags` as
- * in createPost.
+ * in createPost; `wholeWindow` as in mergeEdit, for a relay whose item carries the event's whole schedule.
  */
-export async function updatePost(publisher: PublisherRow, id: string, patch: PostEdit, opts: { embedDeadline?: number; flags?: string[] } = {}): Promise<PublicPost> {
+export async function updatePost(publisher: PublisherRow, id: string, patch: PostEdit, opts: { embedDeadline?: number; flags?: string[]; wholeWindow?: boolean } = {}): Promise<PublicPost> {
   const existing = await getPostRow(id);
   if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
@@ -259,7 +259,7 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: Pos
     ...patch,
     title: patch.title === undefined ? undefined : stripHiddenUnicode(patch.title),
     body: patch.body === undefined ? undefined : stripHiddenUnicode(patch.body),
-  });
+  }, { wholeWindow: opts.wholeWindow });
   validateWindow({ starts_at: merged.starts_at?.toISOString(), ends_at: merged.ends_at?.toISOString() });
   const expires_at = patch.expires_at || patch.ends_at || patch.starts_at
     ? computeExpiry({ expires_at: patch.expires_at, ends_at: merged.ends_at?.toISOString(), starts_at: merged.starts_at?.toISOString() })

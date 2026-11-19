@@ -1,0 +1,155 @@
+BEGIN:VCALENDAR
+PRODID:-//Multnomah County Library//Event Calendar//EN
+VERSION:2.0
+BEGIN:VEVENT
+UID:17182048
+DTSTART:20261119T180000Z
+DTEND:20261119T194500Z
+STATUS:CONFIRMED
+SUMMARY:Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support que
+ stions about mobile devices\, websites\, getting started with tech\, and 
+ more.     
+LOCATION:Central Library - Central Large Community Room 1B
+GEO:45.5191246;-122.6830841
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:17073854
+DTSTART:20261121T210000Z
+DTEND:20261121T230000Z
+STATUS:CONFIRMED
+SUMMARY:Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support que
+ stions about mobile devices\, websites\, getting started with tech\, and 
+ more.     
+LOCATION:Hollywood Library - Hollywood Small Community Room 1A
+GEO:45.5375711;-122.6210892
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:17690120
+DTSTART:20261124T200000Z
+DTEND:20261124T214500Z
+STATUS:CONFIRMED
+SUMMARY:CANCELLED: Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support que
+ stions about mobile devices\, websites\, getting started with tech\, and 
+ more.     
+LOCATION:Central Library - Central Large Community Room 1B
+GEO:45.5191246;-122.6830841
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:17073855
+DTSTART:20261128T210000Z
+DTEND:20261128T230000Z
+STATUS:CONFIRMED
+SUMMARY:Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support que
+ stions about mobile devices\, websites\, getting started with tech\, and 
+ more.     
+LOCATION:Hollywood Library - Hollywood Small Community Room 1A
+GEO:45.5375711;-122.6210892
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:17690122
+DTSTART:20261201T200000Z
+DTEND:20261201T214500Z
+STATUS:CONFIRMED
+SUMMARY:Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support que
+ stions about mobile devices\, websites\, getting started with tech\, and 
+ more.     
+LOCATION:Central Library - Central Large Community Room 1B
+GEO:45.5191246;-122.6830841
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:17100803
+DTSTART:20261203T000000Z
+DTEND:20261203T020000Z
+STATUS:CONFIRMED
+SUMMARY:Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support que
+ stions about mobile devices\, websites\, getting started with tech\, and 
+ more.     
+LOCATION:Hollywood Library - Hollywood Small Community Room 1A
+GEO:45.5375711;-122.6210892
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:17837216
+DTSTART:20261203T180000Z
+DTEND:20261203T194500Z
+STATUS:CONFIRMED
+SUMMARY:Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support que
+ stions about mobile devices\, websites\, getting started with tech\, and 
+ more.     
+LOCATION:Central Library - Central Large Community Room 1B
+GEO:45.5191246;-122.6830841
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:17073856
+DTSTART:20261205T210000Z
+DTEND:20261205T230000Z
+STATUS:CONFIRMED
+SUMMARY:Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support que
+ stions about mobile devices\, websites\, getting started with tech\, and 
+ more.     
+LOCATION:Hollywood Library - Hollywood Small Community Room 1A
+GEO:45.5375711;-122.6210892
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:17693601
+DTSTART:20261206T200000Z
+DTEND:20261206T214500Z
+STATUS:CONFIRMED
+SUMMARY:Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support que
+ stions about mobile devices\, websites\, getting started with tech\, and 
+ more.     
+LOCATION:Central Library - Central Large Community Room 1B
+GEO:45.5191246;-122.6830841
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:16110716
+DTSTART:20261120T183000Z
+DTEND:20261120T190000Z
+STATUS:CONFIRMED
+SUMMARY:Book Babies
+DESCRIPTION:Ages: Birth - 1y  \n**update long description when requesting 
+ to include tickets or first come\, first served**
+LOCATION:Woodstock Library - Woodstock Large Community Room
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:16704199
+DTSTART:20261121T173000Z
+DTEND:20261121T190000Z
+STATUS:CONFIRMED
+SUMMARY:Seed Library Social
+DESCRIPTION:Check for prog details -\n \nContact: Pat Example\n\n10:30 am 
+ -12 pm (30 min setup / takedown)\nMax Audience: 25\nBelmont Community Roo
+ m 1A\nRecurring on Saturdays
+LOCATION:Belmont Library - Belmont Large Community Room 1A
+DTSTAMP:20261119T163842Z
+END:VEVENT
+BEGIN:VEVENT
+UID:16704200
+DTSTART:20261122T190000Z
+DTEND:20261122T203000Z
+STATUS:CONFIRMED
+SUMMARY:Laptop Lab
+DESCRIPTION:Duration: 1.5 hrs (30 min setup / breakdown)\nMax Attendees: 6
+  or 12? Clarify w/ Sam Sample
+LOCATION:Midland Library - Midland Large Community Room 1C
+DTSTAMP:20261119T163842Z
+END:VEVENT
+END:VCALENDAR

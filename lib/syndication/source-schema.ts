@@ -12,6 +12,8 @@ export const sourceField = {
   config: z.record(z.string(), z.unknown()).superRefine((config, ctx) => {
     const problem = config.event_url_template === undefined ? undefined : eventUrlTemplateProblem(config.event_url_template);
     if (problem) ctx.addIssue({ code: "custom", path: ["event_url_template"], message: `event_url_template ${problem}` });
+    if (config.fold_repeats !== undefined && typeof config.fold_repeats !== "boolean") ctx.addIssue({ code: "custom", path: ["fold_repeats"], message: "fold_repeats must be true or false" });
+    if (config.omit_description !== undefined && typeof config.omit_description !== "boolean") ctx.addIssue({ code: "custom", path: ["omit_description"], message: "omit_description must be true or false" });
   }),
   homepage: z.url(),
   license: z.string().trim().min(10).max(500),

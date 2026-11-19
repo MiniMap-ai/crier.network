@@ -47,6 +47,12 @@ export type Item = {
    */
   aliases?: string[];
   /**
+   * The identity the instances of one repeating event share when their links do not show it, set
+   * by the iCalendar adapter under `fold_repeats` (`seriesKey` in lib/syndication/adapters.ts). The
+   * fold groups on it instead of the link, and the folded item is stored under it.
+   */
+  series?: string;
+  /**
    * Content flags (lib/flags.ts) the adapter found in upstream text that the item's own text no
    * longer shows, such as an instruction tag removed with the description's HTML. The runner adds
    * them to the flags the post computes from its title and body.
@@ -87,26 +93,53 @@ export function asFetched(r: Item[] | Fetched): Fetched {
 
 export const UA = "Crier-Syndication/1.0 (+https://crier.network/llms.txt; hello@crier.network)";
 
-/** GET with the run's signal. Every failure, an abort included, is a FetchFailure naming the URL, elapsed ms and status. */
-async function get<T>(url: string, ctx: AdapterContext, headers: Record<string, string>, read: (res: Response) => Promise<T>): Promise<T> {
+/** The most a fetched response body may hold, in bytes as served (after any decompression): 8 MiB. */
+export const MAX_BODY_BYTES = 8 * 1024 * 1024;
+
+/**
+ * The body as UTF-8 text, as `Response.text()` reads it, read in chunks and refused once it passes
+ * `max` bytes: a run fails on an oversized feed rather than holding it in memory or relaying a
+ * truncated one. A declared `Content-Length` over `max` is refused before reading. Either way the
+ * body is cancelled, which releases the connection. `progress.bytes` counts what was read, for a
+ * caller whose read is aborted part way.
+ */
+export async function readCapped(res: Response, max = MAX_BODY_BYTES, progress: { bytes: number } = { bytes: 0 }): Promise<string> {
+  const over = () => new Error(`response body is over the ${max}-byte cap; not read further`);
+  if (Number(res.headers.get("content-length")) > max) { await res.body?.cancel().catch(() => {}); throw over(); }
+  if (!res.body) return "";
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return text + decoder.decode();
+    progress.bytes += value.byteLength;
+    if (progress.bytes > max) { await reader.cancel().catch(() => {}); throw over(); }
+    text += decoder.decode(value, { stream: true });
+  }
+}
+
+/** GET with the run's signal. Every failure, an abort and an oversized body included, is a FetchFailure naming the URL, elapsed ms and status. */
+async function get<T>(url: string, ctx: AdapterContext, headers: Record<string, string>, read: (body: string) => T): Promise<T> {
   const t0 = Date.now();
   let status: number | undefined;
+  const progress = { bytes: 0 };
   try {
     const res = await fetch(url, { headers: { "User-Agent": UA, ...headers }, signal: ctx.signal, redirect: "follow" });
     status = res.status;
     if (!res.ok) throw new FetchFailure({ url, status, ms: Date.now() - t0 });
-    return await read(res);
+    return read(await readCapped(res, MAX_BODY_BYTES, progress));
   } catch (e) {
-    throw FetchFailure.from(e, { url, status, ms: Date.now() - t0 });
+    throw FetchFailure.from(e, { url, status, ms: Date.now() - t0, bytes: progress.bytes });
   }
 }
 
 export function fetchText(url: string, ctx: AdapterContext, headers: Record<string, string> = {}): Promise<string> {
-  return get(url, ctx, { Accept: "*/*", ...headers }, (res) => res.text());
+  return get(url, ctx, { Accept: "*/*", ...headers }, (body) => body);
 }
 
 export function fetchJson<T>(url: string, ctx: AdapterContext, headers: Record<string, string> = {}): Promise<T> {
-  return get(url, ctx, { Accept: "application/json", ...headers }, async (res) => (await res.json()) as T);
+  return get(url, ctx, { Accept: "application/json", ...headers }, (body) => JSON.parse(body) as T);
 }
 
 /** Strip HTML, decode common entities, collapse whitespace, truncate on a word boundary. */

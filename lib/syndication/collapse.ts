@@ -18,6 +18,9 @@
  * all share a title is left alone here. The runner's live-row guard is what keeps *that* shape
  * bounded, which is why the two are separate mechanisms.
  *
+ * An item carrying a `series` (an `ical` source with `fold_repeats`) is grouped on that instead:
+ * each of its instances has a link of its own, so no shared URL can show they are one event.
+ *
  * Pure: no database, no `next/server`. tests/syndication-collapse.test.ts is the specification,
  * which is also why the imports below carry their extension: `npm test` runs these files through
  * node's type stripping, and its resolver wants the path as written.
@@ -32,12 +35,12 @@ export const RECURRENCE_CAP = 20;
 const ALSO_AT_SHOWN = 8;
 
 /**
- * The identity the write path now uses: what the read path collapses on, which is the item's URL
- * normalized. Items without a URL — a floating iCalendar event, say — keep their own uid, so
- * nothing folds that we cannot prove is the same thing.
+ * The identity the write path now uses: the item's `series` when the adapter set one, else what the
+ * read path collapses on, which is the item's URL normalized. Items with neither — a floating
+ * iCalendar event, say — keep their own uid, so nothing folds that we cannot prove is the same thing.
  */
 export function foldKey(item: Item): string {
-  return normalizeSourceKey(item.url) ?? item.uid;
+  return item.series ?? normalizeSourceKey(item.url) ?? item.uid;
 }
 
 const startMs = (i: Item): number => (i.starts_at ? Date.parse(i.starts_at) : NaN);
@@ -104,11 +107,16 @@ export function collapseInstances(items: Item[], now: Date): Collapsed {
   return { items: out, folded };
 }
 
-/** One item standing for all the instances: the next one upcoming, carrying the others. */
+/**
+ * One item standing for all the instances: the next one upcoming, carrying the others. A series
+ * item carries no aliases: an instance can leave its series (retitled, moved), and an alias it left
+ * on the series row would pull that row onto it.
+ */
 function fold(key: string, live: Item[], now: Date): Item {
   const sorted = [...live].sort(byStart);
   const next = sorted.find((i) => startMs(i) >= now.getTime()) ?? sorted[0];
   const item: Item = { ...next, uid: key };
+  if (next.series) delete item.aliases;
   if (sorted.length === 1) return item;
 
   const rest = [...new Set(

@@ -16,7 +16,7 @@ export class FetchFailure extends Error {
   readonly status: number | undefined;
   /** True when our own deadline or signal ended it, rather than the server or the network. */
   readonly aborted: boolean;
-  constructor(f: { url: string; ms: number; status?: number; aborted?: boolean; cause?: string }) {
+  constructor(f: { url: string; ms: number; status?: number; aborted?: boolean; cause?: string; bytes?: number }) {
     super(describeFailure(f));
     this.name = "FetchFailure";
     this.url = redactUrl(f.url);
@@ -26,7 +26,7 @@ export class FetchFailure extends Error {
   }
 
   /** Wrap whatever a fetch threw. A FetchFailure passes through unchanged. */
-  static from(e: unknown, at: { url: string; ms: number; status?: number }): FetchFailure {
+  static from(e: unknown, at: { url: string; ms: number; status?: number; bytes?: number }): FetchFailure {
     if (e instanceof FetchFailure) return e;
     const name = (e as { name?: unknown } | null)?.name;
     const aborted = name === "AbortError" || name === "TimeoutError";
@@ -52,12 +52,14 @@ export function redactUrl(text: string): string {
 
 /**
  * One line naming the URL, the elapsed time and the HTTP status. A non-OK response keeps the
- * `<url> -> HTTP <status>` shape the runner has always recorded.
+ * `<url> -> HTTP <status>` shape the runner has always recorded. `bytes` is how much of the body
+ * an aborted read had taken.
  */
-export function describeFailure(f: { url: string; ms: number; status?: number; aborted?: boolean; cause?: string }): string {
+export function describeFailure(f: { url: string; ms: number; status?: number; aborted?: boolean; cause?: string; bytes?: number }): string {
   const url = redactUrl(f.url);
   const ms = Math.round(f.ms);
-  if (f.aborted) return `${url} aborted after ${ms} ms (${f.status ? `HTTP ${f.status}, body unread` : "no response"})`;
+  const body = f.bytes ? `${f.bytes} bytes of the body read` : "body unread";
+  if (f.aborted) return `${url} aborted after ${ms} ms (${f.status ? `HTTP ${f.status}, ${body}` : "no response"})`;
   if (f.status && !f.cause) return `${url} -> HTTP ${f.status} after ${ms} ms`;
   return `${url} failed after ${ms} ms: ${redactUrl(f.cause ?? "unknown error").slice(0, 120)}`;
 }

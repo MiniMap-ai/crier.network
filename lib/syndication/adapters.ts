@@ -1,6 +1,7 @@
+import { createHash } from "node:crypto";
 import { RECURRENCE_CAP } from "./collapse.ts";
 import { contentFlags, stripHiddenUnicode } from "../flags.ts";
-import { clipText, decodeEntities, dropControls, eventUrl, eventUrlTemplateProblem, htmlToText, httpLink, icalDate, icalList, icalText, parseFeed, parseICal, placeText } from "./feeds.ts";
+import { cancelledTitle, clipText, decodeEntities, descriptionText, dropControls, eventUrl, eventUrlTemplateProblem, httpLink, icalDate, icalList, icalText, parseFeed, parseICal, placeText, placeWithoutContacts, withoutCancelMarker } from "./feeds.ts";
 import type { VEvent } from "./feeds.ts";
 import { ticketmasterItems } from "./ticketmaster.ts";
 import { fetchJson, fetchText, inHorizon, plainText, runLimit } from "./types.ts";
@@ -47,7 +48,7 @@ export const ticketmaster: Adapter = async (source, ctx) => {
 };
 
 /* ---------------- iCalendar ----------------
-   config: { url, timezone? (default zone for floating times), location_name?, lat?, lng?, event_url_template? } */
+   config: { url, timezone? (default zone for floating times), location_name?, lat?, lng?, event_url_template?, fold_repeats?, omit_description? } */
 
 /**
  * The event's page: the first of its `URL`, Trumba's `X-TRUMBA-LINK` and the source's
@@ -57,6 +58,19 @@ export function icalLink(ev: VEvent, uid: string, template: string | undefined):
   return httpLink(ev.URL?.[0]?.value) ?? httpLink(ev["X-TRUMBA-LINK"]?.[0]?.value) ?? (template ? httpLink(eventUrl(template, uid)) : undefined);
 }
 
+/**
+ * The key `fold_repeats` folds instances on: the title, trimmed and lower-cased, and the place's
+ * letters and digits alone, lower-cased, so "100 Dexter Ave N." and "100 Dexter Ave. N" are one
+ * place. Hashed so the key is short and fit to store as a uid. Pass the title without its cancel
+ * marker, so a cancelled instance keys with its series. Undefined without a place, since one title
+ * at no named place proves nothing.
+ */
+export function seriesKey(title: string, place: string): string | undefined {
+  const where = place.normalize("NFKC").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+  if (!where) return undefined;
+  return `series:${createHash("sha256").update(`${title.trim().toLowerCase()}\n${where}`).digest("hex").slice(0, 32)}`;
+}
+
 export const ical: Adapter = async (source, ctx) => {
   const url = str(source.config.url);
   if (!url) throw new Error("config.url is required");
@@ -64,6 +78,10 @@ export const ical: Adapter = async (source, ctx) => {
   const template = source.config.event_url_template;
   const problem = template === undefined ? undefined : eventUrlTemplateProblem(template);
   if (problem) throw new Error(`config.event_url_template ${problem}`);
+  const repeats = source.config.fold_repeats;
+  if (repeats !== undefined && typeof repeats !== "boolean") throw new Error("config.fold_repeats must be true or false");
+  const omit = source.config.omit_description;
+  if (omit !== undefined && typeof omit !== "boolean") throw new Error("config.omit_description must be true or false");
   const text = await fetchText(url, ctx);
   const zone = str(source.config.timezone) || /X-WR-TIMEZONE:([^\r\n]+)/.exec(text)?.[1]?.trim();
   const items: Item[] = [];
@@ -76,14 +94,25 @@ export const ical: Adapter = async (source, ctx) => {
     // A linked item's row is keyed on the link; the uid alias also finds a row stored before the feed
     // gave one. A cancelled item carries both, or it cannot reach the row it should retire.
     const aliases = link ? [uid] : undefined;
-    if (ev.STATUS?.[0]?.value?.toUpperCase() === "CANCELLED") { items.push({ uid, title: "cancelled", body: "cancelled", url: link, aliases, cancelled: true }); continue; }
-    const summary = dropControls(decodeEntities(icalText(ev.SUMMARY?.[0]?.value))).trim(); if (!summary) continue;
-    const html = icalText(ev.DESCRIPTION?.[0]?.value);
-    const desc = clipText(htmlToText(html, (t) => stripHiddenUnicode(dropControls(t))), 500);
-    const loc = dropControls(placeText(icalText(ev.LOCATION?.[0]?.value)));
+    const summary = dropControls(decodeEntities(icalText(ev.SUMMARY?.[0]?.value))).trim();
+    const rawPlace = dropControls(placeText(icalText(ev.LOCATION?.[0]?.value)));
+    // Cleaned without hidden Unicode, which could split an address; a place nothing is removed from
+    // keeps it, so the Where line shows it to the post's flags.
+    const plainPlace = stripHiddenUnicode(rawPlace);
+    const cleanedPlace = placeWithoutContacts(plainPlace);
+    const loc = cleanedPlace === plainPlace ? rawPlace : cleanedPlace;
+    const series = repeats ? seriesKey(withoutCancelMarker(summary).slice(0, 200), plainPlace) : undefined;
+    if (ev.STATUS?.[0]?.value?.toUpperCase() === "CANCELLED" || (summary && cancelledTitle(summary))) {
+      items.push({ uid, title: "cancelled", body: "cancelled", url: link, aliases, ...(series ? { series } : {}), cancelled: true });
+      continue;
+    }
+    if (!summary) continue;
+    const html = omit ? "" : icalText(ev.DESCRIPTION?.[0]?.value);
+    const desc = clipText(descriptionText(html, (t) => stripHiddenUnicode(dropControls(t))), 500);
     const geo = ev.GEO?.[0]?.value?.split(";").map(Number);
     // The description's own text no longer shows an instruction tag or a hidden character it came with.
     const flags = contentFlags(summary, dropControls(decodeEntities(html))).filter((f) => f === "possible_instruction" || f === "hidden_unicode");
+    if (loc !== rawPlace && plainPlace !== rawPlace && !flags.includes("hidden_unicode")) flags.push("hidden_unicode");
     items.push({
       uid,
       title: summary.slice(0, 200),
@@ -91,6 +120,7 @@ export const ical: Adapter = async (source, ctx) => {
       body: [desc, loc ? `Where: ${loc}` : "", link ? `Details: ${link}` : "", `Source: ${source.name}${source.homepage ? " (" + source.homepage + ")" : ""}, relayed by Crier.`].filter(Boolean).join("\n"),
       url: link,
       aliases,
+      ...(series ? { series } : {}),
       ...(flags.length ? { flags } : {}),
       kind: source.default_kind,
       starts_at: st.iso,
@@ -444,7 +474,7 @@ export const ADAPTERS: Record<SourceRow["adapter"], Adapter> = { ticketmaster, i
 export function describeAdapter(a: SourceRow["adapter"]): string {
   return {
     ticketmaster: "Ticketmaster Discovery API: concerts, sports, theatre near a point. Needs TICKETMASTER_API_KEY. config: {lat, lng, radius_km, city, segment?}",
-    ical: "Any public iCalendar feed (LibCal, Google Calendar public ICS, Trumba, Communico, venue calendars). Each event links to the first of its URL, Trumba's X-TRUMBA-LINK and event_url_template (an https URL containing {uid}, filled with the event's UID) that is an http(s) URL with no username or password. config: {url, timezone?, location_name?, lat?, lng?, event_url_template?}",
+    ical: "Any public iCalendar feed (LibCal, Google Calendar public ICS, Trumba, Communico, venue calendars). Each event links to the first of its URL, Trumba's X-TRUMBA-LINK and event_url_template (an https URL containing {uid}, filled with the event's UID) that is an http(s) URL with no username or password. Contact fields, email addresses and phone numbers are removed from descriptions; a title that opens or closes with CANCELLED or POSTPONED retires the event. Contact details are also removed from the place. fold_repeats: true relays the instances of one title at one place as one post, for feeds that give each instance its own UID and link. omit_description: true relays no description text, for feeds whose descriptions are staff notes. config: {url, timezone?, location_name?, lat?, lng?, event_url_template?, fold_repeats?, omit_description?}",
     rss: "Any RSS or Atom feed of notices. Items are announcements with a TTL. config: {url, ttl_days?, location_name?, lat?, lng?}",
     localist: "Localist-powered calendars (most university event sites). Placeholder venues (\"Sign in to download the location\", \"TBD\") are dropped. config: {base, location_name?, lat?, lng?} — the name and point to fall back on for the events upstream gives no coordinates for; not applied to online events.",
     nws: "National Weather Service active alerts for a state, public domain. config: {area, min_severity?}",

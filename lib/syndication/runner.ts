@@ -8,12 +8,14 @@ import { sql } from "../db";
 import { budget, withTimeout } from "../db-timeout";
 import { newPostId } from "../ids";
 import { track } from "../metrics";
-import { PostInput, PostInputSchema, createPost, deletePost, getPostRow, normalizeSourceKey, updatePost } from "../posts";
+import { dropPostListings } from "../cache-tags";
+import { PostInput, PostInputSchema, createPost, getPostRow, normalizeSourceKey, updatePost } from "../posts";
 import { PublisherRow } from "../publishers";
 import { ADAPTERS } from "./adapters";
 import { RowIndex, cancelTargets, planItem, sameAliases } from "./aliases";
 import type { StoredRow } from "./aliases";
 import { collapseInstances } from "./collapse";
+import { keyedPostAction } from "./keyed-post";
 import { Fetched, Item, SourceRow, asFetched, runLimit } from "./types";
 import { DUE_SLACK_MINUTES, runWindow } from "./budget";
 import { redactUrl } from "./walk";
@@ -112,7 +114,7 @@ async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: 
   const target = live.find((r) => !r.owned);
   if (!target) return "held";
   const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
-  await updatePost(publisher, target.id, patch, { embedDeadline: deadline, flags });
+  await updatePost(publisher, target.id, patch, { embedDeadline: deadline, flags, wholeWindow: true });
   await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${uid}, ${target.id}, ${hash})
           on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;
   return { adopted: target.id };
@@ -163,6 +165,17 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     let mergesRetired = 0;
     const written = () => counts.created + counts.updated + mergesRetired;
 
+    /**
+     * Every post the runner deletes goes through here: deleted, and its idempotency key freed in the
+     * same statement, so the uid can be relayed again if upstream brings it back. A post deleted any
+     * other way keeps its key and stays retired (lib/syndication/keyed-post.ts).
+     */
+    const retirePost = async (id: string, opts: { ms?: number; label: string }) => {
+      await withTimeout(s`update posts set deleted_at = now(), updated_at = now(), idempotency_key = null
+                           where id = ${id} and publisher_id = ${publisher.id} and deleted_at is null`, opts);
+      dropPostListings();
+    };
+
     /** Retire a merged-away row's post, unless another row relays it, and drop the row: the kept row now holds its identities. */
     const retireRow = async (row: StoredRow): Promise<boolean> => {
       let retired = false;
@@ -172,7 +185,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
            where post_id = ${row.post_id} and not (source_id = ${source.id} and uid = ${row.uid})`, at("synd:alias_shared"));
         const post = (shared?.n ?? 0) === 0 ? await getPostRow(row.post_id, undefined, at) : null;
         if (post && !post.deleted_at) {
-          await withTimeout(deletePost(publisher, row.post_id), at("synd:alias_retire"));
+          await retirePost(row.post_id, at("synd:alias_retire"));
           counts.retired++;
           retired = true;
         }
@@ -205,7 +218,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         seen.add(item.uid);
         for (const other of targets) if (other.uid !== item.uid) await retireRow(other);
         const ex = rows.get(item.uid);
-        if (ex?.post_id) { const row = await getPostRow(ex.post_id); if (row && !row.deleted_at) { await deletePost(publisher, ex.post_id); counts.retired++; } }
+        if (ex?.post_id) { const row = await getPostRow(ex.post_id); if (row && !row.deleted_at) { await retirePost(ex.post_id, { label: "synd:cancel_retire" }); counts.retired++; } }
         await s`delete from source_items where source_id = ${source.id} and uid = ${item.uid}`;
         rows.remove(item.uid);
         continue;
@@ -232,7 +245,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         const row = await getPostRow(ex.post_id);
         if (row && !row.deleted_at) {
           const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
-          await updatePost(publisher, ex.post_id, patch, { embedDeadline: deadline, flags: item.flags });
+          await updatePost(publisher, ex.post_id, patch, { embedDeadline: deadline, flags: item.flags, wholeWindow: true });
           await s`update source_items set hash = ${hash}, last_seen = now(), missing_runs = 0 where source_id = ${source.id} and uid = ${uid}`;
           counts.updated++;
           continue;
@@ -248,14 +261,22 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
       }
       // The run's deadline sits well inside the cron's maxDuration, so a retry that ends by it fits.
       const { post, created } = await createPost(publisher, input, { embedDeadline: deadline, flags: item.flags });
+      const held = created ? null : await getPostRow(post.id);
+      const [other] = held ? await withTimeout(s<{ n: number }[]>`
+        select count(*)::int as n from source_items
+         where post_id = ${post.id} and not (source_id = ${source.id} and uid = ${uid})`, { label: "synd:keyed_owned" }) : [];
+      const action = keyedPostAction(held && { deleted: !!held.deleted_at, closed: !!held.closed_at, hidden: !!held.hidden_at, owned: (other?.n ?? 0) > 0 });
+      if (action === "update") {
+        const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
+        await updatePost(publisher, post.id, patch, { embedDeadline: deadline, flags: item.flags, wholeWindow: true });
+      }
       await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${uid}, ${post.id}, ${hash})
               on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;
       await keepRow(uid, post.id, hash, plan.aliases);
-      // `created` is false when a post is already there under this idempotency key — which is how a
-      // post retired earlier stays retired, rather than coming back on the next run. Nothing was
-      // written, so nothing is counted: an item whose hash was unchanged is not counted either, and
-      // `skipped` is the run's "did not get to it", which gates the retirement sweep below.
+      // "leave" writes nothing, so it is not counted: an item whose hash was unchanged is not counted
+      // either, and `skipped` is the run's "did not get to it", which gates the retirement sweep below.
       if (created) counts.created++;
+      else if (action === "update") counts.updated++;
     }
 
     // Items that were not in this fetch: count a miss; retire after a few consecutive misses (only future-dated ones matter).
@@ -279,7 +300,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
             select count(*)::int as n from source_items
              where post_id = ${m.post_id} and not (source_id = ${source.id} and uid = ${m.uid})`;
           const row = (shared?.n ?? 0) === 0 ? await getPostRow(m.post_id) : null;
-          if (row && !row.deleted_at && (!row.starts_at || row.starts_at.getTime() > Date.now())) { await deletePost(publisher, m.post_id); counts.retired++; }
+          if (row && !row.deleted_at && (!row.starts_at || row.starts_at.getTime() > Date.now())) { await retirePost(m.post_id, { label: "synd:sweep_retire" }); counts.retired++; }
         }
         await s`delete from source_items where source_id = ${source.id} and uid = ${m.uid}`;
       }
