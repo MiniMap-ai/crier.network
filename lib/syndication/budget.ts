@@ -15,6 +15,14 @@ export const MIN_FETCH_MS = 5_000;
 /** Writes stop this long before the run's end, leaving room to record the run itself. */
 export const WRITE_MARGIN_MS = 3_000;
 
+/**
+ * A source is due this many minutes before its `run_every_minutes` has passed. A run is stamped
+ * when it ends, up to a tick's length after the tick began, so an interval equal to the cron's
+ * period would otherwise come due a moment after every other tick starts. Longer than a tick,
+ * shorter than the shortest interval a source may have.
+ */
+export const DUE_SLACK_MINUTES = 10;
+
 /** Epoch-ms bounds for a run that starts at `started` under a tick ending at `deadline`. */
 export function runWindow(started: number, deadline: number): { end: number; fetchUntil: number; writeUntil: number } {
   const end = Math.min(deadline, started + RUN_BUDGET_MS);
