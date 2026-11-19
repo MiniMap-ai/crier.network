@@ -778,6 +778,7 @@ test("feed text built to make a pattern backtrack is read in linear time", () =>
   within(2000, "proseFirst on a run of <br> and labels", () => proseFirst("A: x<br>".repeat(50_000) + "<br>" + "Contact: y<br>z<br>".repeat(30_000)));
   within(2000, "descriptionText on a run of the staff-only words", () => descriptionText("this field is for internal use ".repeat(20_000)));
   within(2000, "placeText on a run of line breaks", () => placeText("a\n".repeat(200_000) + "<br".repeat(50_000)));
+  within(2000, "placeText on runs of spaces and unclosed tags", () => placeText("a" + " ".repeat(400_000) + "b" + "<a ".repeat(100_000) + "</a".repeat(100_000)));
   within(2000, "withoutContacts on a run of words at words dot", () => withoutContacts("a at b dot ".repeat(40_000) + "x"));
   within(2000, "withoutContacts on a run of bracketed at and dot", () => withoutContacts("a [at] b [dot] ".repeat(30_000) + "a(at)" + "b.".repeat(100_000)));
   within(2000, "withoutContacts on spaces and dashes between digits", () => withoutContacts("Call " + "5 – ".repeat(100_000) + "\n" + "+1".repeat(100_000) + "\n" + "+" + "1 ".repeat(200_000)));
@@ -790,4 +791,19 @@ test("feed text built to make a pattern backtrack is read in linear time", () =>
   assert.deepEqual(parseICal("BEGIN:VEVENT\r\r\nSUMMARY:Story\r\r\n  Time\r\nEND:VEVENT\r\n").map((e) => e.SUMMARY?.[0]?.value), ["Story Time"]);
   assert.equal(clipText("  a \t b \n\n   c \n\td  ", 500), "a b\nc\nd");
   assert.equal(plainText("<p>Tom &amp; Jerry</p><b>5 > 3</b> and 3 < 5 <<"), "Tom & Jerry\n5 > 3 and 3 < 5 <<");
+});
+
+test("a place loses tags that can only be markup and a dangling dash, and keeps a bare bracketed word", () => {
+  const cases: [string, string][] = [
+    ['City Hall<br>Join link:<br><a href="https://example.org/join" target="_blank">https://example.org/join</a>', "City Hall, Join link:, https://example.org/join"],
+    ['<span style="color:red">Room 2</span>', "Room 2"],
+    ["Central Library - ", "Central Library"],
+    ["Central Library - Room 1A", "Central Library - Room 1A"],
+    ["North Branch \u2013", "North Branch"],
+    ["Lab <B>", "Lab <B>"],
+    ["x<y>z Hall", "x<y>z Hall"],
+    ["Q&A desk, 5 < 10 m from the door", "Q&A desk, 5 < 10 m from the door"],
+    ["Well-", "Well-"],
+  ];
+  for (const [input, expected] of cases) assert.equal(placeText(input), expected, input);
 });

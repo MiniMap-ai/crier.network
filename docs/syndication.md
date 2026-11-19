@@ -108,7 +108,10 @@ are left as written and `&amp;lt;` stays the text `&lt;`. Then, by field:
   written. The post page renders a title as text, JSON-LD escapes its `<`, MCP returns it as plain
   text, and `feed.xml` XML-escapes it into `<title>`.
 - `LOCATION` has each `<br>` (any case, with or without a slash or attributes) and each line break
-  turned into ", ", is decoded, and nothing else is removed. Shift2Bikes writes a place on several
+  turned into ", ", loses the tags that can only be markup (one with attributes, such as
+  `<a href="…">`, and any closing tag), and is decoded. A bare bracketed word ("Lab <B>") stays.
+  A piece ending in a dash with nothing after it loses the dash: Communico writes
+  "Central Library - " when an event has no room. Shift2Bikes writes a place on several
   lines ("Migration Brewing", then the street), so its `location.name` and "Where:" line read
   "Migration Brewing, 3947 N Williams Ave, Portland, OR 97227".
 - `DESCRIPTION` is read as HTML: `<br>` and `</p>` become line breaks, tags are removed,
