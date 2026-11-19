@@ -308,8 +308,11 @@ Sources run one after another inside `runDue(100_000)`, under the cron route's
 (`lib/syndication/budget.ts`), capped by what is left of the tick; the fetch
 may use all of it but the last 15 s, which are kept for writing what was read.
 No source starts in the tick's last 10 s, so two sources that each use their
-whole minute fill a tick; the sources it does not reach go first in the next,
-because `dueSources` takes the longest-waiting first. The tick's 100 s leaves
+whole minute fill a tick. Due sources run shortest interval first, then
+longest-waiting (`dueFirst`): an hourly weather source takes a second and is
+the one an hour's wait hurts, so it never queues behind a six-hourly calendar
+writing a hundred posts. The sources a tick does not reach are still due in the
+next, and the longest-waiting of them goes first among its interval. The tick's 100 s leaves
 the route's 300 s for the last run's in-flight write and sweep, which the
 window does not cut off.
 
