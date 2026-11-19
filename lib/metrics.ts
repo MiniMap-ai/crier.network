@@ -350,7 +350,9 @@ export async function metricsSnapshot() {
       (select coalesce(sum(n), 0)::int from daily_counters where key = ${SIDE_WRITE_TIMEOUT_KEY} and day >= current_date - 6) as side_write_timeouts_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:embed_abort' and day >= current_date - 6) as embed_aborts_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:embed_error' and day >= current_date - 6) as embed_errors_7d,
-      (select coalesce(sum(n), 0)::int from daily_counters where key = 'search:embed_failed' and day >= current_date - 6) as searches_embed_failed_7d`, at("metrics:core"));
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'search:embed_failed' and day >= current_date - 6) as searches_embed_failed_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'inbox:reach_failed' and day >= current_date - 6) as inbox_reach_failures_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'inbox:reach_skipped' and day >= current_date - 6) as inbox_reach_skips_7d`, at("metrics:core"));
 
   const series = await withTimeout(s<{ day: string; searches: number; zero: number; posts: number; registrations: number; deliveries: number; mcp_init: number; mcp_calls: number; page_human: number; page_crawler: number; page_agent: number; publishers: number; seekers: number; readers: number }[]>`
     with days as (select generate_series(current_date - 29, current_date, '1 day')::date as day)
@@ -455,6 +457,8 @@ export async function metricsSnapshot() {
       // Causes, not served errors; docs/metrics.md, "Embedding failures".
       embed_aborts_7d: core.embed_aborts_7d, embed_errors_7d: core.embed_errors_7d,
       searches_embed_failed_7d: core.searches_embed_failed_7d,
+      // Inbox calls answered without `reach`: a failure is a bug, a skip an items read that left no time.
+      inbox_reach_failures_7d: core.inbox_reach_failures_7d, inbox_reach_skips_7d: core.inbox_reach_skips_7d,
     },
     north_stars: {
       weekly_active_publishers: metrics.weekly_active_publishers,

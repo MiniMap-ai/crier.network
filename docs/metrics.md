@@ -158,6 +158,8 @@ shipped:
 | `embed_aborts_7d` | `error:embed_abort`: Cohere `/embed` attempts that our own timeout in `lib/cohere.ts` cut off, 7 days | The `cohere /embed This operation was aborted` log group, counted (CRI-62); see "Embedding failures" |
 | `embed_errors_7d` | `error:embed_error`: `/embed` attempts that failed any other way (a non-2xx answer, or a request that never completed), 7 days | Cohere refusing or erroring, told apart from Cohere being slow |
 | `searches_embed_failed_7d` | `search:embed_failed`: searches answered by full-text and trigram alone because the query embedding failed, 7 days | How many seekers got a lexical-only answer |
+| `inbox_reach_failures_7d` | `inbox:reach_failed`: inbox calls (REST and MCP) answered without `reach` because the reach read failed with something other than a database timeout or refused connection, 7 days | A bug, and otherwise silent: the inbox still answers. Expected 0 |
+| `inbox_reach_skips_7d` | `inbox:reach_skipped`: inbox calls answered without `reach` because the items read left less than 500 ms of the call's budget, 7 days | Inbox items reads slow enough to crowd out the section; nothing else counts them |
 
 ## Search log
 
@@ -317,8 +319,8 @@ writes:
   because the reach read failed with something other than a database timeout
   or refused connection, which is a bug: the log line is `dropped read failed`,
   the caller and the error. A reach read the database failed is counted as a
-  dropped read (below). Neither key is in `/api/v1/metrics`; read them from
-  `daily_counters`.
+  dropped read (below). Both are in `/api/v1/metrics` as 7-day sums,
+  `health.inbox_reach_failures_7d` and `health.inbox_reach_skips_7d`.
 - `daily_actors(day, role, actor, n)`: roles `seeker` (a search), `reader` (a
   listing), `publisher` (a
   first-hand post), `heartbeat` (an inbox read, by publisher id),
@@ -632,6 +634,11 @@ What the brief looks at, in order:
 
 1. Health: cron ticks in the last 24h (expect 1440), 5xx and 504 counts from
    logs, any `capacity` or `read_only` responses, open reports, hidden posts.
+   `health.inbox_reach_failures_7d` should be 0: anything else is a bug, and
+   every call it counts answered without `reach`; the runtime log line
+   `dropped read failed` names the caller and the error.
+   A non-zero `health.inbox_reach_skips_7d` means some inbox items reads took
+   more than 7.5 s of their 8 s budget.
 2. North stars versus yesterday and versus 7 days ago.
 3. Current milestone (from the admin endpoint or the targets carried in the check itself): which criteria moved.
 4. Demand: a query shape asked on two or more days, or three or more times in a
