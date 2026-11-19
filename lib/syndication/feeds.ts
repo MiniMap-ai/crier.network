@@ -107,14 +107,23 @@ export function htmlToText(s: string, scrub: (t: string) => string = dropControl
   return stripTags(scrub(decodeEntities(stripTags(lines)))).split("\n").map((line) => line.trim()).filter(Boolean).join("\n");
 }
 
+/** A tag that can only be markup: one with attributes (`<a href="…">`), or a closing tag (`</a>`). */
+const MARKUP_TAG = /<[a-zA-Z][a-zA-Z0-9]*\s[^<>]*>|<\/[a-zA-Z][a-zA-Z0-9]*\s*>/g;
+
 /**
  * A place name from upstream HTML: the pieces between `<br>`s and line breaks joined with ", ",
- * references decoded once, and nothing else removed, so "Lab <B>" stays as written. A line break a
- * reference decodes to splits too. Without a `<br>`, a line break or a reference, the trimmed input
- * comes back unchanged.
+ * tags that can only be markup removed, and references decoded once. A bare bracketed word is
+ * kept, so "Lab <B>" stays as written. A line break a reference decodes to splits too, and a piece
+ * ending in a dash with nothing after it ("Central Library -") loses the dash. Without any of
+ * those, the trimmed input comes back unchanged.
  */
 export function placeText(s: string): string {
-  return s.split(BR).flatMap((piece) => decodeEntities(piece).split(/[\n\u2028\u2029]/)).map((piece) => piece.trim()).filter(Boolean).join(", ");
+  return s.split(BR)
+    .flatMap((piece) => decodeEntities(piece.replace(MARKUP_TAG, " ")).split(/[\n\u2028\u2029]/))
+    .map((piece) => piece.trim())
+    .map((piece) => (/\s[-–—]$/.test(piece) ? piece.slice(0, -1).trimEnd() : piece))
+    .filter(Boolean)
+    .join(", ");
 }
 
 /**
