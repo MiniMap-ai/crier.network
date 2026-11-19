@@ -23,7 +23,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
   const [stats, posts] = await Promise.all([
     boardStats(),
     (q || kind
-      ? search({ q, kind, limit: 30 }, { track: false }).then((r) => r.posts)
+      ? search({ q, kind, limit: 30 }).then((r) => r.posts)
       : cachedHomeListing()
     ).catch(() => [] as PublicPost[]),
   ]);

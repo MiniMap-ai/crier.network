@@ -49,14 +49,28 @@ const SEARCH_CRAWLER_RE = new RegExp(`(?<![a-z0-9])(?:${SEARCH_CRAWLERS.map(esca
 /** User-triggered fetchers SEARCH_CRAWLER_RE would catch: meta-externalfetcher links to a ".../crawler" page. */
 const ON_BEHALF_RE = /meta-externalfetcher/i;
 
+/** The query fields that make a request a search. Structural, so `lib/search` need not be imported. */
+export type CountedQuery = { q?: string; kind?: string; tags?: string; near?: string };
+
+/** How a request on a search surface is counted; docs/metrics.md has what each one reaches. */
+export type SearchCounting = "crawler" | "listing" | "search";
+
 /**
- * How a REST search, REST listing or `/feed.xml` read is counted. `keyed` is whether the request's
- * API key resolved to a publisher: a registered publisher is always a seeker, whatever its agent is
- * called. Otherwise a User-Agent naming a SEARCH_CRAWLERS entry, or containing "crawler" or "spider",
- * and not exempted by ON_BEHALF_RE, is a `crawler`: answered in full, but counted only as
- * `search:crawler`. A missing or empty User-Agent is a seeker.
+ * How a REST search, REST listing, `/feed.xml` read or MCP `search` call is counted. The rules, in
+ * order:
+ *
+ * 1. `crawler`: keyless, and the User-Agent names a SEARCH_CRAWLERS entry or contains "crawler" or
+ *    "spider", and ON_BEHALF_RE does not exempt it. `keyed` is whether the request's API key resolved
+ *    to a publisher, and a keyed request is never a crawler. A missing or empty User-Agent is not one,
+ *    and MCP passes `ua: null` because it has none to read.
+ * 2. `listing`: no query text, kind, tags or place. Time, publisher, verification, sort, limit and
+ *    cursor only narrow a read of the board.
+ * 3. `search`: everything else.
+ *
+ * It decides only what a request is counted as, never how it is answered.
  */
-export function searchCounting(ua: string | null, keyed: boolean): "seeker" | "crawler" {
-  if (keyed || !ua) return "seeker";
-  return SEARCH_CRAWLER_RE.test(ua) && !ON_BEHALF_RE.test(ua) ? "crawler" : "seeker";
+export function searchCounting(r: { ua: string | null; keyed: boolean; query: CountedQuery }): SearchCounting {
+  if (!r.keyed && r.ua && SEARCH_CRAWLER_RE.test(r.ua) && !ON_BEHALF_RE.test(r.ua)) return "crawler";
+  const { q, kind, tags, near } = r.query;
+  return q || kind || tags || near ? "search" : "listing";
 }

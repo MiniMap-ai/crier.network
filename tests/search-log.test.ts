@@ -62,13 +62,13 @@ test("an internal seeker is not logged at all", () => {
   assert.equal(drained().length, 1);
 });
 
-test("a bare listing is a shape, stored with null fields", () => {
+test("paging and sorting are not part of the shape", () => {
   __resetSearchLog();
-  recordSearch({}, "rest", { zero: false });
-  recordSearch({ limit: 20, sort: "newest" } as never, "rest", { zero: false });
+  recordSearch({ kind: "event" }, "rest", { zero: false });
+  recordSearch({ kind: "event", limit: 20, sort: "newest" } as never, "rest", { zero: false });
   const rows = drained();
-  assert.equal(rows.length, 1, "paging and sorting are not part of the shape");
-  assert.deepEqual(rows[0], { q: null, kind: null, tags: null, near: null, radius_km: null, source: "rest", n: 2, zero: 0 });
+  assert.equal(rows.length, 1);
+  assert.deepEqual(rows[0], { q: null, kind: "event", tags: null, near: null, radius_km: null, source: "rest", n: 2, zero: 0 });
 });
 
 test("filters are part of the shape; places round to ~50 km cells", () => {
@@ -224,6 +224,20 @@ test("kinds, places and tags carry their zero share", () => {
   assert.deepEqual(d.kinds, [{ key: "event", n: 8, zero: 4, zero_share: 0.5 }]);
   assert.deepEqual(d.places, [{ key: "30.5,-97.5", n: 8, zero: 4, zero_share: 0.5 }]);
   assert.deepEqual(d.tags.map((t) => [t.key, t.n]), [["music", 8], ["Free", 4]]);
+});
+
+test("a bare row is a listing logged as a search, and is in no shape, facet or total", () => {
+  const d = foldDemand([
+    row("2026-11-17", null, 200, { zero: 4 }),
+    row("2026-11-18", null, 150),
+    row("2026-11-18", "tacos", 3, { zero: 1 }),
+    row("2026-11-18", null, 2, { kind: "event" }),
+  ]);
+  assert.deepEqual(d.shapes.map((s) => [s.q, s.kind, s.n]), [["tacos", null, 3]]);
+  assert.deepEqual(d.other, { shapes: 1, n: 2, zero: 0 });
+  assert.equal(d.searches, 5);
+  assert.equal(d.zero, 1);
+  assert.deepEqual(foldDemand([row("2026-11-18", null, 85)]), foldDemand([]));
 });
 
 test("an empty log folds to an empty but valid block", () => {

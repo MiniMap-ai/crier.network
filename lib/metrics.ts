@@ -4,13 +4,14 @@
  */
 import { after } from "next/server";
 import { DbTimeoutError, budget, isDbConnectError, sideWrite, sql, withTimeout } from "./db";
-import type { SearchQuery } from "./search";
+import type { SearchQuery, SearchResult } from "./search";
 import { drainSearches, foldDemand, isUnmet, normalizeQuery, recordSearch, roundNear } from "./search-log";
 import type { DemandRow, SearchSource } from "./search-log";
 import { describeBatch, isEmptyBatch, orderBatch, transactOnce, writeBatch } from "./flush-batch";
 import type { ActorCount, Begin, TxSql } from "./flush-batch";
 import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, hasPendingCounts, noteRetrievals, noteSideWriteLost, noteView } from "./side-writes";
 import { classifyUserAgent } from "./user-agent";
+import type { SearchCounting } from "./user-agent";
 
 export { classifyUserAgent };
 
@@ -164,9 +165,10 @@ export const track = {
   retrievals(ids: readonly string[]) { noteRetrievals(ids); scheduleFlush(); },
   /**
    * actor is a publisher id, a salted address token (clientIp), or an MCP client name; never a raw address. Rows are purged after 90 days.
-   * `publisher` means a first-hand post that day and nothing else; an inbox read is `heartbeat`.
+   * `publisher` means a first-hand post that day and nothing else; an inbox read is `heartbeat`. A
+   * search is a `seeker`, a listing a `reader`.
    */
-  actor(role: "seeker" | "publisher" | "heartbeat" | "syndicator" | "mcp_client" | "registrant", actor: string) { const k = role + ":" + actor; const cur = pendingActors.get(k); if (cur) cur.n++; else pendingActors.set(k, { role, actor, n: 1 }); scheduleFlush(); },
+  actor(role: "seeker" | "reader" | "publisher" | "heartbeat" | "syndicator" | "mcp_client" | "registrant", actor: string) { const k = role + ":" + actor; const cur = pendingActors.get(k); if (cur) cur.n++; else pendingActors.set(k, { role, actor, n: 1 }); scheduleFlush(); },
   /** A stats_daily column (searches, retrievals, ...), batched like counters. */
   stat(col: "searches" | "retrievals", n = 1) { pendingStats.set(col, (pendingStats.get(col) ?? 0) + n); scheduleFlush(); },
   /** Write everything pending now. Cron handlers call this so their tick is never lost. */
@@ -186,6 +188,24 @@ export const track = {
   },
 
   /**
+   * Count one request on a search surface, as `searchCounting` decided. `caller` is a publisher id
+   * when the request was keyed, else a salted address token. `internal` (our own accounts) keeps a
+   * search out of the search log, as in `search` below.
+   */
+  searchRequest(counted: SearchCounting, q: SearchQuery, r: SearchResult, caller: string, source: SearchSource, internal: boolean) {
+    if (counted === "crawler") this.counter("search:crawler");
+    else if (counted === "listing") this.listing(caller, source);
+    else this.search(q, r.posts.length, caller, source, internal, r.embed_failed);
+  },
+
+  /** A read of the board: no text, kind, tags or place. Never a seeker, never in the search log. */
+  listing(reader: string, source: SearchSource) {
+    this.counter("listing:total");
+    this.counter(`listing:source:${source}`);
+    this.actor("reader", reader);
+  },
+
+  /**
    * A search happened. seeker is a salted address token or a publisher id, and is used for the
    * distinctness counters and `unmet_queries` only — the search log never sees it (BR-17).
    * `internal` is our own accounts: they are excluded from the demand record for the same reason
@@ -194,11 +214,12 @@ export const track = {
    */
   search(q: SearchQuery, results: number, seeker: string, source: SearchSource, internal = false, embedFailed = false) {
     this.counter("search:total");
+    this.stat("searches");
     this.counter(`search:source:${source}`);
     if (q.q) this.counter("search:text");
     if (embedFailed) this.counter("search:embed_failed");
     this.actor("seeker", seeker);
-    // FR-40: every search, including a bare listing — "show me the newest" is a query too.
+    // FR-40: every search. A listing is counted by listing() and is never logged.
     const logged = recordSearch(q, source, { zero: results === 0, embedFailed, internal });
     if (logged === "recorded") scheduleFlush();
     else if (logged === "dropped") this.counter("search:log_dropped");
@@ -293,14 +314,16 @@ const STOP = new Set("a an the and or of in on at to for with near me my near by
 
 export async function metricsSnapshot() {
   const s = sql();
-  const at = budget();   // the snapshot is eight statements; they share one budget, like a search does
+  const at = budget();   // the snapshot is nine statements; they share one budget, like a search does
   const [core] = await withTimeout(s<Record<string, number>[]>`
     select
       (select count(distinct actor)::int from daily_actors where role = 'publisher' and day >= current_date - 6) as weekly_active_publishers,
       (select count(distinct actor)::int from daily_actors where role = 'seeker' and day >= current_date - 6) as weekly_active_seekers,
+      (select count(distinct actor)::int from daily_actors where role = 'reader' and day >= current_date - 6) as weekly_active_readers,
       (select count(distinct actor)::int from daily_actors where role = 'mcp_client' and day >= current_date - 6) as mcp_clients_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'search:total' and day >= current_date - 6) as searches_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'search:zero' and day >= current_date - 6) as zero_7d,
+      (select coalesce(sum(n), 0)::int from daily_counters where key = 'listing:total' and day >= current_date - 6) as listings_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'mcp:initialize' and day >= current_date - 6) as mcp_initialize_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key like 'mcp:tool:%' and day >= current_date - 6) as mcp_tool_calls_7d,
       (select count(*)::int from publishers where not internal and status <> 'deleted') as registered,
@@ -329,7 +352,7 @@ export async function metricsSnapshot() {
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'error:embed_error' and day >= current_date - 6) as embed_errors_7d,
       (select coalesce(sum(n), 0)::int from daily_counters where key = 'search:embed_failed' and day >= current_date - 6) as searches_embed_failed_7d`, at("metrics:core"));
 
-  const series = await withTimeout(s<{ day: string; searches: number; zero: number; posts: number; registrations: number; deliveries: number; mcp_init: number; mcp_calls: number; page_human: number; page_crawler: number; page_agent: number; publishers: number; seekers: number }[]>`
+  const series = await withTimeout(s<{ day: string; searches: number; zero: number; posts: number; registrations: number; deliveries: number; mcp_init: number; mcp_calls: number; page_human: number; page_crawler: number; page_agent: number; publishers: number; seekers: number; readers: number }[]>`
     with days as (select generate_series(current_date - 29, current_date, '1 day')::date as day)
     select d.day::text as day,
       coalesce((select sum(n) from daily_counters c where c.day = d.day and c.key = 'search:total'), 0)::int as searches,
@@ -343,7 +366,8 @@ export async function metricsSnapshot() {
       coalesce((select sum(n) from daily_counters c where c.day = d.day and c.key = 'page:crawler'), 0)::int as page_crawler,
       coalesce((select sum(n) from daily_counters c where c.day = d.day and c.key = 'page:agent'), 0)::int as page_agent,
       (select count(distinct actor) from daily_actors a where a.day = d.day and a.role = 'publisher')::int as publishers,
-      (select count(distinct actor) from daily_actors a where a.day = d.day and a.role = 'seeker')::int as seekers
+      (select count(distinct actor) from daily_actors a where a.day = d.day and a.role = 'seeker')::int as seekers,
+      (select count(distinct actor) from daily_actors a where a.day = d.day and a.role = 'reader')::int as readers
     from days d order by d.day`, at("metrics:series"));
 
   const mcpClients = await withTimeout(s<{ client: string; sessions: number; days: number }[]>`
@@ -398,7 +422,9 @@ export async function metricsSnapshot() {
   const metrics: Record<string, number> = {
     weekly_active_publishers: core.weekly_active_publishers,
     weekly_active_seekers: core.weekly_active_seekers,
+    weekly_active_readers: core.weekly_active_readers,
     searches_per_day_7d: Math.round((searches7 / 7) * 10) / 10,
+    listings_per_day_7d: Math.round((core.listings_7d / 7) * 10) / 10,
     zero_result_rate_7d: Math.round(zeroRate * 1000) / 1000,
     mcp_clients_7d: core.mcp_clients_7d,
     mcp_initialize_7d: core.mcp_initialize_7d,
@@ -449,7 +475,7 @@ export async function metricsSnapshot() {
     demand: {
       last_7d: foldDemand(demandRows.filter((r) => r.recent)),
       last_30d: foldDemand(demandRows),
-      note: "Every search, de-identified: one row per day per query shape, with no seeker, address or time of day, so it cannot be read back as one agent's history. A shape is named only once it has been searched three or more times or on two or more days; the rest are counted in `other`. `zero` is how many of those searches found nothing, `days` how many separate days the shape was asked on, and `poller` marks a shape that ran more than 50 times in a single day — a schedule, not a question. Our own accounts are not recorded. Places are ~50 km cells; personal data patterns are stripped before storage; rows are kept 365 days.",
+      note: "Every search, de-identified: one row per day per query shape (a listing, with no text, kind, tags or place, is not a search and is not here), with no seeker, address or time of day, so it cannot be read back as one agent's history. A shape is named only once it has been searched three or more times or on two or more days; the rest are counted in `other`. `zero` is how many of those searches found nothing, `days` how many separate days the shape was asked on, and `poller` marks a shape that ran more than 50 times in a single day — a schedule, not a question. Our own accounts are not recorded. Places are ~50 km cells; personal data patterns are stripped before storage; rows are kept 365 days.",
     },
     // `outcomes_7d` is optional in the type on purpose: a cache entry written by the deployment before
     // it existed has no such field, and /stats reads the entry it is handed (lib/metrics-view.ts).

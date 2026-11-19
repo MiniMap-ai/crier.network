@@ -97,7 +97,7 @@ function buildWhere(q: SearchQuery, opts: { alias?: string } = {}): Built {
 
 /**
  * `embed_failed` is true when a text query's embedding failed and the results come from the
- * full-text and trigram arms alone. The caller says so in its note and passes it to track.search,
+ * full-text and trigram arms alone. The caller says so in its note and passes it to track.searchRequest,
  * so an empty lexical answer is not recorded as unmet demand.
  */
 export type SearchResult = { posts: PublicPost[]; next_cursor: string | null; mode: "keyset" | "hybrid"; reranked: boolean; sort: "relevance" | "newest" | "soonest"; embed_failed: boolean };
@@ -131,7 +131,12 @@ const RERANK_POOL = 40;
 const VECTOR_CANDIDATE_MAX_DISTANCE = Number(process.env.CRIER_VECTOR_MAX_DISTANCE || 0.78);
 const RERANK_MIN_SCORE = Number(process.env.CRIER_RERANK_MIN_SCORE || 0.05);
 
-export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budget } = {}): Promise<SearchResult> {
+/**
+ * Run a query. `retrievals` adds one to `posts.retrievals` for each post returned (docs/metrics.md,
+ * "Per-post counts"); it is off unless asked for. Nothing else is counted here: the caller counts the
+ * request itself through `track.searchRequest`.
+ */
+export async function search(q: SearchQuery, opts: { retrievals?: boolean; at?: Budget } = {}): Promise<SearchResult> {
   const limit = q.limit ?? 20;
   const s = sql();
   // Shared across every statement below, so a hybrid search is bounded once rather than per query.
@@ -273,7 +278,7 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
     if (reranked && r.score != null) p.relevance = Math.round(r.score * 1000) / 1000;
     return p;
   });
-  if (opts.track !== false && posts.length) {
+  if (opts.retrievals && posts.length) {
     const ids = posts.map((p) => p.id);
     // Counters, batched into the metrics flush: one statement for every search an instance served
     // between flushes, rather than one per search. Rows something else is updating are still
@@ -281,7 +286,6 @@ export async function search(q: SearchQuery, opts: { track?: boolean; at?: Budge
     track.retrievals(ids);
     track.stat("retrievals", ids.length);
   }
-  if (opts.track !== false) track.stat("searches");
   return { posts, next_cursor, mode, reranked, sort: sortUsed, embed_failed: embedFailed };
 }
 

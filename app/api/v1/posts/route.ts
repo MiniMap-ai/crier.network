@@ -41,9 +41,8 @@ export const GET = handler(async (req) => {
   const q = parseSearchQuery(new URL(req.url).searchParams);
   const at = budget();
   const who = await optionalPublisher(req, at);
-  const counted = searchCounting(req.headers.get("user-agent"), !!who);
-  const r = await search(q, { track: counted === "seeker", at });
-  if (counted === "crawler") track.counter("search:crawler");
-  else track.search(q, r.posts.length, who ? who.id : clientIp(req), "rest", !!who?.internal, r.embed_failed);
+  const counted = searchCounting({ ua: req.headers.get("user-agent"), keyed: !!who, query: q });
+  const r = await search(q, { retrievals: counted !== "crawler", at });
+  track.searchRequest(counted, q, r, who ? who.id : clientIp(req), "rest", !!who?.internal);
   return ok(r.posts, { next_cursor: r.next_cursor, meta: { resultCount: r.posts.length, query: q, note: await restSearchNote(r) } });
 });
