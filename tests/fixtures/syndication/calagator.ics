@@ -1,0 +1,85 @@
+BEGIN:VCALENDAR
+PRODID;X-RICAL-TZSOURCE=TZINFO:-//Calagator//EN
+VERSION:2.0
+BEGIN:VEVENT
+CREATED;VALUE=DATE-TIME:20261104T035342Z
+DTEND;TZID=America/Los_Angeles;VALUE=DATE-TIME:20261119T193000
+DTSTART;TZID=America/Los_Angeles;VALUE=DATE-TIME:20261119T173000
+DTSTAMP;VALUE=DATE-TIME:20261104T035342Z
+LAST-MODIFIED;VALUE=DATE-TIME:20261104T035342Z
+UID:http://calagator.org/events/1250482784
+DESCRIPTION:Curious about AI? Already using it but hitting roadblocks? Dro
+ p in for AI Office Hours - a casual\, no‑pressure way to get expert insig
+ ht on your questions. For 2 hours\, I’ll be available to talk through wha
+ tever’s on your mind: strategy\, tools\, implementation\, or just “where 
+ do I even start?” Come for the whole time or pop in when you can.&#13\;\n
+ &#13\;\n**What to Expect:**&#13\;\n&#13\;\n- Open conversation: no slides
+ \, no sales pitch.&#13\;\n- Small‑group or one‑on‑one discussions: get yo
+ ur questions answered.&#13\;\n&#13\;\n**When &amp\; Where:**&#13\;\n&#13\
+ ;\n📍 AVA Roasteria at Orenco Station ([936 Orenco Station Loop\, Hillsbor
+ o\, OR\, 97124](https://maps.app.goo.gl/zPVfBjLyXQ85jHBZA))&#13\;\n&#13\;
+ \n🗓 November 19\, 2026 from 5:30pm-7:30pm [Add to Calendar](https://calen
+ dar.google.com/calendar/event?action=TEMPLATE&amp\;tmeid=N2JsNHVuZXBjdGNj
+ ZHNsazh0bjE5YjRvam0gY19iMWMwNzI1YjNjNjQzYjRiNWUzNWZhNTAyYjAwYzU5MzUwOTNiY
+ TU5ZmI5MmUxYzdmNTg4Y2Q2ODhhODgzZGViQGc&amp\;tmsrc=c_b1c0725b3c643b4b5e35f
+ a502b00c5935093ba59fb92e1c7f588cd688a883deb%40group.calendar.google.com)&
+ #13\;\n&#13\;\n💲 Free&#13\;\n&#13\;\nBring your questions\, leave with ne
+ w insights and a clearer understanding of AI’s possibilities.&#13\;\n&#13
+ \;\n**About the Host:**&#13\;\n&#13\;\n[The Host (they/them)](https://www
+ .example.org/people/host/) is a placeholder biography that stands in for 
+ the one served\, written to keep its shape: a linked name\, a role\, and 
+ a few sentences\, with commas\, about what the host does.&#13\;\n&#13\;\n
+ The host is known for placeholder text like this\, which keeps the escape
+ s and line folding of the original without naming anyone.\n\nTags: AI\, m
+ eetup\, office hours\, free\, technology\, coffee\, networking\, Artifici
+ al Intelligence\, ml\, machine learning\, cv\, computer vision\, Hillsbor
+ o\, education\, washington county\n\nImported from: http://calagator.org/
+ events/1250482784
+URL:https://www.example-consulting.com/events/ai-office-hours-hillsboro-or
+ -nov-19
+SUMMARY:Free AI Office Hours - Hillsboro\, OR
+LOCATION:AVA Roasteria (Orenco Station): 936 Orenco Station Loop\, Hillsb
+ oro Oregon 97124 USA
+SEQUENCE:1
+END:VEVENT
+BEGIN:VEVENT
+CREATED;VALUE=DATE-TIME:20261109T080854Z
+DTEND;TZID=America/Los_Angeles;VALUE=DATE-TIME:20261119T210000
+DTSTART;TZID=America/Los_Angeles;VALUE=DATE-TIME:20261119T180000
+DTSTAMP;VALUE=DATE-TIME:20261109T080854Z
+LAST-MODIFIED;VALUE=DATE-TIME:20261109T080854Z
+UID:http://calagator.org/events/1250482791
+DESCRIPTION:The Portland Linux Kernel Meetup for November 2026 will be at
+ ...&#13\;\n&#13\;\n  * Date: Thursday\, November 19\, 2026&#13\;\n  * Ti
+ me: 06:00 PM to 09:00 PM US/Pacific&#13\;\n  * Location: Lucky Labrador 
+ Beer Hall\, 1945 NW Quimby St\, Portland\, Oregon 97209 US&#13\;\n&#13\;
+ \nCome enjoy a beverage and chat with other people who are interested in
+  the&#13\;\nLinux kernel. All experience levels are welcome. This is a f
+ riendly and casual&#13\;\nmeetup. Look for a table with a plush Tux peng
+ uin.&#13\;\n&#13\;\nTo get timely reminders of Portland Linux Kernel Mee
+ tups\, see&#13\;\nhttps://lkmu.example.org/pdx-lkmu/subscribing-to-pdx-l
+ kmu-events.html.\n\nTags: PDXLKMU\, kernel\, linux\n\nImported from: htt
+ p://calagator.org/events/1250482791
+URL:https://lkmu.example.org/pdx-lkmu/
+SUMMARY:November 2026 Portland Linux Kernel Meetup
+LOCATION:Lucky Labrador Beer Hall\, 1945 NW Quimby St\, Portland\, Oregon
+  97209 US: false
+SEQUENCE:2
+END:VEVENT
+BEGIN:VEVENT
+CREATED;VALUE=DATE-TIME:20260507T202616Z
+DTEND;TZID=America/Los_Angeles;VALUE=DATE-TIME:20261209T203000
+DTSTART;TZID=America/Los_Angeles;VALUE=DATE-TIME:20261209T183000
+DTSTAMP;VALUE=DATE-TIME:20260507T202616Z
+LAST-MODIFIED;VALUE=DATE-TIME:20260513T002901Z
+UID:http://calagator.org/events/1250482572
+DESCRIPTION:Get up-to-date information at: https://luma.com/waifbpzl\n\nAd
+ dress:\nHawthorne Asylum Food Cart Pod\nPortland\, Oregon\nUnited States\
+ n\nHosted by The Group Organizer\n\nImported from: http://calagator.org/e
+ vents/1250482572
+SUMMARY:Portland Drupal User Group
+LOCATION:Hawthorne Asylum Food Cart Pod: 1080 SE Madison St\, Portland OR
+  97214 US
+SEQUENCE:2
+END:VEVENT
+END:VCALENDAR

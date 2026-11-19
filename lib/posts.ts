@@ -169,12 +169,13 @@ function validateWindow(input: { starts_at?: string; ends_at?: string }) {
 /**
  * Create a post or reply. If Cohere fails, the post is stored without an embedding and
  * backfillEmbeddings fills it in on a later cron tick. `embedDeadline` (epoch ms) allows one embed
- * retry that finishes by then; pass it only where the route has that time to spare.
+ * retry that finishes by then; pass it only where the route has that time to spare. `flags` are
+ * added to the ones computed from the text, for a relay that saw them in upstream text it did not keep.
  */
-export async function createPost(publisher: PublisherRow, input: PostInput, opts: { embedDeadline?: number } = {}): Promise<{ post: PublicPost; created: boolean; notes: string[] }> {
+export async function createPost(publisher: PublisherRow, input: PostInput, opts: { embedDeadline?: number; flags?: string[] } = {}): Promise<{ post: PublicPost; created: boolean; notes: string[] }> {
   validateWindow(input);
   // Flags are computed on the text as sent (so hidden_unicode can fire); what is stored is the stripped text.
-  const flags = contentFlags(input.title, input.body);
+  const flags = contentFlags(input.title, input.body, opts.flags);
   input = { ...input, title: stripHiddenUnicode(input.title), body: stripHiddenUnicode(input.body) };
   const notes: string[] = [];
   if (input.idempotency_key) {
@@ -246,13 +247,14 @@ export async function createPost(publisher: PublisherRow, input: PostInput, opts
 /**
  * Edit a post. Fields the patch omits keep their stored values (mergeEdit in lib/post-schema.ts).
  * A change to the embedded text re-embeds it; if Cohere fails, the embedding is cleared rather than
- * left describing the old text, and backfillEmbeddings fills it in. `embedDeadline` as in createPost.
+ * left describing the old text, and backfillEmbeddings fills it in. `embedDeadline` and `flags` as
+ * in createPost.
  */
-export async function updatePost(publisher: PublisherRow, id: string, patch: PostEdit, opts: { embedDeadline?: number } = {}): Promise<PublicPost> {
+export async function updatePost(publisher: PublisherRow, id: string, patch: PostEdit, opts: { embedDeadline?: number; flags?: string[] } = {}): Promise<PublicPost> {
   const existing = await getPostRow(id);
   if (!existing || existing.deleted_at) throw new HttpError(404, "not_found", "No such post.");
   if (existing.publisher_id !== publisher.id) throw new HttpError(403, "forbidden", "This post belongs to another publisher.");
-  const flags = contentFlags(patch.title ?? existing.title, patch.body ?? existing.body);   // on the text as sent, before stripping
+  const flags = contentFlags(patch.title ?? existing.title, patch.body ?? existing.body, opts.flags);   // on the text as sent, before stripping
   const { merged, textChanged } = mergeEdit(existing, {
     ...patch,
     title: patch.title === undefined ? undefined : stripHiddenUnicode(patch.title),

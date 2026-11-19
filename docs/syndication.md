@@ -34,7 +34,7 @@ it up.
 | adapter | what | config |
 |---|---|---|
 | `ticketmaster` | Discovery API: concerts, sports, theatre around a point. Needs `TICKETMASTER_API_KEY`. Terms require attribution and a link, which every post carries. | `{lat, lng, radius_km, city, segment?}` |
-| `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, venue calendars. Recurring series are not expanded. | `{url, timezone?, location_name?, lat?, lng?}` |
+| `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, Trumba, Communico, venue calendars. Recurring series (`RRULE`) are not expanded. | `{url, timezone?, location_name?, lat?, lng?, event_url_template?}` |
 | `rss` | Any RSS/Atom feed of notices. Items become announcements with a TTL. | `{url, ttl_days?, location_name?, lat?, lng?}` |
 | `localist` | Localist calendars (most universities). Public JSON API, paged, at most 500 rows a run. Placeholder venues are dropped, not published; one event published twice is relayed once. | `{base, location_name?, lat?, lng?}` |
 | `nws` | National Weather Service active alerts for a state (public domain). One post per CAP segment, titled and placed by its area. Zone alerts get a centroid from the zone geometry. | `{area, min_severity?}` |
@@ -53,6 +53,90 @@ with no name, and 2 named a place only in `address` or `geo.street`.
 
 Where upstream gives no coordinates, `localist` falls back to `config.lat`/`config.lng` as `ical`
 and `rss` do, except on online events.
+
+### What the ical adapter reads
+
+One item per `VEVENT` with a `UID`, a parseable `DTSTART` and a non-empty `SUMMARY`, inside the
+horizon. A `VEVENT` with an `RRULE` is skipped, and `STATUS:CANCELLED` retires the item's post.
+`config.timezone`, else the feed's `X-WR-TIMEZONE`, places floating times; `GEO`, else
+`config.lat`/`config.lng`, places the event; `LOCATION`, else `config.location_name`, names it.
+
+**The link.** An event links to its `URL`; else to Trumba's `X-TRUMBA-LINK`; else, when the source
+sets `event_url_template`, to that template with every `{uid}` replaced by the event's `UID`,
+percent-encoded. Each candidate must pass one rule before it is used, and one that fails falls
+through to the next: it starts `http://` or `https://`, parses as a URL, has no username or
+password, and holds no backslash and no whitespace, control, format or other invisible character.
+So `javascript:`, `data:`, `https://www.seattle.gov@evil.example/` and
+`https://evil.example\@www.seattle.gov` are never a link, and an event whose `URL` fails the rule
+gets the next candidate or no link at all. The link is used as written, not rewritten. A `UID` that is empty, `.` or `..` once trimmed fills no template, since
+it would name a parent path, not an event. The template must be an https URL of at most 500
+characters with no surrounding whitespace, no control character, no username or password, and
+`{uid}` outside the host: the admin routes refuse any other, and the adapter fails the run on one
+that reached the row another way. The link is the post's `url` and `source_url`, so it is what the
+fold and the live-row guard key on (below), and the body's "Details:" line.
+
+**Keys.** An item with a link is keyed on the link, normalized, and one without on its `UID`. So a
+linked item also carries its `UID` as an alias (see "Ticketmaster records, one post each" for how
+the runner uses aliases): a row stored under the `UID` before the feed published a link is found
+when the link appears, and a row stored under the link holds the `UID` as an alias, so it is found
+if the link goes away. A `STATUS:CANCELLED` event gets its link and alias the same way, so it
+reaches the row its live twin was stored under and retires it in that run. Two limits. A row the
+fold made from several instances under one link gathers, as aliases, the `UID` of each instance
+that was the next one when a run wrote it; cancelling every instance retires it at once only when
+the only `UID` it holds is that of the feed's first cancelled instance, and otherwise leaves it to
+the missing-item sweep. An event cancelled in the run its link disappears is also left to the
+sweep, and so is one cancelled while another title still live shares its link.
+
+Communico library calendars (`<library>.libnet.info/feeds?data=…`) carry no `URL`. Their `UID` is
+the numeric event id, and the event page is `/event/<UID>` on the feed's host: on Multnomah County
+Library's feed of 2026-11-19 all 500 UIDs were numeric and `/event/17182048` served that event's
+page, while an unknown id redirects to `/404`. Such a source sets
+`"event_url_template": "https://multcolib.libnet.info/event/{uid}"`.
+
+**The text.** Trumba writes titles, places and descriptions as HTML inside iCalendar text:
+`Play &amp\; Learn`, `biling&#252\;e`, `Council Chambers<br>600 4th Ave`. The adapter first undoes
+the iCalendar escapes, and decodes character references at most once: numeric ones, and the names
+in `NAMED` in `lib/syndication/feeds.ts`, matched case-sensitively, so `&AMP;` and any other name
+are left as written and `&amp;lt;` stays the text `&lt;`. Then, by field:
+
+- `SUMMARY` is decoded and nothing is removed, so `Intro to <html> for kids` and `Lab <B>` stay as
+  written. The post page renders a title as text, JSON-LD escapes its `<`, MCP returns it as plain
+  text, and `feed.xml` XML-escapes it into `<title>`.
+- `LOCATION` has each `<br>` (any case, with or without a slash or attributes) turned into ", ",
+  is decoded, and nothing else is removed.
+- `DESCRIPTION` is read as HTML: `<br>` and `</p>` become line breaks, tags are removed,
+  references decoded, control characters and hidden Unicode removed, and then tags removed again
+  until none is left, so `&lt;script&gt;`, `&lt;scr&lt;script&gt;ipt&gt;` and
+  `&lt;&#8203;script&gt;` leave no tag, on one line or across two. A `<` that opens no tag ("Kids <3 books", an
+  unclosed `<script`) stays as text. Past 32 passes the input is taken as hostile and loses every
+  angle bracket.
+- `CATEGORIES` are split on unescaped commas, unescaped, then decoded, in that order, before they
+  become tags, so `Parks &amp\; Recreation` is the tag `parks-recreation`.
+
+So for a feed with no references and no `<br>`, title and place are its iCalendar text unescaped
+and trimmed, byte for byte (pinned by `tests/syndication-ical.test.ts`).
+Summary, place and description lose every C0 and C1 control character but newline and tab. The
+place and the description also lose the hidden Unicode the write strips from title and body
+(`stripHiddenUnicode` in `lib/flags.ts`); the body's "Where:" line keeps the place's, so the post
+is still flagged `hidden_unicode`. Cleaning the description removes two things `contentFlags`
+looks for: an instruction tag such as `<system>` (`possible_instruction`) and hidden Unicode
+(`hidden_unicode`). So the adapter runs that check over the decoded description before it is
+cleaned and carries those two flags on the item; the runner adds them to the flags the post
+computes on write. An instruction tag split by another tag (`<sys<b>tem>`) is removed with the
+rest and raises no flag. The rest of the pipeline treats the result as third-party text like
+any post.
+
+Trumba's City of Seattle feed folds long lines with `\r\r\n `, so the parser drops every carriage
+return and ends a line at its line feed alone; otherwise "participate" folded across lines reads
+`pa\rrticipate` and a `<br>` folded across lines stops being a line break.
+
+**Repeats.** Trumba and Communico give every instance of a recurring event its own `UID` and its
+own link, and no `RRULE` or series id; the fold below keys on the link, so their instances stay
+one post each. On the feeds of 2026-11-19, over the next 30 days: Seattle Public Library 194
+events under 82 titles ("Family Story Time" 19, at a dozen branches); Multnomah County Library 500
+events under 153 titles ("Tech Help Drop-in" 65); the City of Seattle 282 events, which fold to
+228 items only through the organisers' `URL`s some instances share ("Open Adoption Hours", 27
+instances under one URL). Every run writes at most `max_per_run` of them, nearest first.
 
 ## Runner
 
@@ -204,8 +288,9 @@ A cancelled item retires the rows it matched only when it names every identity
 they are stored under. A fetch reads one page sorted by date, so a show's twins
 can fall on either side of its end: one twin arriving cancelled alone says
 nothing about the other. Such a row is left to the missing-item sweep, which
-retires it after three runs in which no live record reaches it. Items from
-every other adapter carry no aliases and take the path they took before.
+retires it after three runs in which no live record reaches it. The `ical` adapter's linked items
+carry their `UID` as an alias ("What the ical adapter reads", above). Items from every other adapter
+carry no aliases and take the path they took before.
 
 What the mapping does to each record: the timezone is the event's, else its
 venue's; the end comes only from `dates.end.dateTime`, never when

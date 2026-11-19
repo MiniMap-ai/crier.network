@@ -1,4 +1,5 @@
 import type { Kind } from "../posts";
+import { clipText } from "./feeds.ts";
 import { FetchFailure } from "./walk.ts";
 
 export type SourceRow = {
@@ -41,9 +42,16 @@ export type Item = {
   /**
    * Other identities this item's row may be stored under, for an item standing for several
    * upstream records (lib/syndication/aliases.ts). The runner finds a row by uid or any alias and
-   * keeps the stored uid. Only the Ticketmaster adapter sets it.
+   * keeps the stored uid. Set by the Ticketmaster adapter, and by the iCalendar adapter on an item
+   * with a link, whose alias is its raw UID.
    */
   aliases?: string[];
+  /**
+   * Content flags (lib/flags.ts) the adapter found in upstream text that the item's own text no
+   * longer shows, such as an instruction tag removed with the description's HTML. The runner adds
+   * them to the flags the post computes from its title and body.
+   */
+  flags?: string[];
 };
 
 /** The relay policy's ceiling on writes per source per run, whatever the row says. */
@@ -104,11 +112,11 @@ export function fetchJson<T>(url: string, ctx: AdapterContext, headers: Record<s
 /** Strip HTML, decode common entities, collapse whitespace, truncate on a word boundary. */
 export function plainText(s: string | null | undefined, max = 600): string {
   if (!s) return "";
-  let t = s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, " ");
+  // No tag ends past the last ">", and the tag pattern is quadratic on a run of "<" with none after it.
+  const tagsEnd = s.lastIndexOf(">") + 1;
+  let t = s.slice(0, tagsEnd).replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, " ") + s.slice(tagsEnd);
   t = t.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&#(\d+);/g, (_m, n) => String.fromCharCode(Number(n)));
-  t = t.replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
-  if (t.length > max) t = t.slice(0, max).replace(/\s+\S*$/, "") + "…";
-  return t;
+  return clipText(t, max);
 }
 
 export function inHorizon(startsAt: string | undefined, ctx: AdapterContext): boolean {

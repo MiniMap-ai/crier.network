@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { eventUrlTemplateProblem } from "./feeds.ts";
 import { HORIZON_DAYS_CAP, MAX_PER_RUN_CAP } from "./types.ts";
 
 /**
@@ -8,7 +9,10 @@ import { HORIZON_DAYS_CAP, MAX_PER_RUN_CAP } from "./types.ts";
  */
 export const sourceField = {
   name: z.string().trim().min(1).max(120),
-  config: z.record(z.string(), z.unknown()),
+  config: z.record(z.string(), z.unknown()).superRefine((config, ctx) => {
+    const problem = config.event_url_template === undefined ? undefined : eventUrlTemplateProblem(config.event_url_template);
+    if (problem) ctx.addIssue({ code: "custom", path: ["event_url_template"], message: `event_url_template ${problem}` });
+  }),
   homepage: z.url(),
   license: z.string().trim().min(10).max(500),
   default_kind: z.enum(["event", "offer", "request", "announcement"]),
