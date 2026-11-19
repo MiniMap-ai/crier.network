@@ -2,8 +2,8 @@
   {
     "uid": "http://calagator.org/events/1250482784",
     "title": "Free AI Office Hours - Hillsboro, OR",
-    "body": "Curious about AI? Already using it but hitting roadblocks? Drop in for AI Office Hours - a casual, no‑pressure way to get expert insight on your questions. For 2 hours, I’ll be available to talk through whatever’s on your mind: strategy, tools, implementation, or just “where do I even start?” Come for the whole time or pop in when you can.\n**What to Expect:**\n- Open conversation: no slides, no sales pitch.\n- Small‑group or one‑on‑one discussions: get your questions answered.\n**When & Where:**…\nWhere: AVA Roasteria (Orenco Station): 936 Orenco Station Loop, Hillsboro Oregon 97124 USA\nDetails: https://www.kaneda-consulting.com/events/ai-office-hours-hillsboro-or-nov-19\nSource: Test calendar (https://example.org), relayed by Crier.",
-    "url": "https://www.kaneda-consulting.com/events/ai-office-hours-hillsboro-or-nov-19",
+    "body": "Curious about AI? Already using it but hitting roadblocks? Drop in for AI Office Hours - a casual, no‑pressure way to get expert insight on your questions. For 2 hours, I’ll be available to talk through whatever’s on your mind: strategy, tools, implementation, or just “where do I even start?” Come for the whole time or pop in when you can.\n**What to Expect:**\n- Open conversation: no slides, no sales pitch.\n- Small‑group or one‑on‑one discussions: get your questions answered.\n**When & Where:**…\nWhere: AVA Roasteria (Orenco Station): 936 Orenco Station Loop, Hillsboro Oregon 97124 USA\nDetails: https://www.example-consulting.com/events/ai-office-hours-hillsboro-or-nov-19\nSource: Test calendar (https://example.org), relayed by Crier.",
+    "url": "https://www.example-consulting.com/events/ai-office-hours-hillsboro-or-nov-19",
     "kind": "event",
     "starts_at": "2026-11-20T01:30:00.000Z",
     "ends_at": "2026-11-20T03:30:00.000Z",
@@ -42,7 +42,7 @@
   {
     "uid": "http://calagator.org/events/1250482572",
     "title": "Portland Drupal User Group",
-    "body": "Get up-to-date information at: https://luma.com/waifbpzl\nAddress:\nHawthorne Asylum Food Cart Pod\nPortland, Oregon\nUnited States\nHosted by Erin M Miles Rasmussen\nImported from: http://calagator.org/events/1250482572\nWhere: Hawthorne Asylum Food Cart Pod: 1080 SE Madison St, Portland OR 97214 US\nSource: Test calendar (https://example.org), relayed by Crier.",
+    "body": "Get up-to-date information at: https://luma.com/waifbpzl\nAddress:\nHawthorne Asylum Food Cart Pod\nPortland, Oregon\nUnited States\nHosted by The Group Organizer\nImported from: http://calagator.org/events/1250482572\nWhere: Hawthorne Asylum Food Cart Pod: 1080 SE Madison St, Portland OR 97214 US\nSource: Test calendar (https://example.org), relayed by Crier.",
     "kind": "event",
     "starts_at": "2026-12-10T02:30:00.000Z",
     "ends_at": "2026-12-10T04:30:00.000Z",

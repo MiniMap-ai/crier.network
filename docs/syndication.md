@@ -61,12 +61,30 @@ horizon. A `VEVENT` with an `RRULE` is skipped, and `STATUS:CANCELLED` retires t
 `config.timezone`, else the feed's `X-WR-TIMEZONE`, places floating times; `GEO`, else
 `config.lat`/`config.lng`, places the event; `LOCATION`, else `config.location_name`, names it.
 
-**The link.** An event links to its `URL`; else to Trumba's `X-TRUMBA-LINK` when that is an http(s)
-URL; else, when the source sets `event_url_template`, to that template with every `{uid}` replaced
-by the event's `UID`, percent-encoded. The template must be an https URL of at most 500 characters
-with `{uid}` outside the host: the admin routes refuse any other, and the adapter fails the run on
-one that reached the row another way. The link is the post's `url` and `source_url`, so it is what
-the fold and the live-row guard key on (below), and the body's "Details:" line.
+**The link.** An event links to its `URL`; else to Trumba's `X-TRUMBA-LINK`; else, when the source
+sets `event_url_template`, to that template with every `{uid}` replaced by the event's `UID`,
+percent-encoded. Each candidate must pass one rule before it is used, and one that fails falls
+through to the next: it parses as an absolute URL, its protocol is http or https, it has no
+username or password, and it holds no whitespace or control character. So `javascript:`, `data:`
+and `https://www.seattle.gov@evil.example/` are never a link, and an event whose `URL` fails the
+rule gets the next candidate or no link at all, where before this rule it stored the bad value. No
+fixture has such a `URL`. A `UID` that is empty, `.` or `..` once trimmed fills no template, since
+it would name a parent path, not an event. The template must be an https URL of at most 500
+characters with no surrounding whitespace, no control character, no username or password, and
+`{uid}` outside the host: the admin routes refuse any other, and the adapter fails the run on one
+that reached the row another way. The link is the post's `url` and `source_url`, so it is what the
+fold and the live-row guard key on (below), and the body's "Details:" line.
+
+**Keys.** An item with a link is keyed on the link, normalized, and one without on its `UID`. So a
+linked item also carries its `UID` as an alias (see "Ticketmaster records, one post each" for how
+the runner uses aliases): a row stored under the `UID` before the feed published a link is found
+when the link appears, and a row stored under the link holds the `UID` as an alias, so it is found
+if the link goes away. A `STATUS:CANCELLED` event gets its link and alias the same way, so it
+reaches the row its live twin was stored under and retires it in that run. Two limits. A row the
+fold made from several instances under one link gathers, as aliases, the `UID` of each instance
+that was the next one when a run wrote it; cancelling every instance retires it at once only when
+the only `UID` it holds is that of the feed's first cancelled instance, and otherwise leaves it to
+the missing-item sweep. An event cancelled in the run its link disappears is also left to the sweep.
 
 Communico library calendars (`<library>.libnet.info/feeds?data=…`) carry no `URL`. Their `UID` is
 the numeric event id, and the event page is `/event/<UID>` on the feed's host: on Multnomah County
@@ -75,14 +93,38 @@ page, while an unknown id redirects to `/404`. Such a source sets
 `"event_url_template": "https://multcolib.libnet.info/event/{uid}"`.
 
 **The text.** Trumba writes titles, places and descriptions as HTML inside iCalendar text:
-`Play &amp\; Learn`, `biling&#252\;e`, `Council Chambers<br>600 4th Ave`. The adapter undoes the
-iCalendar escapes, then reads the HTML as plain text: tags are removed, character references are
-decoded once (numeric ones, and the HTML 4 Latin-1 and punctuation names; any other name is left as
-written), and whatever the decoding made tag-shaped is removed too. So `&lt;script&gt;` yields no
-markup and `&amp;lt;` stays the text `&lt;`. Pieces between `<br>` or `</p>` become lines in the
-description, are joined with ", " in the place, and with a space in the title. `CATEGORIES` are
-decoded before they become tags. The rest of the pipeline treats the result as third-party text
-like any post: flags are computed and hidden Unicode stripped on write, and pages render it as text.
+`Play &amp\; Learn`, `biling&#252\;e`, `Council Chambers<br>600 4th Ave`. The adapter first undoes
+the iCalendar escapes, and decodes character references at most once: numeric ones, and the names
+in `NAMED` in `lib/syndication/feeds.ts`, matched case-sensitively, so `&AMP;` and any other name
+are left as written and `&amp;lt;` stays the text `&lt;`. Then, by field:
+
+- `SUMMARY` is decoded and nothing is removed, so `Intro to <html> for kids` and `Lab <B>` stay as
+  written. The post page renders a title as text, JSON-LD escapes its `<`, MCP returns it as plain
+  text, and `feed.xml` XML-escapes it into `<title>`.
+- `LOCATION` has each `<br>` (any case, with or without a slash or attributes) turned into ", ",
+  is decoded, and nothing else is removed.
+- `DESCRIPTION` is read as HTML: pieces between `<br>` and `</p>` become lines, tags are removed,
+  references decoded, and then tags removed again until none is left, so `&lt;script&gt;` and
+  `&lt;scr&lt;script&gt;ipt&gt;` leave no tag. A `<` that opens no tag ("Kids <3 books", an
+  unclosed `<script`) stays as text. Past 32 passes the input is taken as hostile and loses every
+  angle bracket.
+- `CATEGORIES` are split on unescaped commas, unescaped, then decoded, in that order, before they
+  become tags, so `Parks &amp\; Recreation` is the tag `parks-recreation`.
+
+So for a feed with no references and no `<br>`, title and place are its iCalendar text unescaped
+and trimmed, as they were before the adapter read HTML (pinned by `tests/syndication-ical.test.ts`).
+Summary, place and description then lose every C0 and C1 control character but newline and tab, and
+the place loses the hidden Unicode the write strips from title and body (`stripHiddenUnicode` in
+`lib/flags.ts`); the body's "Where:" line keeps it, so the post is still flagged `hidden_unicode`.
+Removing the description's tags would also remove an instruction tag such as `<system>`, which
+`contentFlags` flags `possible_instruction`, so the adapter runs that check over the decoded
+description before its tags go and carries the flag on the item; the runner adds it to the flags
+the post computes on write. The rest of the pipeline treats the result as third-party text like
+any post.
+
+Trumba's City of Seattle feed folds long lines with `\r\r\n `, so the parser takes any run of
+carriage returns before a line feed as one line end; otherwise "participate" folded across lines
+reads `pa\rrticipate` and a `<br>` folded across lines stops being a line break.
 
 **Repeats.** Trumba and Communico give every instance of a recurring event its own `UID` and its
 own link, and no `RRULE` or series id; the fold below keys on the link, so their instances stay
@@ -242,8 +284,9 @@ A cancelled item retires the rows it matched only when it names every identity
 they are stored under. A fetch reads one page sorted by date, so a show's twins
 can fall on either side of its end: one twin arriving cancelled alone says
 nothing about the other. Such a row is left to the missing-item sweep, which
-retires it after three runs in which no live record reaches it. Items from
-every other adapter carry no aliases and take the path they took before.
+retires it after three runs in which no live record reaches it. The `ical` adapter's linked items
+carry their `UID` as an alias ("What the ical adapter reads", above). Items from every other adapter
+carry no aliases and take the path they took before.
 
 What the mapping does to each record: the timezone is the event's, else its
 venue's; the end comes only from `dates.end.dateTime`, never when

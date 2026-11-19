@@ -1,5 +1,6 @@
 import { RECURRENCE_CAP } from "./collapse.ts";
-import { clipText, decodeEntities, eventUrl, eventUrlTemplateProblem, htmlToText, icalDate, icalText, parseFeed, parseICal } from "./feeds.ts";
+import { contentFlags, stripHiddenUnicode } from "../flags.ts";
+import { clipText, decodeEntities, dropControls, eventUrl, eventUrlTemplateProblem, htmlToText, httpLink, icalDate, icalList, icalText, parseFeed, parseICal, placeText } from "./feeds.ts";
 import type { VEvent } from "./feeds.ts";
 import { ticketmasterItems } from "./ticketmaster.ts";
 import { fetchJson, fetchText, inHorizon, plainText, runLimit } from "./types.ts";
@@ -49,15 +50,11 @@ export const ticketmaster: Adapter = async (source, ctx) => {
    config: { url, timezone? (default zone for floating times), location_name?, lat?, lng?, event_url_template? } */
 
 /**
- * The event's page: its `URL`, else Trumba's `X-TRUMBA-LINK` when that is an http(s) URL, else the
- * source's `event_url_template` filled with the UID, else none.
+ * The event's page: the first of its `URL`, Trumba's `X-TRUMBA-LINK` and the source's
+ * `event_url_template` filled with the UID that `httpLink` accepts, else none.
  */
 export function icalLink(ev: VEvent, uid: string, template: string | undefined): string | undefined {
-  const url = ev.URL?.[0]?.value?.trim();
-  if (url) return url;
-  const trumba = ev["X-TRUMBA-LINK"]?.[0]?.value?.trim();
-  if (trumba && /^https?:\/\//i.test(trumba)) return trumba;
-  return template ? eventUrl(template, uid) : undefined;
+  return httpLink(ev.URL?.[0]?.value) ?? httpLink(ev["X-TRUMBA-LINK"]?.[0]?.value) ?? (template ? httpLink(eventUrl(template, uid)) : undefined);
 }
 
 export const ical: Adapter = async (source, ctx) => {
@@ -75,23 +72,32 @@ export const ical: Adapter = async (source, ctx) => {
     if (ev.RRULE) continue;   // recurring series are not expanded; single instances only
     const st = icalDate(ev.DTSTART?.[0], zone); if (!st) continue;
     const en = icalDate(ev.DTEND?.[0], zone);
-    if (ev.STATUS?.[0]?.value?.toUpperCase() === "CANCELLED") { items.push({ uid, title: "cancelled", body: "cancelled", cancelled: true }); continue; }
-    const summary = htmlToText(icalText(ev.SUMMARY?.[0]?.value), " "); if (!summary) continue;
-    const desc = clipText(htmlToText(icalText(ev.DESCRIPTION?.[0]?.value)), 500);
-    const loc = htmlToText(icalText(ev.LOCATION?.[0]?.value), ", ");
-    const geo = ev.GEO?.[0]?.value?.split(";").map(Number);
     const link = icalLink(ev, uid, template as string | undefined);
+    // A linked item's row is keyed on the link; the uid alias also finds a row stored before the feed
+    // gave one. A cancelled item carries both, or it cannot reach the row it should retire.
+    const aliases = link ? [uid] : undefined;
+    if (ev.STATUS?.[0]?.value?.toUpperCase() === "CANCELLED") { items.push({ uid, title: "cancelled", body: "cancelled", url: link, aliases, cancelled: true }); continue; }
+    const summary = dropControls(decodeEntities(icalText(ev.SUMMARY?.[0]?.value))).trim(); if (!summary) continue;
+    const html = icalText(ev.DESCRIPTION?.[0]?.value);
+    const desc = clipText(dropControls(htmlToText(html)), 500);
+    const loc = dropControls(placeText(icalText(ev.LOCATION?.[0]?.value)));
+    const geo = ev.GEO?.[0]?.value?.split(";").map(Number);
+    // Stripping tags from the description also strips an instruction tag the post's flags look for.
+    const flags = contentFlags(summary, decodeEntities(html)).filter((f) => f === "possible_instruction");
     items.push({
       uid,
       title: summary.slice(0, 200),
+      // The Where line keeps any hidden Unicode so the post's flags see it; the write strips it from the body.
       body: [desc, loc ? `Where: ${loc}` : "", link ? `Details: ${link}` : "", `Source: ${source.name}${source.homepage ? " (" + source.homepage + ")" : ""}, relayed by Crier.`].filter(Boolean).join("\n"),
-      url: link || undefined,
+      url: link,
+      aliases,
+      ...(flags.length ? { flags } : {}),
       kind: source.default_kind,
       starts_at: st.iso,
       ends_at: en?.iso,
       timezone: zone || undefined,
-      location: { name: loc || str(source.config.location_name) || undefined, lat: geo && geo.length === 2 && Number.isFinite(geo[0]) ? geo[0] : num(source.config.lat), lng: geo && geo.length === 2 && Number.isFinite(geo[1]) ? geo[1] : num(source.config.lng) },
-      tags: [...source.tags, ...(ev.CATEGORIES?.flatMap((c) => decodeEntities(c.value).split(",")) ?? [])].map((t) => t.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")).filter((t) => t.length >= 2 && t.length <= 40),
+      location: { name: stripHiddenUnicode(loc) || str(source.config.location_name) || undefined, lat: geo && geo.length === 2 && Number.isFinite(geo[0]) ? geo[0] : num(source.config.lat), lng: geo && geo.length === 2 && Number.isFinite(geo[1]) ? geo[1] : num(source.config.lng) },
+      tags: [...source.tags, ...(ev.CATEGORIES?.flatMap((c) => icalList(c.value).map(decodeEntities)) ?? [])].map((t) => t.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")).filter((t) => t.length >= 2 && t.length <= 40),
       metadata: { source: "ical", all_day: st.allDay },
     });
   }
@@ -438,7 +444,7 @@ export const ADAPTERS: Record<SourceRow["adapter"], Adapter> = { ticketmaster, i
 export function describeAdapter(a: SourceRow["adapter"]): string {
   return {
     ticketmaster: "Ticketmaster Discovery API: concerts, sports, theatre near a point. Needs TICKETMASTER_API_KEY. config: {lat, lng, radius_km, city, segment?}",
-    ical: "Any public iCalendar feed (LibCal, Google Calendar public ICS, Trumba, Communico, venue calendars). Each event links to its URL, else Trumba's X-TRUMBA-LINK, else event_url_template (an https URL containing {uid}, filled with the event's UID). config: {url, timezone?, location_name?, lat?, lng?, event_url_template?}",
+    ical: "Any public iCalendar feed (LibCal, Google Calendar public ICS, Trumba, Communico, venue calendars). Each event links to the first of its URL, Trumba's X-TRUMBA-LINK and event_url_template (an https URL containing {uid}, filled with the event's UID) that is an http(s) URL with no username or password. config: {url, timezone?, location_name?, lat?, lng?, event_url_template?}",
     rss: "Any RSS or Atom feed of notices. Items are announcements with a TTL. config: {url, ttl_days?, location_name?, lat?, lng?}",
     localist: "Localist-powered calendars (most university event sites). Placeholder venues (\"Sign in to download the location\", \"TBD\") are dropped. config: {base, location_name?, lat?, lng?} — the name and point to fall back on for the events upstream gives no coordinates for; not applied to online events.",
     nws: "National Weather Service active alerts for a state, public domain. config: {area, min_severity?}",

@@ -1,0 +1,79 @@
+[
+  {
+    "uid": "plain-1@example.org",
+    "title": "Intro to <html> for kids",
+    "body": "Bring a laptop. Q&A after, and 5 < 10 seats left.\nWhere: Lab <B>\nDetails: https://example.org/events/plain-1\nSource: Test calendar (https://example.org), relayed by Crier.",
+    "url": "https://example.org/events/plain-1",
+    "kind": "event",
+    "starts_at": "2026-11-20T18:00:00.000Z",
+    "ends_at": "2026-11-20T19:00:00.000Z",
+    "timezone": "America/Los_Angeles",
+    "location": {
+      "name": "Lab <B>"
+    },
+    "tags": [
+      "portland",
+      "q-a",
+      "coding"
+    ],
+    "metadata": {
+      "source": "ical",
+      "all_day": false
+    }
+  },
+  {
+    "uid": "plain-2@example.org",
+    "title": "x<y>z",
+    "body": "Intro to for kids\nAT&T sponsors x z.\nWhere: AT&T Room, 2nd floor\nSource: Test calendar (https://example.org), relayed by Crier.",
+    "kind": "event",
+    "starts_at": "2026-11-21T18:00:00.000Z",
+    "timezone": "America/Los_Angeles",
+    "location": {
+      "name": "AT&T Room, 2nd floor"
+    },
+    "tags": [
+      "portland"
+    ],
+    "metadata": {
+      "source": "ical",
+      "all_day": false
+    }
+  },
+  {
+    "uid": "plain-3@example.org",
+    "title": "Q&A with AT&T: is 5 < 10?",
+    "body": "Where: x<y>z Hall\nDetails: https://example.org/events/plain-3\nSource: Test calendar (https://example.org), relayed by Crier.",
+    "url": "https://example.org/events/plain-3",
+    "kind": "event",
+    "starts_at": "2026-11-22T18:00:00.000Z",
+    "timezone": "America/Los_Angeles",
+    "location": {
+      "name": "x<y>z Hall"
+    },
+    "tags": [
+      "portland"
+    ],
+    "metadata": {
+      "source": "ical",
+      "all_day": false
+    }
+  },
+  {
+    "uid": "plain-4@example.org",
+    "title": "Lab <B>",
+    "body": "Lab meets at the Q&A desk.\nWhere: Q&A desk, 5 < 10 m from the door\nSource: Test calendar (https://example.org), relayed by Crier.",
+    "kind": "event",
+    "starts_at": "2026-11-23T18:00:00.000Z",
+    "timezone": "America/Los_Angeles",
+    "location": {
+      "name": "Q&A desk, 5 < 10 m from the door"
+    },
+    "tags": [
+      "portland"
+    ],
+    "metadata": {
+      "source": "ical",
+      "all_day": false
+    }
+  }
+]

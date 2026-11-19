@@ -40,10 +40,13 @@ export function looksLikeAnswerDump(body: string): boolean {
   return hits / lines.length >= 0.6;
 }
 
-/** Flags for a post. Compute on the text as sent, before hidden unicode is stripped, so hidden_unicode can fire. */
-export function contentFlags(title: string, body: string): string[] {
+/**
+ * Flags for a post. Compute on the text as sent, before hidden unicode is stripped, so hidden_unicode
+ * can fire. `carried` are flags a relay found in upstream text it did not keep; they are always kept.
+ */
+export function contentFlags(title: string, body: string, carried: string[] = []): string[] {
   const text = `${title}\n${body}`;
-  const flags = new Set<string>();
+  const flags = new Set<string>(carried);
   if (INJECTION_PATTERNS.some((r) => r.test(text))) flags.add("possible_instruction");
   if (HIDDEN_UNICODE.test(text)) flags.add("hidden_unicode");
   if (BASE64_BLOB.test(text)) flags.add("encoded_blob");

@@ -69,15 +69,16 @@ function toInput(source: SourceRow, item: Item, now: Date): PostInput {
   return PostInputSchema.parse(raw);
 }
 
-function hashInput(i: PostInput): string {
+function hashInput(i: PostInput, flags: string[] | undefined): string {
   const { idempotency_key, metadata, ...rest } = i;
   void idempotency_key;
   // Metadata is provenance — source id, name, licence — and says nothing about whether the post
   // needs rewriting. The recurrence list the fold puts there is the exception: later instances can
   // change while the handful of them the body names does not. Absent, it is left out of the hashed
-  // shape entirely, so a post that never folded keeps the hash it already has.
+  // shape entirely, so a post that never folded keeps the hash it already has. Item flags likewise.
   const recurrence = metadata?.recurrence;
-  return createHash("sha256").update(JSON.stringify(recurrence ? { ...rest, recurrence } : rest)).digest("hex").slice(0, 32);
+  const shape = { ...rest, ...(recurrence ? { recurrence } : {}), ...(flags?.length ? { flags } : {}) };
+  return createHash("sha256").update(JSON.stringify(shape)).digest("hex").slice(0, 32);
 }
 
 /**
@@ -95,7 +96,7 @@ function hashInput(i: PostInput): string {
  * already has an owner — writing into an owned post would only start a fight, with each run
  * rewriting what the other wrote.
  */
-async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: PostInput, uid: string, hash: string, deadline: number): Promise<"insert" | { adopted: string } | "held"> {
+async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: PostInput, flags: string[] | undefined, uid: string, hash: string, deadline: number): Promise<"insert" | { adopted: string } | "held"> {
   const key = normalizeSourceKey(input.source_url);
   if (!key) return "insert";
   const s = sql();
@@ -110,7 +111,7 @@ async function guardLiveRows(source: SourceRow, publisher: PublisherRow, input: 
   const target = live.find((r) => !r.owned);
   if (!target) return "held";
   const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
-  await updatePost(publisher, target.id, patch, { embedDeadline: deadline });
+  await updatePost(publisher, target.id, patch, { embedDeadline: deadline, flags });
   await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${uid}, ${target.id}, ${hash})
           on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;
   return { adopted: target.id };
@@ -218,7 +219,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
       if (written() + plan.retire.length >= runLimit(source)) { for (const r of plan.retire) seen.add(r.uid); counts.skipped++; continue; }
       let input: PostInput;
       try { input = toInput(source, { ...item, uid }, now); } catch { counts.skipped++; continue; }
-      const hash = hashInput(input);
+      const hash = hashInput(input, item.flags);
       // Aliases first: a run cut short between the two still leaves every identity findable.
       if (ex) await keepRow(uid, ex.post_id, hash, plan.aliases);
       for (const other of plan.retire) if (await retireRow(other)) mergesRetired++;
@@ -230,13 +231,13 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         const row = await getPostRow(ex.post_id);
         if (row && !row.deleted_at) {
           const { idempotency_key, parent_id, ...patch } = input; void idempotency_key; void parent_id;
-          await updatePost(publisher, ex.post_id, patch, { embedDeadline: deadline });
+          await updatePost(publisher, ex.post_id, patch, { embedDeadline: deadline, flags: item.flags });
           await s`update source_items set hash = ${hash}, last_seen = now(), missing_runs = 0 where source_id = ${source.id} and uid = ${uid}`;
           counts.updated++;
           continue;
         }
       }
-      const guard = await guardLiveRows(source, publisher, input, uid, hash, deadline);
+      const guard = await guardLiveRows(source, publisher, input, item.flags, uid, hash, deadline);
       if (guard !== "insert") {
         counts.collapsed++;                          // an insert refused: what synd:collapsed counts
         if (guard === "held") continue;
@@ -245,7 +246,7 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
         continue;
       }
       // The run's deadline sits well inside the cron's maxDuration, so a retry that ends by it fits.
-      const { post, created } = await createPost(publisher, input, { embedDeadline: deadline });
+      const { post, created } = await createPost(publisher, input, { embedDeadline: deadline, flags: item.flags });
       await s`insert into source_items (source_id, uid, post_id, hash) values (${source.id}, ${uid}, ${post.id}, ${hash})
               on conflict (source_id, uid) do update set post_id = excluded.post_id, hash = excluded.hash, last_seen = now(), missing_runs = 0`;
       await keepRow(uid, post.id, hash, plan.aliases);

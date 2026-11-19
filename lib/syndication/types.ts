@@ -42,9 +42,16 @@ export type Item = {
   /**
    * Other identities this item's row may be stored under, for an item standing for several
    * upstream records (lib/syndication/aliases.ts). The runner finds a row by uid or any alias and
-   * keeps the stored uid. Only the Ticketmaster adapter sets it.
+   * keeps the stored uid. Set by the Ticketmaster adapter, and by the iCalendar adapter on an item
+   * with a link, whose alias is its raw UID.
    */
   aliases?: string[];
+  /**
+   * Content flags (lib/flags.ts) the adapter found in upstream text that the item's own text no
+   * longer shows, such as an instruction tag removed with the description's HTML. The runner adds
+   * them to the flags the post computes from its title and body.
+   */
+  flags?: string[];
 };
 
 /** The relay policy's ceiling on writes per source per run, whatever the row says. */

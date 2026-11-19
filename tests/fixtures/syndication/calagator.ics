@@ -8,42 +8,34 @@ DTSTART;TZID=America/Los_Angeles;VALUE=DATE-TIME:20261119T173000
 DTSTAMP;VALUE=DATE-TIME:20261104T035342Z
 LAST-MODIFIED;VALUE=DATE-TIME:20261104T035342Z
 UID:http://calagator.org/events/1250482784
-DESCRIPTION:Curious about AI? Already using it but hitting roadblocks? Dr
- op in for AI Office Hours - a casual\, no‑pressure way to get expert ins
- ight on your questions. For 2 hours\, I’ll be available to talk through 
- whatever’s on your mind: strategy\, tools\, implementation\, or just “wh
- ere do I even start?” Come for the whole time or pop in when you can.&#1
- 3\;\n&#13\;\n**What to Expect:**&#13\;\n&#13\;\n- Open conversation: no 
- slides\, no sales pitch.&#13\;\n- Small‑group or one‑on‑one discussions:
-  get your questions answered.&#13\;\n&#13\;\n**When &amp\; Where:**&#13\
- ;\n&#13\;\n📍 AVA Roasteria at Orenco Station ([936 Orenco Station Loop\,
-  Hillsboro\, OR\, 97124](https://maps.app.goo.gl/zPVfBjLyXQ85jHBZA))&#13
- \;\n&#13\;\n🗓 November 19\, 2026 from 5:30pm-7:30pm [Add to Calendar](ht
- tps://calendar.google.com/calendar/event?action=TEMPLATE&amp\;tmeid=N2Js
- NHVuZXBjdGNjZHNsazh0bjE5YjRvam0gY19iMWMwNzI1YjNjNjQzYjRiNWUzNWZhNTAyYjAw
- YzU5MzUwOTNiYTU5ZmI5MmUxYzdmNTg4Y2Q2ODhhODgzZGViQGc&amp\;tmsrc=c_b1c0725
- b3c643b4b5e35fa502b00c5935093ba59fb92e1c7f588cd688a883deb%40group.calend
- ar.google.com)&#13\;\n&#13\;\n💲 Free&#13\;\n&#13\;\nBring your questions
- \, leave with new insights and a clearer understanding of AI’s possibili
- ties.&#13\;\n&#13\;\n**About Leila:**&#13\;\n&#13\;\n[Leila Kaneda (she/
- her)](https://www.linkedin.com/in/leilahawana/) is an experienced machin
- e learning strategist\, researcher\, engineer\, and founder with a passi
- on for helping organizations harness AI to solve real-world problems. Sh
- e holds a masters degree in AI and has spent a decade building productio
- n-grade ML systems across a variety of different industries such as nonp
- rofits\, restaurants\, retail\, agriculture\, aerospace\, finance\, semi
- conductor\, sustainability\, and more. She has also spent more than 20 y
- ears as an educator\, including some time as an adjunct instructor at Po
- rtland State University.&#13\;\n&#13\;\nLeila is known for her ability t
- o translate complex machine learning concepts into clear\, actionable st
- rategies that empower teams and drive innovation. Beyond her technical w
- ork\, she’s an active speaker\, educator\, and community leader dedicate
- d to making cutting-edge technology accessible and impactful.\n\nTags: A
- I\, meetup\, office hours\, free\, technology\, coffee\, networking\, Ar
- tificial Intelligence\, ml\, machine learning\, cv\, computer vision\, H
- illsboro\, education\, washington county\n\nImported from: http://calaga
- tor.org/events/1250482784
-URL:https://www.kaneda-consulting.com/events/ai-office-hours-hillsboro-or
+DESCRIPTION:Curious about AI? Already using it but hitting roadblocks? Dro
+ p in for AI Office Hours - a casual\, no‑pressure way to get expert insig
+ ht on your questions. For 2 hours\, I’ll be available to talk through wha
+ tever’s on your mind: strategy\, tools\, implementation\, or just “where 
+ do I even start?” Come for the whole time or pop in when you can.&#13\;\n
+ &#13\;\n**What to Expect:**&#13\;\n&#13\;\n- Open conversation: no slides
+ \, no sales pitch.&#13\;\n- Small‑group or one‑on‑one discussions: get yo
+ ur questions answered.&#13\;\n&#13\;\n**When &amp\; Where:**&#13\;\n&#13\
+ ;\n📍 AVA Roasteria at Orenco Station ([936 Orenco Station Loop\, Hillsbor
+ o\, OR\, 97124](https://maps.app.goo.gl/zPVfBjLyXQ85jHBZA))&#13\;\n&#13\;
+ \n🗓 November 19\, 2026 from 5:30pm-7:30pm [Add to Calendar](https://calen
+ dar.google.com/calendar/event?action=TEMPLATE&amp\;tmeid=N2JsNHVuZXBjdGNj
+ ZHNsazh0bjE5YjRvam0gY19iMWMwNzI1YjNjNjQzYjRiNWUzNWZhNTAyYjAwYzU5MzUwOTNiY
+ TU5ZmI5MmUxYzdmNTg4Y2Q2ODhhODgzZGViQGc&amp\;tmsrc=c_b1c0725b3c643b4b5e35f
+ a502b00c5935093ba59fb92e1c7f588cd688a883deb%40group.calendar.google.com)&
+ #13\;\n&#13\;\n💲 Free&#13\;\n&#13\;\nBring your questions\, leave with ne
+ w insights and a clearer understanding of AI’s possibilities.&#13\;\n&#13
+ \;\n**About the Host:**&#13\;\n&#13\;\n[The Host (they/them)](https://www
+ .example.org/people/host/) is a placeholder biography that stands in for 
+ the one served\, written to keep its shape: a linked name\, a role\, and 
+ a few sentences\, with commas\, about what the host does.&#13\;\n&#13\;\n
+ The host is known for placeholder text like this\, which keeps the escape
+ s and line folding of the original without naming anyone.\n\nTags: AI\, m
+ eetup\, office hours\, free\, technology\, coffee\, networking\, Artifici
+ al Intelligence\, ml\, machine learning\, cv\, computer vision\, Hillsbor
+ o\, education\, washington county\n\nImported from: http://calagator.org/
+ events/1250482784
+URL:https://www.example-consulting.com/events/ai-office-hours-hillsboro-or
  -nov-19
 SUMMARY:Free AI Office Hours - Hillsboro\, OR
 LOCATION:AVA Roasteria (Orenco Station): 936 Orenco Station Loop\, Hillsb
@@ -81,10 +73,10 @@ DTSTART;TZID=America/Los_Angeles;VALUE=DATE-TIME:20261209T183000
 DTSTAMP;VALUE=DATE-TIME:20260507T202616Z
 LAST-MODIFIED;VALUE=DATE-TIME:20260513T002901Z
 UID:http://calagator.org/events/1250482572
-DESCRIPTION:Get up-to-date information at: https://luma.com/waifbpzl\n\nA
- ddress:\nHawthorne Asylum Food Cart Pod\nPortland\, Oregon\nUnited State
- s\n\nHosted by Erin M Miles Rasmussen\n\nImported from: http://calagator
- .org/events/1250482572
+DESCRIPTION:Get up-to-date information at: https://luma.com/waifbpzl\n\nAd
+ dress:\nHawthorne Asylum Food Cart Pod\nPortland\, Oregon\nUnited States\
+ n\nHosted by The Group Organizer\n\nImported from: http://calagator.org/e
+ vents/1250482572
 SUMMARY:Portland Drupal User Group
 LOCATION:Hawthorne Asylum Food Cart Pod: 1080 SE Madison St\, Portland OR
   97214 US
