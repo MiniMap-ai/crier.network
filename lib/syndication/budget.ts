@@ -23,6 +23,15 @@ export const WRITE_MARGIN_MS = 3_000;
  */
 export const DUE_SLACK_MINUTES = 10;
 
+/**
+ * The order the sources due in one tick run in: the shortest interval first, since a source set to
+ * run hourly is the one an hour's wait hurts, then the longest-waiting, a source never run before
+ * any that has.
+ */
+export function dueFirst(a: { run_every_minutes: number; last_run_at: Date | null }, b: { run_every_minutes: number; last_run_at: Date | null }): number {
+  return a.run_every_minutes - b.run_every_minutes || (a.last_run_at?.getTime() ?? 0) - (b.last_run_at?.getTime() ?? 0);
+}
+
 /** Epoch-ms bounds for a run that starts at `started` under a tick ending at `deadline`. */
 export function runWindow(started: number, deadline: number): { end: number; fetchUntil: number; writeUntil: number } {
   const end = Math.min(deadline, started + RUN_BUDGET_MS);

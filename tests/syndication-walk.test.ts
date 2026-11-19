@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { FetchFailure, MIN_PAGE_MS, describeFailure, nextStep, redactUrl, walkNote, walkPages } from "../lib/syndication/walk.ts";
-import { DUE_SLACK_MINUTES, MIN_FETCH_MS, RUN_BUDGET_MS, WRITE_MARGIN_MS, WRITE_RESERVE_MS, runWindow } from "../lib/syndication/budget.ts";
+import { DUE_SLACK_MINUTES, dueFirst, MIN_FETCH_MS, RUN_BUDGET_MS, WRITE_MARGIN_MS, WRITE_RESERVE_MS, runWindow } from "../lib/syndication/budget.ts";
 import { SourcePatch } from "../lib/syndication/source-schema.ts";
 
 const URL_OF = (page: number) => `https://events.luc.edu/api/2/events?days=30&pp=100&page=${page}`;
@@ -148,4 +148,16 @@ test("the due slack outlasts a tick and is shorter than the shortest interval a 
   assert.ok(DUE_SLACK_MINUTES * 60_000 > TICK_MS + RUN_BUDGET_MS);
   assert.equal(SourcePatch.safeParse({ run_every_minutes: DUE_SLACK_MINUTES }).success, false);
   assert.equal(SourcePatch.safeParse({ run_every_minutes: DUE_SLACK_MINUTES + 5 }).success, true);
+});
+
+test("due sources run shortest interval first, then longest-waiting, a source never run before any that has", () => {
+  const at = (iso: string) => new Date(iso);
+  const due = [
+    { id: "calendar-new", run_every_minutes: 360, last_run_at: null },
+    { id: "calendar-old", run_every_minutes: 360, last_run_at: at("2026-11-19T15:07:00Z") },
+    { id: "weather-b", run_every_minutes: 60, last_run_at: at("2026-11-19T20:07:14Z") },
+    { id: "weather-a", run_every_minutes: 60, last_run_at: at("2026-11-19T20:07:13Z") },
+    { id: "weather-new", run_every_minutes: 60, last_run_at: null },
+  ];
+  assert.deepEqual([...due].sort(dueFirst).map((s) => s.id), ["weather-new", "weather-a", "weather-b", "calendar-new", "calendar-old"]);
 });
