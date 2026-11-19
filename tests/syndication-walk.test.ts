@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { FetchFailure, MIN_PAGE_MS, describeFailure, nextStep, redactUrl, walkNote, walkPages } from "../lib/syndication/walk.ts";
-import { MIN_FETCH_MS, RUN_BUDGET_MS, WRITE_MARGIN_MS, WRITE_RESERVE_MS, runWindow } from "../lib/syndication/budget.ts";
+import { DUE_SLACK_MINUTES, MIN_FETCH_MS, RUN_BUDGET_MS, WRITE_MARGIN_MS, WRITE_RESERVE_MS, runWindow } from "../lib/syndication/budget.ts";
+import { SourcePatch } from "../lib/syndication/source-schema.ts";
 
 const URL_OF = (page: number) => `https://events.luc.edu/api/2/events?days=30&pp=100&page=${page}`;
 
@@ -140,4 +141,11 @@ test("a run late in its tick ends with the tick", () => {
 
 test("a run with less than the reserve left still gets the minimum fetch", () => {
   assert.equal(runWindow(0, 12_000).fetchUntil, MIN_FETCH_MS);
+});
+
+test("the due slack outlasts a tick and is shorter than the shortest interval a source may have", () => {
+  const TICK_MS = 100_000;
+  assert.ok(DUE_SLACK_MINUTES * 60_000 > TICK_MS + RUN_BUDGET_MS);
+  assert.equal(SourcePatch.safeParse({ run_every_minutes: DUE_SLACK_MINUTES }).success, false);
+  assert.equal(SourcePatch.safeParse({ run_every_minutes: DUE_SLACK_MINUTES + 5 }).success, true);
 });

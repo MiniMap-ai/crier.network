@@ -176,6 +176,13 @@ because `dueSources` takes the longest-waiting first. The tick's 100 s leaves
 the route's 300 s for the last run's in-flight write and sweep, which the
 window does not cut off.
 
+A source is due 10 minutes before its `run_every_minutes` has passed
+(`DUE_SLACK_MINUTES`). `last_run_at` is stamped when a run ends, which is up to
+a tick's length after the tick began. Without the slack, a source set to 60
+minutes that finished at :07:20 is not yet 60 minutes old when the next tick
+starts at :07:10, and runs every second hour. The slack is longer than a tick
+and shorter than the shortest interval a source may have (15 minutes).
+
 The bound is on the run, not on a request. Until CRI-51 the adapter call had a
 fixed 25 s deadline and an abort threw away every page already read: the
 Localist sources failed one run in four to eight at 25,079–25,096 ms with

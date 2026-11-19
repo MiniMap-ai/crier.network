@@ -15,7 +15,7 @@ import { RowIndex, cancelTargets, planItem, sameAliases } from "./aliases";
 import type { StoredRow } from "./aliases";
 import { collapseInstances } from "./collapse";
 import { Fetched, Item, SourceRow, asFetched, runLimit } from "./types";
-import { runWindow } from "./budget";
+import { DUE_SLACK_MINUTES, runWindow } from "./budget";
 import { redactUrl } from "./walk";
 
 const SYNDICATION_NAME = "Crier Syndication";
@@ -36,10 +36,11 @@ export async function syndicationPublisher(): Promise<PublisherRow | null> {
   return row ?? null;
 }
 
+/** Enabled, licensed sources whose interval, less `DUE_SLACK_MINUTES`, has passed since their last run ended; longest-waiting first. */
 export async function dueSources(limit = 10): Promise<SourceRow[]> {
   return sql()<SourceRow[]>`
     select * from sources where enabled and license <> ''
-       and (last_run_at is null or last_run_at < now() - make_interval(mins => run_every_minutes))
+       and (last_run_at is null or last_run_at < now() - make_interval(mins => run_every_minutes - ${DUE_SLACK_MINUTES}))
      order by last_run_at nulls first limit ${limit}`;
 }
 
