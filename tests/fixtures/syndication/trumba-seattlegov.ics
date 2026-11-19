@@ -1,0 +1,66 @@
+BEGIN:VCALENDAR
+PRODID:-//Trumba Corporation//Trumba Calendar Services 0.11.26318//EN
+VERSION:2.0
+X-WR-TIMEZONE:America/Los_Angeles
+BEGIN:VEVENT
+SUMMARY:Design Commission Meeting
+LOCATION:In person - City Hall - 600 &#8211\; 4th Avenue\, Room L-280<br
+ >MS Teams Online - See meeting access instructions below
+DTSTART;TZID=America/Los_Angeles:20261119T120000
+DTEND;TZID=America/Los_Angeles:20261119T170000
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+DTSTAMP:20261117T091109Z
+DESCRIPTION:Event Types: Boards & Commissions<br>Neighborhoods: Citywide<br
+ >Audience: Adults<br><br><strong><strong>Nov 19\, 2026</strong></strong><b
+ r><strong><strong>Seattle City Hall&#160\;&#160\;&#160\;&#160\;</strong></
+ strong>
+CATEGORIES:Boards &amp; Commissions
+UID:http://uid.trumba.com/event/177478325
+X-TRUMBA-LINK:https://www.seattle.gov/event-calendar?trumbaEmbed=view%3D
+ event%26eventid%3D177478325
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Visions of Worldbuilding: Creative Rituals for Grief &amp\; Reme
+ mbrance
+LOCATION:ARTS at King Street Station<br>303 South Jackson Street\, Top F
+ loor<br>Seattle\, WA 98104
+DTSTART;TZID=America/Los_Angeles:20261121T130000
+DTEND;TZID=America/Los_Angeles:20261121T150000
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+DTSTAMP:20261117T141611Z
+DESCRIPTION:Event Types: Arts\,Community\,Museum/Gallery\,Special Events<br
+ >Neighborhoods: Citywide\,Pioneer Square<br>Audience: All<br>Pre-Register:
+  No<br>Cost: Free<br><br><strong><strong>Join ARTS at King Street Station 
+ for a grief workshop hosted by A Resting Place where you are invited to pa
+ rticipate in healing arts activities\, as part of the Visions of Worldbuil
+ ding exhibition.</strong></strong><br><br>Grief takes many shapes. It live
+ s in our bodies\, our memories\, our relationships &amp\; the ways we move
+  through the world.
+CATEGORIES:Arts and Culture
+UID:http://uid.trumba.com/event/211497880
+X-TRUMBA-LINK:https://www.seattle.gov/event-calendar?trumbaEmbed=view%3D
+ event%26eventid%3D211497880
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Parks &amp\; City Light Committee
+LOCATION:Council Chambers<br>600 4th Ave.\, Floor 2<br>Seattle\, WA 9810
+ 4
+DTSTART;TZID=America/Los_Angeles:20261202T140000
+DTEND;TZID=America/Los_Angeles:20261202T140000
+X-MICROSOFT-CDO-ALLDAYEVENT:FALSE
+URL:https://seattle.gov/council/meetings/committees-and-agendas/parks-an
+ d-city-light
+DTSTAMP:20260113T135905Z
+DESCRIPTION:Venue Location: <a href="http://www.seattle.gov/council/visitin
+ g_city_hall.htm" target="_blank">City Hall\, Council Chambers</a><br>City 
+ Council Meeting Type: Parks and City Light Committee<br>Event Types: City 
+ Council Meeting<br>Agendas: <a href="https://seattle.legistar.com/Departme
+ ntDetail.aspx?ID=55481&amp\;GUID=B3B3B044-8742-42EA-BBBC-1DDA8513F5CC&amp\
+ ;Search=" target="_blank">Agendas</a><br>Neighborhoods: Downtown Commercia
+ l Core
+CATEGORIES:Seattle City Council
+UID:http://uid.trumba.com/event/195091479
+X-TRUMBA-LINK:https://www.seattle.gov/event-calendar?trumbaEmbed=view%3D
+ event%26eventid%3D195091479
+END:VEVENT
+END:VCALENDAR

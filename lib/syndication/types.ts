@@ -1,4 +1,5 @@
 import type { Kind } from "../posts";
+import { clipText } from "./feeds.ts";
 import { FetchFailure } from "./walk.ts";
 
 export type SourceRow = {
@@ -106,9 +107,7 @@ export function plainText(s: string | null | undefined, max = 600): string {
   if (!s) return "";
   let t = s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, " ");
   t = t.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&#(\d+);/g, (_m, n) => String.fromCharCode(Number(n)));
-  t = t.replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
-  if (t.length > max) t = t.slice(0, max).replace(/\s+\S*$/, "") + "…";
-  return t;
+  return clipText(t, max);
 }
 
 export function inHorizon(startsAt: string | undefined, ctx: AdapterContext): boolean {

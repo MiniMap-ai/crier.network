@@ -1,5 +1,6 @@
 import { RECURRENCE_CAP } from "./collapse.ts";
-import { icalDate, icalText, parseFeed, parseICal } from "./feeds.ts";
+import { clipText, decodeEntities, eventUrl, eventUrlTemplateProblem, htmlToText, icalDate, icalText, parseFeed, parseICal } from "./feeds.ts";
+import type { VEvent } from "./feeds.ts";
 import { ticketmasterItems } from "./ticketmaster.ts";
 import { fetchJson, fetchText, inHorizon, plainText, runLimit } from "./types.ts";
 import { walkNote, walkPages } from "./walk.ts";
@@ -45,10 +46,27 @@ export const ticketmaster: Adapter = async (source, ctx) => {
 };
 
 /* ---------------- iCalendar ----------------
-   config: { url, timezone? (default zone for floating times), location_name?, lat?, lng? } */
+   config: { url, timezone? (default zone for floating times), location_name?, lat?, lng?, event_url_template? } */
+
+/**
+ * The event's page: its `URL`, else Trumba's `X-TRUMBA-LINK` when that is an http(s) URL, else the
+ * source's `event_url_template` filled with the UID, else none.
+ */
+export function icalLink(ev: VEvent, uid: string, template: string | undefined): string | undefined {
+  const url = ev.URL?.[0]?.value?.trim();
+  if (url) return url;
+  const trumba = ev["X-TRUMBA-LINK"]?.[0]?.value?.trim();
+  if (trumba && /^https?:\/\//i.test(trumba)) return trumba;
+  return template ? eventUrl(template, uid) : undefined;
+}
+
 export const ical: Adapter = async (source, ctx) => {
   const url = str(source.config.url);
   if (!url) throw new Error("config.url is required");
+  // Rows the daily brief inserts directly never meet the admin route's schema, so check here too.
+  const template = source.config.event_url_template;
+  const problem = template === undefined ? undefined : eventUrlTemplateProblem(template);
+  if (problem) throw new Error(`config.event_url_template ${problem}`);
   const text = await fetchText(url, ctx);
   const zone = str(source.config.timezone) || /X-WR-TIMEZONE:([^\r\n]+)/.exec(text)?.[1]?.trim();
   const items: Item[] = [];
@@ -58,11 +76,11 @@ export const ical: Adapter = async (source, ctx) => {
     const st = icalDate(ev.DTSTART?.[0], zone); if (!st) continue;
     const en = icalDate(ev.DTEND?.[0], zone);
     if (ev.STATUS?.[0]?.value?.toUpperCase() === "CANCELLED") { items.push({ uid, title: "cancelled", body: "cancelled", cancelled: true }); continue; }
-    const summary = icalText(ev.SUMMARY?.[0]?.value).trim(); if (!summary) continue;
-    const desc = plainText(icalText(ev.DESCRIPTION?.[0]?.value), 500);
-    const loc = icalText(ev.LOCATION?.[0]?.value).trim();
+    const summary = htmlToText(icalText(ev.SUMMARY?.[0]?.value), " "); if (!summary) continue;
+    const desc = clipText(htmlToText(icalText(ev.DESCRIPTION?.[0]?.value)), 500);
+    const loc = htmlToText(icalText(ev.LOCATION?.[0]?.value), ", ");
     const geo = ev.GEO?.[0]?.value?.split(";").map(Number);
-    const link = ev.URL?.[0]?.value?.trim();
+    const link = icalLink(ev, uid, template as string | undefined);
     items.push({
       uid,
       title: summary.slice(0, 200),
@@ -73,7 +91,7 @@ export const ical: Adapter = async (source, ctx) => {
       ends_at: en?.iso,
       timezone: zone || undefined,
       location: { name: loc || str(source.config.location_name) || undefined, lat: geo && geo.length === 2 && Number.isFinite(geo[0]) ? geo[0] : num(source.config.lat), lng: geo && geo.length === 2 && Number.isFinite(geo[1]) ? geo[1] : num(source.config.lng) },
-      tags: [...source.tags, ...(ev.CATEGORIES?.flatMap((c) => c.value.split(",")) ?? [])].map((t) => t.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")).filter((t) => t.length >= 2 && t.length <= 40),
+      tags: [...source.tags, ...(ev.CATEGORIES?.flatMap((c) => decodeEntities(c.value).split(",")) ?? [])].map((t) => t.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")).filter((t) => t.length >= 2 && t.length <= 40),
       metadata: { source: "ical", all_day: st.allDay },
     });
   }
@@ -420,7 +438,7 @@ export const ADAPTERS: Record<SourceRow["adapter"], Adapter> = { ticketmaster, i
 export function describeAdapter(a: SourceRow["adapter"]): string {
   return {
     ticketmaster: "Ticketmaster Discovery API: concerts, sports, theatre near a point. Needs TICKETMASTER_API_KEY. config: {lat, lng, radius_km, city, segment?}",
-    ical: "Any public iCalendar feed (LibCal, Google Calendar public ICS, venue calendars). config: {url, timezone?, location_name?, lat?, lng?}",
+    ical: "Any public iCalendar feed (LibCal, Google Calendar public ICS, Trumba, Communico, venue calendars). Each event links to its URL, else Trumba's X-TRUMBA-LINK, else event_url_template (an https URL containing {uid}, filled with the event's UID). config: {url, timezone?, location_name?, lat?, lng?, event_url_template?}",
     rss: "Any RSS or Atom feed of notices. Items are announcements with a TTL. config: {url, ttl_days?, location_name?, lat?, lng?}",
     localist: "Localist-powered calendars (most university event sites). Placeholder venues (\"Sign in to download the location\", \"TBD\") are dropped. config: {base, location_name?, lat?, lng?} — the name and point to fall back on for the events upstream gives no coordinates for; not applied to online events.",
     nws: "National Weather Service active alerts for a state, public domain. config: {area, min_severity?}",

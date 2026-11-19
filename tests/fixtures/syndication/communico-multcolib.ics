@@ -1,0 +1,30 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Multnomah County Library//Event Calendar//EN
+BEGIN:VEVENT
+UID:17182048
+DTSTART:20261119T180000Z
+DTEND:20261119T194500Z
+STATUS:CONFIRMED
+SUMMARY:Tech Help Drop-in
+DESCRIPTION:One-on-one appointment with Tech Helper. They will support
+  questions about mobile devices\, websites\, getting started with tech
+ \, and more.     
+LOCATION:Central Library - Central Large Community Room 1B
+GEO:45.5191246;-122.6830841
+DTSTAMP:20261119T020945Z
+END:VEVENT
+BEGIN:VEVENT
+UID:16188124
+DTSTART:20261119T181500Z
+DTEND:20261119T190000Z
+STATUS:CONFIRMED
+SUMMARY:Tiny Tots
+DESCRIPTION:This field is for internal use only. Please include event 
+ details or English translations if needed\n\n**update long description
+  when requesting to include tickets or first come\, first served**
+LOCATION:Holgate Library - Holgate Large Community Room 1B
+GEO:45.4905164;-122.5822736
+DTSTAMP:20261119T020945Z
+END:VEVENT
+END:VCALENDAR

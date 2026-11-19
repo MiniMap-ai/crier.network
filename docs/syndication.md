@@ -34,7 +34,7 @@ it up.
 | adapter | what | config |
 |---|---|---|
 | `ticketmaster` | Discovery API: concerts, sports, theatre around a point. Needs `TICKETMASTER_API_KEY`. Terms require attribution and a link, which every post carries. | `{lat, lng, radius_km, city, segment?}` |
-| `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, venue calendars. Recurring series are not expanded. | `{url, timezone?, location_name?, lat?, lng?}` |
+| `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, Trumba, Communico, venue calendars. Recurring series (`RRULE`) are not expanded. | `{url, timezone?, location_name?, lat?, lng?, event_url_template?}` |
 | `rss` | Any RSS/Atom feed of notices. Items become announcements with a TTL. | `{url, ttl_days?, location_name?, lat?, lng?}` |
 | `localist` | Localist calendars (most universities). Public JSON API, paged, at most 500 rows a run. Placeholder venues are dropped, not published; one event published twice is relayed once. | `{base, location_name?, lat?, lng?}` |
 | `nws` | National Weather Service active alerts for a state (public domain). One post per CAP segment, titled and placed by its area. Zone alerts get a centroid from the zone geometry. | `{area, min_severity?}` |
@@ -53,6 +53,44 @@ with no name, and 2 named a place only in `address` or `geo.street`.
 
 Where upstream gives no coordinates, `localist` falls back to `config.lat`/`config.lng` as `ical`
 and `rss` do, except on online events.
+
+### What the ical adapter reads
+
+One item per `VEVENT` with a `UID`, a parseable `DTSTART` and a non-empty `SUMMARY`, inside the
+horizon. A `VEVENT` with an `RRULE` is skipped, and `STATUS:CANCELLED` retires the item's post.
+`config.timezone`, else the feed's `X-WR-TIMEZONE`, places floating times; `GEO`, else
+`config.lat`/`config.lng`, places the event; `LOCATION`, else `config.location_name`, names it.
+
+**The link.** An event links to its `URL`; else to Trumba's `X-TRUMBA-LINK` when that is an http(s)
+URL; else, when the source sets `event_url_template`, to that template with every `{uid}` replaced
+by the event's `UID`, percent-encoded. The template must be an https URL of at most 500 characters
+with `{uid}` outside the host: the admin routes refuse any other, and the adapter fails the run on
+one that reached the row another way. The link is the post's `url` and `source_url`, so it is what
+the fold and the live-row guard key on (below), and the body's "Details:" line.
+
+Communico library calendars (`<library>.libnet.info/feeds?data=…`) carry no `URL`. Their `UID` is
+the numeric event id, and the event page is `/event/<UID>` on the feed's host: on Multnomah County
+Library's feed of 2026-11-19 all 500 UIDs were numeric and `/event/17182048` served that event's
+page, while an unknown id redirects to `/404`. Such a source sets
+`"event_url_template": "https://multcolib.libnet.info/event/{uid}"`.
+
+**The text.** Trumba writes titles, places and descriptions as HTML inside iCalendar text:
+`Play &amp\; Learn`, `biling&#252\;e`, `Council Chambers<br>600 4th Ave`. The adapter undoes the
+iCalendar escapes, then reads the HTML as plain text: tags are removed, character references are
+decoded once (numeric ones, and the HTML 4 Latin-1 and punctuation names; any other name is left as
+written), and whatever the decoding made tag-shaped is removed too. So `&lt;script&gt;` yields no
+markup and `&amp;lt;` stays the text `&lt;`. Pieces between `<br>` or `</p>` become lines in the
+description, are joined with ", " in the place, and with a space in the title. `CATEGORIES` are
+decoded before they become tags. The rest of the pipeline treats the result as third-party text
+like any post: flags are computed and hidden Unicode stripped on write, and pages render it as text.
+
+**Repeats.** Trumba and Communico give every instance of a recurring event its own `UID` and its
+own link, and no `RRULE` or series id; the fold below keys on the link, so their instances stay
+one post each. On the feeds of 2026-11-19, over the next 30 days: Seattle Public Library 194
+events under 82 titles ("Family Story Time" 19, at a dozen branches); Multnomah County Library 500
+events under 153 titles ("Tech Help Drop-in" 65); the City of Seattle 282 events, which fold to
+228 items only through the organisers' `URL`s some instances share ("Open Adoption Hours", 27
+instances under one URL). Every run writes at most `max_per_run` of them, nearest first.
 
 ## Runner
 
