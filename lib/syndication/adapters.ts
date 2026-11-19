@@ -79,11 +79,11 @@ export const ical: Adapter = async (source, ctx) => {
     if (ev.STATUS?.[0]?.value?.toUpperCase() === "CANCELLED") { items.push({ uid, title: "cancelled", body: "cancelled", url: link, aliases, cancelled: true }); continue; }
     const summary = dropControls(decodeEntities(icalText(ev.SUMMARY?.[0]?.value))).trim(); if (!summary) continue;
     const html = icalText(ev.DESCRIPTION?.[0]?.value);
-    const desc = clipText(dropControls(htmlToText(html)), 500);
+    const desc = clipText(htmlToText(html, (t) => stripHiddenUnicode(dropControls(t))), 500);
     const loc = dropControls(placeText(icalText(ev.LOCATION?.[0]?.value)));
     const geo = ev.GEO?.[0]?.value?.split(";").map(Number);
-    // Stripping tags from the description also strips an instruction tag the post's flags look for.
-    const flags = contentFlags(summary, decodeEntities(html)).filter((f) => f === "possible_instruction");
+    // The description's own text no longer shows an instruction tag or a hidden character it came with.
+    const flags = contentFlags(summary, dropControls(decodeEntities(html))).filter((f) => f === "possible_instruction" || f === "hidden_unicode");
     items.push({
       uid,
       title: summary.slice(0, 200),

@@ -5,8 +5,8 @@
 export type VEvent = Record<string, { value: string; params: Record<string, string> }[]>;
 
 export function parseICal(text: string): VEvent[] {
-  // Trumba folds with "\r\r\n ", so every run of CRs before a LF is one line end.
-  const lines = text.replace(/\r+\n/g, "\n").replace(/\n[ \t]/g, "").split("\n");   // unfold
+  // Trumba folds with "\r\r\n ", so every CR goes: a line ends at its LF alone.
+  const lines = text.replace(/\r/g, "").replace(/\n[ \t]/g, "").split("\n");   // unfold
   const events: VEvent[] = [];
   let cur: VEvent | null = null;
   for (const raw of lines) {
@@ -95,16 +95,16 @@ function stripTags(s: string): string {
 }
 
 /**
- * Upstream HTML as plain text, for a description: tags out, references decoded once, then tags
- * removed again until none is left, so neither `&lt;script&gt;` nor `&lt;scr&lt;b&gt;ipt&gt;` leaves
- * a tag. A `<` that opens no tag ("<3", "a < b", an unclosed `<script`) is kept as text. The pieces
- * between `<br>` and `</p>` are trimmed and joined with "\n", empty ones dropped.
+ * Upstream HTML as plain text, for a description: `<br>` and `</p>` made line breaks, tags out,
+ * references decoded once, `scrub` applied, then tags removed again until none is left, so neither
+ * `&lt;script&gt;` nor `&lt;scr&lt;b&gt;ipt&gt;` leaves a tag, on one line or across two. `scrub`
+ * removes the characters a later step would remove, so none of them can hold a tag apart until
+ * then; by default the control characters. A `<` that opens no tag ("<3", "a < b", an unclosed
+ * `<script`) is kept as text. Lines are trimmed and empty ones dropped.
  */
-export function htmlToText(s: string): string {
-  return s.split(new RegExp(`${BR.source}|<\\/p\\s*>`, "i"))
-    .map((piece) => stripTags(decodeEntities(stripTags(piece))).trim())
-    .filter(Boolean)
-    .join("\n");
+export function htmlToText(s: string, scrub: (t: string) => string = dropControls): string {
+  const lines = s.replace(new RegExp(`${BR.source}|<\\/p\\s*>`, "gi"), "\n");
+  return stripTags(scrub(decodeEntities(stripTags(lines)))).split("\n").map((line) => line.trim()).filter(Boolean).join("\n");
 }
 
 /**
@@ -123,7 +123,7 @@ export function dropControls(s: string): string {
 
 /** Runs of spaces and tabs made one, line breaks kept single, then cut at `max` on a word boundary with "…". */
 export function clipText(s: string, max: number): string {
-  let t = s.replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
+  let t = s.replace(/[ \t]+/g, " ").split("\n").map((line) => line.trim()).filter(Boolean).join("\n");
   if (t.length > max) t = t.slice(0, max).replace(/\s+\S*$/, "") + "…";
   return t;
 }
@@ -158,12 +158,13 @@ export function eventUrl(template: string, uid: string): string | undefined {
 }
 
 /**
- * The value, trimmed, when it is a link a reader may follow: an absolute http or https URL with no
- * username or password and no whitespace or control character inside. Otherwise undefined.
+ * The value, trimmed, when it is a link a reader may follow and reads as the place it leads: it
+ * starts `http://` or `https://`, parses, and has no username or password, no backslash, and no
+ * whitespace, control, format or other invisible character inside. Otherwise undefined.
  */
 export function httpLink(v: string | undefined): string | undefined {
   const s = v?.trim();
-  if (!s || /[\s\p{Cc}]/u.test(s)) return undefined;
+  if (!s || !/^https?:\/\/[^\\\s\p{C}]+$/iu.test(s)) return undefined;
   let u: URL;
   try { u = new URL(s); } catch { return undefined; }
   if (u.protocol !== "http:" && u.protocol !== "https:") return undefined;

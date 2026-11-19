@@ -22,8 +22,8 @@
   {
     "uid": "http://calagator.org/events/1250482791",
     "title": "November 2026 Portland Linux Kernel Meetup",
-    "body": "The Portland Linux Kernel Meetup for November 2026 will be at...\n* Date: Thursday, November 19, 2026\n* Time: 06:00 PM to 09:00 PM US/Pacific\n* Location: Lucky Labrador Beer Hall, 1945 NW Quimby St, Portland, Oregon 97209 US\nCome enjoy a beverage and chat with other people who are interested in the\nLinux kernel. All experience levels are welcome. This is a friendly and casual\nmeetup. Look for a table with a plush Tux penguin.\nTo get timely reminders of Portland Linux Kernel Meetups, see…\nWhere: Lucky Labrador Beer Hall, 1945 NW Quimby St, Portland, Oregon 97209 US: false\nDetails: https://ikluft.github.io/pdx-lkmu/\nSource: Test calendar (https://example.org), relayed by Crier.",
-    "url": "https://ikluft.github.io/pdx-lkmu/",
+    "body": "The Portland Linux Kernel Meetup for November 2026 will be at...\n* Date: Thursday, November 19, 2026\n* Time: 06:00 PM to 09:00 PM US/Pacific\n* Location: Lucky Labrador Beer Hall, 1945 NW Quimby St, Portland, Oregon 97209 US\nCome enjoy a beverage and chat with other people who are interested in the\nLinux kernel. All experience levels are welcome. This is a friendly and casual\nmeetup. Look for a table with a plush Tux penguin.\nTo get timely reminders of Portland Linux Kernel Meetups, see…\nWhere: Lucky Labrador Beer Hall, 1945 NW Quimby St, Portland, Oregon 97209 US: false\nDetails: https://lkmu.example.org/pdx-lkmu/\nSource: Test calendar (https://example.org), relayed by Crier.",
+    "url": "https://lkmu.example.org/pdx-lkmu/",
     "kind": "event",
     "starts_at": "2026-11-20T02:00:00.000Z",
     "ends_at": "2026-11-20T05:00:00.000Z",

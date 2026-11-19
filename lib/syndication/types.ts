@@ -112,7 +112,9 @@ export function fetchJson<T>(url: string, ctx: AdapterContext, headers: Record<s
 /** Strip HTML, decode common entities, collapse whitespace, truncate on a word boundary. */
 export function plainText(s: string | null | undefined, max = 600): string {
   if (!s) return "";
-  let t = s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, " ");
+  // No tag ends past the last ">", and the tag pattern is quadratic on a run of "<" with none after it.
+  const tagsEnd = s.lastIndexOf(">") + 1;
+  let t = s.slice(0, tagsEnd).replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, " ") + s.slice(tagsEnd);
   t = t.replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&#(\d+);/g, (_m, n) => String.fromCharCode(Number(n)));
   return clipText(t, max);
 }
