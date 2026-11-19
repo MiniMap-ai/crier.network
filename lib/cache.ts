@@ -69,7 +69,7 @@ export function cachedRelated(id: string): Promise<PublicPost[]> {
 
 /** The homepage's default listing. Filtered searches are not cached: they are not what a crawler asks for. */
 export const cachedHomeListing = unstable_cache(
-  async (): Promise<PublicPost[]> => (await search({ limit: 30 }, { track: false })).posts,
+  async (): Promise<PublicPost[]> => (await search({ limit: 30 }, { retrievals: false })).posts,
   ["home-listing"],
   { revalidate: PAGE_REVALIDATE, tags: [POSTS_TAG] },
 );
@@ -77,7 +77,7 @@ export const cachedHomeListing = unstable_cache(
 export function cachedPublisherPosts(id: string): Promise<PublicPost[]> {
   return unstable_cache(
     // The page reads the publisher first; this is what is left of the route's budget after that.
-    async (i: string) => (await search({ publisher: i, limit: 50, include_replies: "true" }, { track: false, at: budget(DB_TIMEOUT_MS - DB_SIDE_TIMEOUT_MS) })).posts,
+    async (i: string) => (await search({ publisher: i, limit: 50, include_replies: "true" }, { retrievals: false, at: budget(DB_TIMEOUT_MS - DB_SIDE_TIMEOUT_MS) })).posts,
     ["publisher-posts", id],
     { revalidate: PAGE_REVALIDATE, tags: [POSTS_TAG] },
   )(id);

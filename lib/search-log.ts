@@ -67,8 +67,8 @@ export function roundNear(near: string | undefined): string | null {
 }
 
 /**
- * The tuple a search is logged as. A query with no text, kind, tags or place is a bare listing —
- * "show me the newest" — and is a shape like any other, stored with nulls throughout.
+ * The tuple a search is logged as. A listing (no text, kind, tags or place; `searchCounting` in
+ * lib/user-agent.ts) is not a search and is never recorded.
  */
 export function searchShape(q: QueryFields, source: SearchSource): SearchShape {
   return {
@@ -184,6 +184,8 @@ function bump(m: Map<string, { n: number; zero: number }>, key: string, n: numbe
 
 /**
  * Aggregate the rows of one window (the caller decides which rows are in it) into the public block.
+ * A row with no text, kind, tags or place is a listing, not a search (docs/metrics.md, "Numbers that
+ * straddle the change"), so it is left out of every total.
  *
  * A public shape is (q, kind, near), so several rows can land on one shape: the log splits a shape
  * further by tags, radius and source, and the same shape recurs on later days. `days` and the poller
@@ -199,6 +201,7 @@ export function foldDemand(rows: DemandRow[], limit = TOP): DemandWindow {
   let searches = 0, zero = 0;
 
   for (const r of rows) {
+    if (!r.q && !r.kind && !r.tags && !r.near) continue;
     searches += r.n;
     zero += r.zero;
     const key = JSON.stringify([r.q, r.kind, r.near]);

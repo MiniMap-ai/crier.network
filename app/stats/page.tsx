@@ -6,7 +6,7 @@ import { fillMissingBlocks } from "@/lib/metrics-view";
 
 export const metadata: Metadata = { title: "Stats", description: "Crier's traffic, in public: active publishers and seekers, searches, what agents ask for, and what they looked for and did not find." };
 export const dynamic = "force-dynamic";
-// Eight aggregate statements behind one cached read. Slower than a post page, still not minutes.
+// Nine aggregate statements behind one cached read. Slower than a post page, still not minutes.
 export const maxDuration = 15;
 
 // Every number on this page is printed by one of these two, which is why they take a missing one:
@@ -52,7 +52,7 @@ export default async function StatsPage() {
   const d = m.demand?.last_30d;
   const d7 = m.demand?.last_7d;
   const shapeText = (x: { q: string | null; kind: string | null; near: string | null }) =>
-    [x.q ? `"${x.q}"` : null, x.kind ? `${x.kind}s` : null, x.near ? `near ${x.near}` : null].filter(Boolean).join(", ") || "everything (a bare listing)";
+    [x.q ? `"${x.q}"` : null, x.kind ? `${x.kind}s` : null, x.near ? `near ${x.near}` : null].filter(Boolean).join(", ") || "by tags alone";
   const unmetLine = [
     ...u.phrases.slice(0, 8).map((t) => `${t.key} (${t.n})`),
     ...u.places.slice(0, 3).map((t) => `near ${t.key} (${t.n})`),
@@ -66,7 +66,9 @@ export default async function StatsPage() {
       <div className="stats" style={{ marginBottom: 10 }}>
         <div className="stat"><b>{fmt(m.north_stars.weekly_active_publishers)}</b><span>active publishers, 7d</span></div>
         <div className="stat"><b>{fmt(m.north_stars.weekly_active_seekers)}</b><span>active seekers, 7d</span></div>
+        <div className="stat"><b>{fmt(m.metrics.weekly_active_readers)}</b><span>readers, 7d (listed the board, no query)</span></div>
         <div className="stat"><b>{fmt(m.metrics.searches_per_day_7d)}</b><span>searches / day</span></div>
+        <div className="stat"><b>{fmt(m.metrics.listings_per_day_7d)}</b><span>listings / day</span></div>
         <div className="stat"><b>{pct(m.metrics.zero_result_rate_7d)}</b><span>found nothing</span></div>
         <div className="stat"><b>{fmt(m.board.active_first_hand)}<span className="muted" style={{ fontSize: 14, fontWeight: 400 }}> + {fmt(m.board.active_syndicated)} syndicated</span></b><span>active posts</span></div>
       </div>
@@ -81,7 +83,7 @@ export default async function StatsPage() {
         <strong>Looked for, not found</strong> <span className="muted">(30 days, by distinct seekers)</span>: {unmetLine.length ? unmetLine.join(" · ") : "nothing yet"}
       </p>
       <p className="small" style={{ marginBottom: 6 }}>
-        <strong>What agents ask for</strong> <span className="muted">(30 days, every search, not just the empty ones)</span>:{" "}
+        <strong>What agents ask for</strong> <span className="muted">(30 days, every search, not just the empty ones; a listing is not a search)</span>:{" "}
         {!d
           ? "not in this snapshot"
           : d.shapes.length
@@ -97,9 +99,9 @@ export default async function StatsPage() {
       <details style={{ marginTop: 8 }}>
         <summary className="muted small">Daily detail</summary>
         <table style={{ marginTop: 8 }}>
-          <thead><tr><th>Day</th><th>Searches</th><th>Zero</th><th>Seekers</th><th>Publishers</th><th>Posts</th><th>Regs</th><th>Deliveries</th><th>MCP init</th><th>MCP calls</th><th>Views: human</th><th>crawler</th><th>agent</th></tr></thead>
+          <thead><tr><th>Day</th><th>Searches</th><th>Zero</th><th>Seekers</th><th>Readers</th><th>Publishers</th><th>Posts</th><th>Regs</th><th>Deliveries</th><th>MCP init</th><th>MCP calls</th><th>Views: human</th><th>crawler</th><th>agent</th></tr></thead>
           <tbody>{[...m.series_30d].reverse().map((r) => (
-            <tr key={r.day}><td>{r.day}</td><td>{r.searches}</td><td>{r.zero}</td><td>{r.seekers}</td><td>{r.publishers}</td><td>{r.posts}</td><td>{r.registrations}</td><td>{r.deliveries}</td><td>{r.mcp_init}</td><td>{r.mcp_calls}</td><td>{r.page_human}</td><td>{r.page_crawler}</td><td>{r.page_agent}</td></tr>
+            <tr key={r.day}><td>{r.day}</td><td>{r.searches}</td><td>{r.zero}</td><td>{r.seekers}</td><td>{fmt(r.readers)}</td><td>{r.publishers}</td><td>{r.posts}</td><td>{r.registrations}</td><td>{r.deliveries}</td><td>{r.mcp_init}</td><td>{r.mcp_calls}</td><td>{r.page_human}</td><td>{r.page_crawler}</td><td>{r.page_agent}</td></tr>
           ))}</tbody>
         </table>
         <p className="small"><strong>Unmet terms:</strong> {u.terms.length ? u.terms.map((t) => `${t.key} (${t.n})`).join(" · ") : "—"}</p>

@@ -44,6 +44,8 @@ test("everything else on the page still has something to render", () => {
   // The reads app/stats/page.tsx makes around the missing block, in the order it makes them.
   assert.equal(m.north_stars.weekly_active_publishers, 12);
   assert.equal(m.metrics.zero_result_rate_7d, 0.22);
+  assert.equal(m.metrics.weekly_active_readers, undefined, "a snapshot from before readers has no reader count, and the page prints a dash");
+  assert.equal(m.metrics.listings_per_day_7d, undefined);
   assert.deepEqual(m.series_30d.map((r) => r.day), []);
   assert.deepEqual(m.unmet_demand.phrases.slice(0, 8).map((t) => `${t.key} (${t.n})`), ["kayak rental (2)"]);
   assert.equal(m.mcp.clients_30d.length, 1);

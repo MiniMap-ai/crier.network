@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { classifyUserAgent, searchCounting } from "../lib/user-agent.ts";
+import type { CountedQuery } from "../lib/user-agent.ts";
 
 const CRAWLERS = {
   googlebot: "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
@@ -68,27 +69,71 @@ const SEEKERS = {
   browser: "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
 };
 
+const TEXT = { q: "live music" };
+const counted = (ua: string | null, keyed: boolean, query: CountedQuery = TEXT) => searchCounting({ ua, keyed, query });
+
 test("a keyless search from a named index, SEO, AI or link-preview crawler is counted as a crawler", () => {
-  for (const [name, ua] of Object.entries(CRAWLERS)) assert.equal(searchCounting(ua, false), "crawler", name);
+  for (const [name, ua] of Object.entries(CRAWLERS)) assert.equal(counted(ua, false), "crawler", name);
 });
 
-test("a keyless search from a publisher's agent, a script, an assistant fetching for a person or a feed reader is a seeker", () => {
-  for (const [name, ua] of Object.entries(SEEKERS)) assert.equal(searchCounting(ua, false), "seeker", name);
+test("a keyless listing from a crawler is a crawler too, not a reader", () => {
+  for (const [name, ua] of Object.entries(CRAWLERS)) assert.equal(counted(ua, false, {}), "crawler", name);
+});
+
+test("a keyless search from a publisher's agent, a script, an assistant fetching for a person or a feed reader is a search", () => {
+  for (const [name, ua] of Object.entries(SEEKERS)) assert.equal(counted(ua, false), "search", name);
 });
 
 test("a crawler's name inside an agent's own name does not make it a crawler", () => {
-  assert.equal(searchCounting("PineappleBot/1.0", false), "seeker");
-  assert.equal(searchCounting("RoboDotBot/2", false), "seeker");
+  assert.equal(counted("PineappleBot/1.0", false), "search");
+  assert.equal(counted("RoboDotBot/2", false), "search");
 });
 
-test("a search with no User-Agent, or an empty one, is a seeker", () => {
-  assert.equal(searchCounting(null, false), "seeker");
-  assert.equal(searchCounting("", false), "seeker");
+test("a request with no User-Agent, or an empty one, is never a crawler", () => {
+  assert.equal(counted(null, false), "search");
+  assert.equal(counted("", false), "search");
+  assert.equal(counted(null, false, {}), "listing");
+  assert.equal(counted("", false, {}), "listing");
 });
 
-test("a search whose API key resolved is a seeker even from a crawler User-Agent", () => {
-  for (const [name, ua] of Object.entries(CRAWLERS)) assert.equal(searchCounting(ua, true), "seeker", name);
-  assert.equal(searchCounting(null, true), "seeker");
+test("a request whose API key resolved is never a crawler, whatever its User-Agent", () => {
+  for (const [name, ua] of Object.entries(CRAWLERS)) {
+    assert.equal(counted(ua, true), "search", name);
+    assert.equal(counted(ua, true, {}), "listing", name);
+  }
+  assert.equal(counted(null, true), "search");
+  assert.equal(counted(null, true, {}), "listing");
+});
+
+test("text, kind, tags or place each make a request a search, keyed or not", () => {
+  for (const query of [{ q: "tacos" }, { kind: "event" }, { tags: "music" }, { near: "30.27,-97.74" }]) {
+    for (const keyed of [false, true]) {
+      assert.equal(counted(SEEKERS.curl, keyed, query), "search", JSON.stringify(query));
+      assert.equal(counted(null, keyed, query), "search", JSON.stringify(query));
+    }
+  }
+});
+
+test("time, publisher, verification, sort, limit and cursor alone are a listing, keyed or not", () => {
+  const narrowing: (CountedQuery & Record<string, unknown>)[] = [
+    {},
+    { after: "2026-11-18T00:00:00Z" },
+    { before: "2026-11-19T00:00:00Z", after: "2026-11-18T00:00:00Z" },
+    { publisher: "pub_abc123" },
+    { verified: "true" },
+    { sort: "newest", limit: 50, cursor: "eyJrIjoiMjAyNiJ9" },
+    { publisher: "pub_abc123", after: "2026-11-18T00:00:00Z", verified: "true", sort: "soonest" },
+  ];
+  for (const query of narrowing) {
+    for (const keyed of [false, true]) {
+      assert.equal(counted(SEEKERS.curl, keyed, query), "listing", JSON.stringify(query));
+      assert.equal(counted(null, keyed, query), "listing", JSON.stringify(query));
+    }
+  }
+});
+
+test("an empty query text is no text", () => {
+  assert.equal(counted(SEEKERS.curl, false, { q: "" }), "listing");
 });
 
 test("page views keep the broad crawler pattern, so a publisher's ...Bot agent is still a crawler page view", () => {

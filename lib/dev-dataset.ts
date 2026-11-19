@@ -102,7 +102,7 @@ export function planLoad(data: Dataset, tools: Tools): LoadPlan {
   const day = now.toISOString().slice(0, 10);
   const search_log = [
     { day, q: "live music", kind: "event", tags: null, near: "30.5,-97.5", radius_km: 25, source: "rest", n: 3, zero: 0, embed_failed: 0 },
-    { day, q: null, kind: null, tags: null, near: null, radius_km: null, source: "mcp", n: 5, zero: 0, embed_failed: 0 },
+    { day, q: null, kind: "offer", tags: null, near: null, radius_km: null, source: "mcp", n: 5, zero: 0, embed_failed: 0 },
     { day, q: "pottery class", kind: null, tags: null, near: null, radius_km: null, source: "mcp", n: 1, zero: 1, embed_failed: 0 },
   ];
   const unmet_queries = [{ day, q: "pottery class", kind: null, tags: null, near: null, radius_km: null, seeker: "dev-seeker", source: "mcp", created_at: now }];

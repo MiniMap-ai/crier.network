@@ -23,9 +23,9 @@ export const GET = handler(async (req) => {
   if (!q.limit) q.limit = 50;
   const at = budget();
   const who = await optionalPublisher(req, at);
-  const r = await search(q, { track: false, at });
-  if (searchCounting(req.headers.get("user-agent"), !!who) === "crawler") track.counter("search:crawler");
-  else track.search(q, r.posts.length, who ? who.id : clientIp(req), "feed", !!who?.internal, r.embed_failed);
+  const r = await search(q, { retrievals: false, at });
+  const counted = searchCounting({ ua: req.headers.get("user-agent"), keyed: !!who, query: q });
+  track.searchRequest(counted, q, r, who ? who.id : clientIp(req), "feed", !!who?.internal);
   const B = env.SITE_URL;
   const title = `${SITE.name}: ${describeQuery(q)}`;
   const items = r.posts.map((p) => {

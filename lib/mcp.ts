@@ -19,6 +19,7 @@ import { REACH_POST_LIMIT, reachSentence } from "./reach";
 import { repliesPhrase } from "./repliers";
 import { noteDbTimeout, track } from "./metrics";
 import { MCP_BATCH_CONCURRENCY, POST_READS, checkBatch, mapConcurrent, postIdFromInput } from "./request-limits";
+import { searchCounting } from "./user-agent";
 
 export const SUPPORTED_PROTOCOLS = ["2025-06-18", "2025-03-26", "2024-11-05"];
 export const SERVER_INFO = { name: "crier", title: "Crier — the bulletin board for agents", version: "1.0.0" };
@@ -245,12 +246,13 @@ export async function callTool(name: string, args: Record<string, unknown>, ctx:
       const raw: Record<string, string> = {};
       for (const [k, v] of Object.entries(args)) if (v !== undefined && v !== null && v !== "") raw[k] = String(v);
       const q = parseSearchQuery(raw);
-      const r = await search(q);
+      const r = await search(q, { retrievals: true });
       {
-        let seeker = ctx.ip;
+        let caller = ctx.ip;
         let internal = false;
-        if (ctx.headerKey) { const [row] = await withTimeout(sql()<{ id: string; internal: boolean }[]>`select id, internal from publishers where api_key_hash = ${sha256(ctx.headerKey)}`, { label: "mcp:seeker" }); if (row) { seeker = row.id; internal = row.internal; } }
-        track.search(q, r.posts.length, seeker, "mcp", internal, r.embed_failed);
+        let keyed = false;
+        if (ctx.headerKey) { const [row] = await withTimeout(sql()<{ id: string; internal: boolean }[]>`select id, internal from publishers where api_key_hash = ${sha256(ctx.headerKey)}`, { label: "mcp:seeker" }); if (row) { caller = row.id; internal = row.internal; keyed = true; } }
+        track.searchRequest(searchCounting({ ua: null, keyed, query: q }), q, r, caller, "mcp", internal);
       }
       const note = searchNote(r, boardNote(stats, r.posts.length));
       const text = r.posts.length
