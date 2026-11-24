@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cache } from "react";
 import { classifyUserAgent, noteDbTimeout, notePageFailure, track } from "@/lib/metrics";
 import { headers } from "next/headers";
 import { PostList, fmtWhen } from "@/components/PostList";
 import { env } from "@/lib/env";
 import { POST_ID_RE } from "@/lib/ids";
 import { cachedPostPage, cachedRelated } from "@/lib/cache";
+import type { PostPageView } from "@/lib/cache";
+import { budget, isDbFailure } from "@/lib/db";
+import { perRequest } from "@/lib/per-request";
 import { jsonLd } from "@/lib/posts";
+import type { PublicPost } from "@/lib/posts";
 import { repliesHeading } from "@/lib/repliers";
 
 export const dynamic = "force-dynamic";
@@ -16,15 +19,39 @@ export const dynamic = "force-dynamic";
 // and the answer is to fail and let the caller retry, not to sit there until the platform kills it.
 export const maxDuration = 10;
 
-// generateMetadata and the page both need the post; React's cache dedupes it to one load per
-// request, and lib/cache keeps that load off the database for a minute at a time.
+/**
+ * Every read the page makes, from the first: the post, its replies and its related posts. The rest
+ * of maxDuration is for the metrics flush `after()` runs once the page is sent, which can wait up
+ * to FLUSH_WAIT_MS (lib/metrics.ts) on the same clock. tests/post-page-budget.test.ts holds the sum.
+ */
+const READS_MS = 3500;
+
+/** One deadline per request for every read it makes, and the one load of its post. */
+const requestReads = perRequest(() => ({ at: budget(READS_MS), post: undefined as Promise<PostPageView | null> | undefined }));
+
+// generateMetadata and the page both need the post; requestReads makes it one load per request,
+// and lib/cache keeps that load off the database for a minute at a time.
 //
 // This is the one read the page cannot render around. If it fails — a wait that ran out of budget,
 // or a pooler that refused the connection — the page is a 500 either way, since app/error.tsx reads
 // nothing and a page cannot answer 503. It is counted here, on the shared promise, rather than in
 // the page body: generateMetadata awaits the same load, and whichever of the two sees the rejection
 // first is the one that ends the render, so a catch in the body alone could miss it.
-const loadPost = cache((id: string) => cachedPostPage(id).catch((e: unknown) => { notePageFailure("p/[id]", e); throw e; }));
+async function loadPost(id: string): Promise<PostPageView | null> {
+  const r = requestReads(await headers());
+  return (r.post ??= cachedPostPage(id, r.at).catch((e: unknown) => { notePageFailure("p/[id]", e); throw e; }));
+}
+
+/** Never rejects: any failure is an empty section, counted when it is the database's. */
+async function loadRelated(id: string): Promise<PublicPost[]> {
+  try {
+    return await cachedRelated(id, requestReads(await headers()).at);
+  } catch (e) {
+    if (isDbFailure(e)) noteDbTimeout("p/[id]:related", e);
+    else console.error("dropped read failed p/[id]:related", e instanceof Error ? e.message : String(e));
+    return [];
+  }
+}
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -58,7 +85,7 @@ export default async function PostPage({ params }: Props) {
   // Crawlers are most of the page traffic and none of the readers: no view bump, and no related-posts
   // read for relay pages they are told not to index anyway. Related posts are a nicety, so a slow one
   // is dropped rather than allowed to take the page down with it.
-  const related = crawler && view.syndicated ? [] : await cachedRelated(id).catch((e: unknown) => { noteDbTimeout("p/[id]:related", e); return []; });
+  const related = crawler && view.syndicated ? [] : await loadRelated(id);
   const replies = { posts: view.replies };
   if (!crawler) track.view(id);
   const when = fmtWhen(p);

@@ -1,6 +1,6 @@
 import { dropPostCache, dropPostListings } from "./cache-tags";
 import { DB_SIDE_TIMEOUT_MS, budget, sideWrite, sql, toVectorLiteral, withTimeout, withTimeoutOr } from "./db";
-import type { Budget } from "./db";
+import type { Budget, Sql } from "./db";
 import { env } from "./env";
 import { HttpError } from "./http";
 import { POST_ID_RE, newPostId } from "./ids";
@@ -319,8 +319,7 @@ export async function closePost(publisher: PublisherRow, id: string, at: Budget 
   return { post: publicPost(row), closed_now: closed.length > 0 };
 }
 
-export async function getPostRow(id: string | null, by?: { publisherId: string; idempotencyKey: string }, at: Budget = budget()): Promise<PostRow | null> {
-  const s = sql();
+export async function getPostRow(id: string | null, by?: { publisherId: string; idempotencyKey: string }, at: Budget = budget(), s: Sql = sql()): Promise<PostRow | null> {
   const rows = by
     ? await withTimeout(s.unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.publisher_id = $1 and p.idempotency_key = $2`, [by.publisherId, by.idempotencyKey]), at("getPostRow:idempotency"))
     : await withTimeout(s.unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.id = $1`, [id!]), at("getPostRow"));
@@ -360,12 +359,12 @@ export async function sweepExpired(): Promise<number> {
 }
 
 /** Replies to a post, oldest first. */
-export async function repliesFor(id: string, limit = 50, after?: string, at: Budget = budget(DB_SIDE_TIMEOUT_MS)): Promise<{ posts: PublicPost[]; next_cursor: string | null }> {
+export async function repliesFor(id: string, limit = 50, after?: string, at: Budget = budget(DB_SIDE_TIMEOUT_MS), s: Sql = sql()): Promise<{ posts: PublicPost[]; next_cursor: string | null }> {
   if (after && Number.isNaN(Date.parse(after))) throw new HttpError(400, "invalid_cursor", "That cursor is not one this query produced.", "Drop the cursor and start again.");
   const cur = after ? new Date(after) : null;
   const rows = cur
-    ? await withTimeout(sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null and p.created_at > $2 order by p.created_at asc, p.id asc limit $3`, [id, cur, limit + 1]), at("repliesFor:after"))
-    : await withTimeout(sql().unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null order by p.created_at asc, p.id asc limit $2`, [id, limit + 1]), at("repliesFor"));
+    ? await withTimeout(s.unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null and p.created_at > $2 order by p.created_at asc, p.id asc limit $3`, [id, cur, limit + 1]), at("repliesFor:after"))
+    : await withTimeout(s.unsafe<PostRow[]>(`select ${POST_COLUMNS} from posts p join publishers u on u.id = p.publisher_id where p.parent_id = $1 and p.deleted_at is null and p.hidden_at is null order by p.created_at asc, p.id asc limit $2`, [id, limit + 1]), at("repliesFor"));
   const page = rows.slice(0, limit);
   return { posts: page.map((r) => publicPost(r)), next_cursor: rows.length > limit ? page[page.length - 1].created_at.toISOString() : null };
 }

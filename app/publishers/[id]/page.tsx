@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { cache } from "react";
 import { noteDbTimeout, notePageFailure, track } from "@/lib/metrics";
 import { headers } from "next/headers";
 import { PostList } from "@/components/PostList";
 import { getPublisher, publicPublisher } from "@/lib/publishers";
+import type { PublisherRow } from "@/lib/publishers";
 import { cachedPublisherPosts } from "@/lib/cache";
-import { DB_SIDE_TIMEOUT_MS, budget, retryIfConnectionLost } from "@/lib/db";
+import { DB_SIDE_TIMEOUT_MS, budget } from "@/lib/db";
+import { primaryRead } from "@/lib/page-read";
+import { perRequest } from "@/lib/per-request";
 import type { PublicPost } from "@/lib/posts";
 
 export const dynamic = "force-dynamic";
@@ -14,14 +16,18 @@ export const maxDuration = 10;
 
 type Props = { params: Promise<{ id: string }> };
 
-// One primary-key lookup, shared by generateMetadata and the body. Its budget is the small one: the
-// listing below needs the rest of what the route is allowed; a lost connection gets one more try on it.
+const requestReads = perRequest(() => ({ publisher: undefined as Promise<PublisherRow | null> | undefined }));
+
+// One primary-key lookup per request, shared by generateMetadata and the body. Its budget is the
+// small one: the listing below needs the rest of what the route is allowed; a slow or failed read is
+// tried again on a second connection within it (lib/page-read.ts).
 // If it fails the page is a 500, and it is counted on the shared promise for the reason given in
 // app/p/[id]/page.tsx: either awaiter may be the one that sees the rejection.
-const loadPublisher = cache((id: string) => {
-  const at = budget(DB_SIDE_TIMEOUT_MS);
-  return retryIfConnectionLost(() => getPublisher(id, at)).catch((e: unknown) => { notePageFailure("publishers/[id]", e); throw e; });
-});
+async function loadPublisher(id: string): Promise<PublisherRow | null> {
+  const r = requestReads(await headers());
+  return (r.publisher ??= primaryRead("getPublisher", budget(DB_SIDE_TIMEOUT_MS), (s, at) => getPublisher(id, at, s))
+    .catch((e: unknown) => { notePageFailure("publishers/[id]", e); throw e; }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;

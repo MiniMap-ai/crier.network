@@ -17,10 +17,12 @@
  */
 import { unstable_cache } from "next/cache";
 import { POSTS_TAG, postTag } from "./cache-tags";
-import { DB_SIDE_TIMEOUT_MS, DB_TIMEOUT_MS, budget, retryIfConnectionLost } from "./db";
+import { DB_SIDE_TIMEOUT_MS, DB_TIMEOUT_MS, budget } from "./db";
+import type { Budget } from "./db";
 import { PublicPost, getPostRow, indexable, publicPost, relatedPosts, repliesFor } from "./posts";
 import { metricsSnapshot, noteDbTimeout, track } from "./metrics";
 import { METRICS_MAX_AGE_S, METRICS_RETRY_AFTER_S, METRICS_REVALIDATE_S, boundedAge } from "./metrics-freshness";
+import { primaryRead } from "./page-read";
 import { search } from "./search";
 
 /** Long enough to absorb a crawl, short enough that a hidden post disappears on its own. */
@@ -35,36 +37,41 @@ export type PostPageView = {
   replies: PublicPost[];
 };
 
-async function loadPostPage(id: string): Promise<PostPageView | null> {
-  // /p/<id> makes two cached reads: this one and cachedRelated. Between them they have to stay
-  // inside the route's maxDuration, so this one takes the read budget less what related is allowed.
-  const at = budget(DB_TIMEOUT_MS - DB_SIDE_TIMEOUT_MS);
-  // The read the page cannot render without: a lost connection gets one more try on what is left of
-  // the budget, since a page cannot answer 503. Only a cache miss reaches a caller; a stale entry is
-  // served while this revalidates in the background.
-  return retryIfConnectionLost(async () => {
-    const row = await getPostRow(id, undefined, at);
+// Only a cache miss reaches a caller; a stale entry is served while this revalidates in the
+// background, so there is no cached copy to fall back on and the fallback is a second connection.
+async function loadPostPage(id: string, at: Budget): Promise<PostPageView | null> {
+  return primaryRead("getPostRow", at, async (s, at) => {
+    const row = await getPostRow(id, undefined, at, s);
     if (!row) return null;
+    // A connection whose replies have fallen out of step with its queries can hand one query
+    // another's rows, and this answer is cached under `id` for a minute.
+    if (row.id !== id) throw new Error(`getPostRow(${id}) was answered with post ${row.id}`);
     const post = publicPost(row);
-    const replies = post.reply_count > 0 || post.kind === "thread" ? (await repliesFor(id, 50, undefined, at)).posts : [];
+    const replies = post.reply_count > 0 || post.kind === "thread" ? (await repliesFor(id, 50, undefined, at, s)).posts : [];
     return { post, deleted: !!row.deleted_at, hidden: !!row.hidden_at, syndicated: row.syndicated, indexable: indexable(row), replies };
   });
 }
 
 /**
- * Everything /p/<id> needs except related posts, which crawlers on relay pages do not get.
+ * Everything /p/<id> needs except related posts, which crawlers on relay pages do not get, within
+ * `at`, the page's budget for all its reads.
  *
  * A miss is cached too, so a crawler walking made-up ids leaves a minute of nulls in the data cache.
  * That is deliberate — a probe costing one query per id per minute is the point — and the ids reach
  * here only after POST_ID_RE, so the space is well-formed 8-character ids rather than anything at
  * all. Worth revisiting only if the data cache ever gets billed by entry count.
  */
-export function cachedPostPage(id: string): Promise<PostPageView | null> {
-  return unstable_cache(loadPostPage, ["post-page", id], { revalidate: PAGE_REVALIDATE, tags: [postTag(id), POSTS_TAG] })(id);
+export function cachedPostPage(id: string, at: Budget): Promise<PostPageView | null> {
+  return unstable_cache((i: string) => loadPostPage(i, at), ["post-page", id], { revalidate: PAGE_REVALIDATE, tags: [postTag(id), POSTS_TAG] })(id);
 }
 
-export function cachedRelated(id: string): Promise<PublicPost[]> {
-  return unstable_cache((i: string) => relatedPosts(i, 5), ["post-related", id], { revalidate: PAGE_REVALIDATE, tags: [postTag(id), POSTS_TAG] })(id);
+/** Related posts for /p/<id>: what is left of the page's budget `at`, and never more than a side read gets. */
+export function cachedRelated(id: string, at: Budget): Promise<PublicPost[]> {
+  return unstable_cache(
+    (i: string) => relatedPosts(i, 5, budget(Math.min(DB_SIDE_TIMEOUT_MS, at("relatedPosts").ms))),
+    ["post-related", id],
+    { revalidate: PAGE_REVALIDATE, tags: [postTag(id), POSTS_TAG] },
+  )(id);
 }
 
 /** The homepage's default listing. Filtered searches are not cached: they are not what a crawler asks for. */
