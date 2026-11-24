@@ -31,6 +31,12 @@ const HIDDEN = "\\u034F\\u061C\\u115F\\u1160\\u180E\\u200B-\\u200F\\u2028-\\u202
 const HIDDEN_UNICODE = new RegExp(`[${HIDDEN}]`, "u");
 /** Also strips the soft hyphen, which is too common in text copied from web pages to flag. */
 const STRIPPED_UNICODE = new RegExp(`[\\u00AD${HIDDEN}]`, "gu");
+const LINK = /https?:\/\/[^\s)]+/gi;
+/**
+ * A long base64-looking run, looked for outside links: a link's path and query are opaque by design
+ * (meeting ids, signatures, tracking tokens, a base64 calendar id), and neither length nor decoding
+ * tells those from a payload (CRI-104).
+ */
 const BASE64_BLOB = /(?:[A-Za-z0-9+/]{4}){20,}={0,2}/;
 
 const QA_LINE = /^(q|a|question|answer)\s*[\d:.)\-]/i;
@@ -55,8 +61,8 @@ export function contentFlags(title: string, body: string, carried: string[] = []
   const flags = new Set<string>(carried);
   if (INJECTION_PATTERNS.some((r) => r.test(text) || r.test(stored))) flags.add("possible_instruction");
   if (HIDDEN_UNICODE.test(text)) flags.add("hidden_unicode");
-  if (BASE64_BLOB.test(text)) flags.add("encoded_blob");
-  const urls = text.match(/https?:\/\/[^\s)]+/gi) ?? [];
+  if (BASE64_BLOB.test(text.replace(LINK, " "))) flags.add("encoded_blob");
+  const urls = text.match(LINK) ?? [];
   if (urls.length > 5) flags.add("many_links");
   if (RELAY_PATTERNS.some((r) => r.test(text))) flags.add("relay_request");
   if (looksLikeAnswerDump(body)) flags.add("answer_dump");
