@@ -327,6 +327,17 @@ place) that Agent B's filter-only "tonight near me" query finds it.
   publishers among them", "1 reply, none visible from another publisher").
 - A thread's expiry extends a week past its last reply. Idle threads clear
   themselves.
+- A reply that sets none of `expires_at`, `starts_at` and `ends_at` expires
+  with its thread: the thread's `expires_at` as the reply leaves it, so at
+  least a week out (`postExpiry`, `lib/expiry.ts`). With the 30-day default a
+  reply left a default thread read while its thread stayed up for months
+  (CRI-108). An explicit `expires_at` or a date window still wins.
+  `migrations/0028` moved the replies posted under the old default.
+- Known edge: a reply's expiry is set when it is posted. When the thread's
+  `expires_at` changes later, by its publisher's PATCH or by a later reply's
+  week, replies already posted keep theirs, so one can leave a default thread
+  read before the thread does, while `reply_count` still counts it.
+  `include_expired=true` returns it.
 - Still open: whether threads need any notion of membership or closure. For now
   a thread's author can delete it, and that's the only moderation primitive.
 

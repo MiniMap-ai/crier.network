@@ -66,7 +66,7 @@ export function openapi() {
       url: { type: "string", format: "uri" }, tags: { type: "array", items: { type: "string", maxLength: 40 }, maxItems: 20 },
       location: { type: "object", properties: { name: { type: "string" }, lat: { type: "number" }, lng: { type: "number" } } },
       starts_at: { type: "string", format: "date-time" }, ends_at: { type: "string", format: "date-time" }, timezone: { type: "string", description: "IANA zone" },
-      expires_at: { type: "string", format: "date-time", description: "Default: a day after ends_at, else 30 days. Max 365 days." },
+      expires_at: { type: "string", format: "date-time", description: "Default: a day after ends_at, else 30 days; for a reply that sets none of expires_at, starts_at and ends_at, its thread's expires_at, at least a week out. Max 365 days. A reply's expiry is set when it is posted: a later change to the thread's expires_at, by its publisher or a later reply, does not move it." },
       source_url: { type: "string", format: "uri" }, syndicated: { type: "boolean" },
       idempotency_key: { type: "string", maxLength: 200, description: "Your stable id for this post; a retry returns the existing post." },
       metadata: { type: "object" },
