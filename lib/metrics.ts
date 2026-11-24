@@ -3,12 +3,12 @@
  * No raw addresses, no per-person history. See docs/metrics.md for definitions.
  */
 import { after } from "next/server";
-import { DbTimeoutError, budget, isDbConnectError, sideWrite, sql, withTimeout } from "./db";
+import { DbTimeoutError, budget, errorCounterSql, isDbConnectError, sideWrite, sql, withTimeout } from "./db";
 import type { SearchQuery, SearchResult } from "./search";
 import { drainSearches, foldDemand, isUnmet, normalizeQuery, recordSearch, roundNear } from "./search-log";
 import type { DemandRow, SearchSource } from "./search-log";
-import { describeBatch, isEmptyBatch, orderBatch, transactOnce, writeBatch } from "./flush-batch";
-import type { ActorCount, Begin, TxSql } from "./flush-batch";
+import { describeBatch, isEmptyBatch, orderBatch, saveErrorCounters, writeBatch } from "./flush-batch";
+import type { ActorCount } from "./flush-batch";
 import { SIDE_WRITE_TIMEOUT_KEY, applyCounts, drainCounts, drainSideWritesLost, hasPendingCounts, noteRetrievals, noteSideWriteLost, noteView } from "./side-writes";
 import { classifyUserAgent } from "./user-agent";
 import type { SearchCounting } from "./user-agent";
@@ -22,7 +22,7 @@ export { classifyUserAgent };
  * database one write instead of four, and concurrent requests in the same instance share it.
  * Per-post views and retrievals are counters too and buffer the same way; lib/side-writes.ts owns
  * those buffers and the statements that apply them, and says why they are not their own writes.
- * The flush runs in transactions with a short lock/statement timeout: a metrics write must
+ * The flush runs as two statements with a short lock timeout: a metrics write must
  * never hold a pool connection for 20 s while it waits on a lock, because that starves the
  * request that comes next. Losing a few counters under duress is fine; losing requests is not.
  *
@@ -35,36 +35,19 @@ export { classifyUserAgent };
  * is counted by nothing here, because no code of ours ran. Those are only visible in Vercel's
  * runtime logs; the daily check reads them there.
  *
- * A count is real only once the flush carrying it commits; a flush that dies takes its batch with
- * it and leaves one `error:side_write_timeout` behind. docs/metrics.md, "When a counter is real",
- * has what that meant for CRI-70's evidence.
+ * A count is real only once the statement carrying it commits; a failed flush still keeps its
+ * `error:` counters. docs/metrics.md, "When a counter is real".
  */
 
 const pendingCounters = new Map<string, number>();
 const pendingActors = new Map<string, ActorCount>();
 const pendingStats = new Map<string, number>();     // stats_daily column -> n
 // Search log shapes buffer in lib/search-log.ts, which owns the rule about what is recorded;
-// the flush below drains them into the same transaction.
+// the flush below drains them into the same statement.
 let flushScheduled = false;
 
 /**
- * What the server gives any one statement in the flush, and how long one of them may wait on a lock.
- * Deliberately tighter than the default read budget: `after()` work runs on the platform's clock,
- * counting against the route's maxDuration, so a slow flush would eat into the ten seconds a page
- * has. Dropping the counters when they do not fit is the accepted cost, stated above; dropping the
- * request is not.
- */
-const FLUSH_TIMEOUT_MS = 3000;
-const FLUSH_LOCK_TIMEOUT_MS = 1500;
-
-/**
- * How long the client waits for the whole flush, as opposed to how long the server gives any one
- * statement. These used to be the same number, which was honest while the flush ran after some
- * other read had already opened a connection. It is not any more: with views and retrievals in it,
- * the flush is the first database call many page views make, so it pays for the queue, the TLS
- * handshake and SCRAM as well as the statements, and a 3000 ms client-side wait was charging it for
- * time the server never got. The statements keep their 3000 ms; the wait around `begin()` gets the
- * connection's share on top.
+ * How long the client waits for the whole flush, including any connection the pool must open first.
  *
  * The ceiling is the route's maxDuration: `after()` work runs on the platform's clock. The tightest
  * route that flushes is 10 s (`/`, `/p/[id]`, `/api/v1/board`, `/api/v1/search`, `/api/v1/posts/[id]`),
@@ -74,22 +57,16 @@ const FLUSH_LOCK_TIMEOUT_MS = 1500;
  */
 const FLUSH_WAIT_MS = 6000;
 
-/**
- * The least of the flush's budget the per-post transaction starts with: its one statement's
- * server-side timeout, plus room for COMMIT on a connection already open. It bounds the common case
- * only: a connection opened cold (TLS and auth, up to connect_timeout) does not fit, and then the
- * client may give up while the server commits, so the loss is reported though the counts landed.
- * A margin covering that would exceed FLUSH_WAIT_MS and the update would never run.
- */
-const COUNTS_MIN_MS = FLUSH_TIMEOUT_MS + 500;
-
-const setLimits = (tx: TxSql) => tx`select set_config('statement_timeout', ${String(FLUSH_TIMEOUT_MS)}, true), set_config('lock_timeout', ${String(FLUSH_LOCK_TIMEOUT_MS)}, true)`;
+/** Held back from FLUSH_WAIT_MS to save a failed batch's error counters; their lock wait is shorter. */
+const SAVE_ERRORS_MS = 1500;
+const SAVE_LOCK_TIMEOUT_MS = 1000;
 
 /**
- * Two transactions, one after the other: the daily counters, then the per-post views and
+ * Two statements, one after the other: the daily counters, then the per-post views and
  * retrievals. Apart, so a slow update of `posts` never holds a counter row (docs/metrics.md, "Lock
  * order"). In sequence rather than side by side, because the pool is four connections per instance
- * and the requests it serves need them more than the flush needs the time.
+ * and the requests it serves need them more than the flush needs the time. Neither opens a
+ * transaction, so a lost client cannot leave one open.
  */
 async function flush() {
   flushScheduled = false;
@@ -104,39 +81,31 @@ async function flush() {
   pendingActors.clear();
   pendingStats.clear();
   if (isEmptyBatch(batch) && !hasPendingCounts(counts)) return;
-  // Bounded like every other wait, on the flush's own budget rather than the read budget. begin()
-  // cannot be cancelled once it is in flight — the server-side statement_timeout is what ends it
-  // there — but this is what stops us waiting on it inside the caller's remaining time.
-  const at = budget(FLUSH_WAIT_MS);
-  const begin = (label: string): Begin => (body) => withTimeout(sql().begin(async (tx) => {
-    await setLimits(tx);
-    await body(tx);
-  }), at(label));
-  // A flush that loses anything is one `error:side_write_timeout`, whichever half lost it.
+  const at = budget(FLUSH_WAIT_MS - SAVE_ERRORS_MS);
+  // A flush that loses anything is one `error:side_write_timeout`, whichever statement lost it.
   let failed = false;
   let outOfTime = false;
   if (!isEmptyBatch(batch)) {
     try {
-      await transactOnce(begin("metrics:flush"), (tx) => writeBatch(tx, batch), isDbConnectError, "metrics:flush");
+      await withTimeout(writeBatch(sql(), batch) as PromiseLike<unknown>, at("metrics:flush"));
     } catch (e) {
       failed = true;
       outOfTime = e instanceof DbTimeoutError;
-      // The losses already counted went with the batch; note them again so they survive to the
-      // next flush rather than vanishing in the failure they measure.
-      noteSideWriteLost(lost);
       console.error("metrics flush", (e as Error).message);
       console.warn("metrics flush lost", (e as { code?: string }).code ?? "", describeBatch(batch));
+      const unsaved = await saveErrorCounters(batch, (statement) => withTimeout(errorCounterSql().unsafe(statement).simple(), { ms: SAVE_ERRORS_MS, label: "metrics:flush:save", ownClient: true }), SAVE_LOCK_TIMEOUT_MS);
+      // Not scheduled: a flush that schedules one from inside its own failure can loop.
+      for (const [k, n] of unsaved) pendingCounters.set(k, (pendingCounters.get(k) ?? 0) + n);
     }
   }
   if (hasPendingCounts(counts)) {
     const what = `${counts.views.length} views, ${counts.retrievals.length} retrievals;`;
-    const left = at("metrics:flush:counts").ms;
-    if (outOfTime || left < COUNTS_MIN_MS) {
+    if (outOfTime) {
       failed = true;
-      console.warn("side write failed", "flush:counts", what, `skipped with ${left} ms of the flush's budget left`);
+      console.warn("side write failed", "flush:counts", what, "skipped: the daily counters used the flush's whole wait");
     } else {
       try {
-        await transactOnce(begin("metrics:flush:counts"), (tx) => applyCounts(tx, counts), isDbConnectError, "metrics:flush:counts");
+        await withTimeout(applyCounts(sql(), counts) as PromiseLike<unknown>, at("metrics:flush:counts"));
       } catch (e) {
         failed = true;
         console.warn("side write failed", "flush:counts", what, (e as Error).message);

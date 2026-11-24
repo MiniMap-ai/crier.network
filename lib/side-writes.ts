@@ -12,7 +12,7 @@
  * what it says.
  *
  * **Rule two: a counter is not a write.** Views and retrievals are `+1`s, so they accumulate in
- * this process and the metrics flush applies them in one statement, in a transaction of its own,
+ * this process and the metrics flush applies them in one statement of their own,
  * rather than each opening a connection of its own — the same trade lib/search-log.ts makes for
  * query shapes, and the reason a page view costs the database one write instead of four.
  *
@@ -130,7 +130,7 @@ export function hasPendingCounts(counts: PendingCounts): boolean {
 }
 
 /**
- * What this module needs from a postgres.js transaction: the tagged template. Structural, so the
+ * What this module needs from a postgres.js client: the tagged template. Structural, so the
  * flush's per-post half can be tested with a recorder instead of a database.
  */
 // `unknown` rather than a promise: postgres.js overloads its tagged template with a helper form,
@@ -139,18 +139,18 @@ export function hasPendingCounts(counts: PendingCounts): boolean {
 export type Tx = (strings: TemplateStringsArray, ...args: unknown[]) => unknown;
 
 /**
- * Apply the batched views and retrievals in one statement, so the caller's transaction holds at
- * most one statement timeout of work. Throws on failure; the caller owns the transaction and counts
- * and logs the loss. Never in the transaction that writes the daily counters: an update of `posts`
- * can run to its statement timeout, and every counter row locked before it would wait with it
+ * The batched views and retrievals as one statement, returned unsent so the flush's withTimeout can
+ * queue it and cancel it; nothing pending is a settled promise and no statement. The caller awaits
+ * it, and counts and logs a failure. Never in the statement that writes the daily counters: an update
+ * of `posts` can run long, and every counter row locked before it would wait with it
  * (docs/metrics.md, "Lock order").
  *
  * `for update skip locked` keeps the rule that a counter never waits on a row lock: a page view
  * must not queue behind a syndication update. A row skipped because it is locked loses that one
  * batch's bump.
  */
-export async function applyCounts(tx: Tx, counts: PendingCounts): Promise<void> {
-  if (!hasPendingCounts(counts)) return;
+export function applyCounts(tx: Tx, counts: PendingCounts): unknown {
+  if (!hasPendingCounts(counts)) return Promise.resolve();
   const byId = new Map<string, { views: number; retrievals: number }>();
   for (const [id, n] of counts.views) byId.set(id, { views: n, retrievals: 0 });
   for (const [id, n] of counts.retrievals) {
@@ -158,8 +158,19 @@ export async function applyCounts(tx: Tx, counts: PendingCounts): Promise<void> 
     if (cur) cur.retrievals += n; else byId.set(id, { views: 0, retrievals: n });
   }
   const ids = [...byId.keys()].sort();
-  await tx`update posts p set views = p.views + c.v, retrievals = p.retrievals + c.r
-             from unnest(${ids}::text[], ${ids.map((id) => byId.get(id)!.views)}::bigint[], ${ids.map((id) => byId.get(id)!.retrievals)}::bigint[]) as c(id, v, r)
+  const idList = arrayLiteral(ids);
+  return tx`update posts p set views = p.views + c.v, retrievals = p.retrievals + c.r
+             from unnest(${idList}::text[], ${arrayLiteral(ids.map((id) => byId.get(id)!.views))}::bigint[], ${arrayLiteral(ids.map((id) => byId.get(id)!.retrievals))}::bigint[]) as c(id, v, r)
             where p.id = c.id
-              and p.id in (select id from posts where id = any(${ids}::text[]) for update skip locked)`;
+              and p.id in (select id from posts where id = any(${idList}::text[]) for update skip locked)`;
+}
+
+/**
+ * `values` as a Postgres array literal, to bind as text. postgres.js serializes a JS array only
+ * after a new connection's array-types query has succeeded; once that query fails, it sends `["a"]`
+ * as `a`, and Postgres rejects that as a malformed array literal (docs/metrics.md, "When a counter
+ * is real"). A literal goes through either way. Numbers must be integers.
+ */
+export function arrayLiteral(values: readonly (string | number)[]): string {
+  return `{${values.map((v) => (typeof v === "number" ? String(v) : `"${v.replace(/[\\"]/g, "\\$&")}"`)).join(",")}}`;
 }

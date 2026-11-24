@@ -1,10 +1,12 @@
 /**
  * The daily-table half of the metrics flush: what one flush writes to `daily_counters`,
- * `daily_actors`, `stats_daily` and `search_log`, and the order it writes it in.
+ * `daily_actors`, `stats_daily` and `search_log`, the order it writes it in, and what is saved
+ * when that write fails.
  *
- * Flushes from different instances touch the same rows and hold their locks until COMMIT, so rows
- * are sorted by key and tables come in a fixed order: two flushes can only queue behind each other,
- * never wait in a cycle. Nothing slow shares the transaction; docs/metrics.md, "Lock order".
+ * The batch is one statement, `metrics_flush(jsonb)` (migrations/0024_metrics_flush.sql), so the
+ * flush opens no transaction a lost client could leave open. Flushes from different instances touch
+ * the same rows, so rows are sorted by key and tables come in a fixed order: two flushes can only
+ * queue behind each other, never wait in a cycle. docs/metrics.md, "Lock order".
  *
  * Imports types only, which `node --test` strips, so a test can check the statements against a
  * recorder.
@@ -21,8 +23,8 @@ export type CounterBatch = {
   searches: ShapeCount[];
 };
 
-/** The tagged template of a postgres.js transaction. `unknown` for the reason lib/side-writes.ts gives for Tx. */
-export type TxSql = (strings: TemplateStringsArray, ...args: unknown[]) => unknown;
+/** A postgres.js tagged template. `unknown` for the reason lib/side-writes.ts gives for Tx. */
+export type SqlTag = (strings: TemplateStringsArray, ...args: unknown[]) => unknown;
 
 const byText = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -51,47 +53,71 @@ export function isEmptyBatch(b: CounterBatch): boolean {
   return !b.counters.length && !b.actors.length && !b.stats.length && !b.searches.length;
 }
 
-/**
- * Write the batch one statement at a time, in lock order. Each waits for the one before, so a
- * failure is the last statement the transaction sends and ROLLBACK follows it at once, rather than
- * behind statements already queued for an aborted transaction. One statement per table, except
- * `bump_stat` and `bump_search`, which take one column or shape per call.
- */
-export async function writeBatch(tx: TxSql, b: CounterBatch): Promise<void> {
-  if (b.counters.length) {
-    await tx`insert into daily_counters (day, key, n)
-             select current_date, k, n from unnest(${b.counters.map((c) => c[0])}::text[], ${b.counters.map((c) => c[1])}::bigint[]) as t(k, n)
-             on conflict (day, key) do update set n = daily_counters.n + excluded.n`;
-  }
-  if (b.actors.length) {
-    await tx`insert into daily_actors (day, role, actor, n)
-             select current_date, r, a, n from unnest(${b.actors.map((a) => a.role)}::text[], ${b.actors.map((a) => a.actor)}::text[], ${b.actors.map((a) => a.n)}::integer[]) as t(r, a, n)
-             on conflict (day, role, actor) do update set n = daily_actors.n + excluded.n`;
-  }
-  for (const [col, n] of b.stats) await tx`select bump_stat(${col}, ${n})`;
-  for (const g of b.searches) await tx`select bump_search(${g.q}, ${g.kind}, ${g.tags}, ${g.near}, ${g.radius_km}, ${g.source}, ${g.n}, ${g.zero}, ${g.embed_failed})`;
+/** The argument `metrics_flush` reads: each list as the batch holds it, so the function keeps its order. */
+export function flushPayload(b: CounterBatch) {
+  return {
+    counters: b.counters.map(([key, n]) => ({ key, n })),
+    actors: b.actors.map(({ role, actor, n }) => ({ role, actor, n })),
+    stats: b.stats.map(([col, n]) => ({ col, n })),
+    searches: b.searches.map((s) => ({ q: s.q, kind: s.kind, tags: s.tags, near: s.near, radius_km: s.radius_km, source: s.source, n: s.n, zero: s.zero, embed_failed: s.embed_failed })),
+  };
 }
 
-/** Opens a transaction, runs `body` in it and commits: sql().begin under the flush's limits and bound. */
-export type Begin = (body: (tx: TxSql) => Promise<void>) => Promise<unknown>;
+/**
+ * The whole batch as one statement, returned unsent so the caller's withTimeout can queue it and
+ * cancel it. It is its own transaction: it applies all of the batch or none of it.
+ */
+export function writeBatch(sql: SqlTag, b: CounterBatch): unknown {
+  return sql`select metrics_flush(${flushPayload(b)}::jsonb)`;
+}
+
+/** Lands beside a failed batch's error counters: one per daily batch that did not write. */
+export const FLUSH_FAILED_KEY = "error:metrics_flush_failed";
+
+/** The only keys saveCountersStatement writes, because it writes them as SQL literals. */
+const SAVABLE_KEY = /^error:[a-z0-9_.:-]{1,100}$/;
 
 /**
- * Run `work` in one transaction, and once more on a fresh connection if the first lost its
- * connection before COMMIT was next: that attempt applied nothing. One lost during COMMIT may have
- * applied, and every write here adds, so that error is thrown rather than risked twice.
+ * What a daily batch that failed must not take with it: its `error:` counters, plus one
+ * FLUSH_FAILED_KEY, in lock order. Other counters, actors, stats and shapes are left to the loss line.
  */
-export async function transactOnce(begin: Begin, work: (tx: TxSql) => Promise<void>, isConnectError: (e: unknown) => boolean, label: string): Promise<void> {
-  let committing = false;
-  const attempt = () => begin(async (tx) => {
-    await work(tx);
-    committing = true;
+export function errorCountersOf(b: CounterBatch): [string, number][] {
+  const kept = new Map(b.counters.filter(([k, n]) => SAVABLE_KEY.test(k) && Number.isSafeInteger(n) && n > 0));
+  kept.set(FLUSH_FAILED_KEY, (kept.get(FLUSH_FAILED_KEY) ?? 0) + 1);
+  return [...kept].sort((a, b) => byText(a[0], b[0]));
+}
+
+/**
+ * One simple-protocol query adding `counters` to today's `daily_counters` rows. It binds no
+ * parameters and opens no transaction block, so neither the binding nor the BEGIN that failed a flush
+ * can fail it. Its SET LOCAL holds in the implicit transaction of a multi-statement query. Throws on
+ * a key or count it cannot write as a literal; errorCountersOf yields only ones it can.
+ */
+export function saveCountersStatement(counters: [string, number][], lockTimeoutMs: number): string {
+  const rows = counters.map(([k, n]) => {
+    if (!SAVABLE_KEY.test(k) || !Number.isSafeInteger(n) || n <= 0) throw new Error(`cannot save counter ${JSON.stringify(k)}=${n} as a literal`);
+    return `(current_date, '${k}', ${n})`;
   });
+  return `set local lock_timeout = '${Math.max(1, Math.round(lockTimeoutMs))}ms'; ` +
+    `insert into daily_counters (day, key, n) values ${rows.join(", ")} on conflict (day, key) do update set n = daily_counters.n + excluded.n`;
+}
+
+/**
+ * After a daily batch failed: write its error counters once through `write`, which must reach the
+ * database by a client other than the one that failed. Never retried here, since the request may be
+ * dying. Returns what is still unwritten, for the caller to carry to its next flush: nothing, or all
+ * of them.
+ */
+export async function saveErrorCounters(b: CounterBatch, write: (statement: string) => Promise<unknown>, lockTimeoutMs: number): Promise<[string, number][]> {
+  const counters = errorCountersOf(b);
+  const shown = counters.map(([k, n]) => `${k}=${n}`).join(", ");
   try {
-    await attempt();
+    await write(saveCountersStatement(counters, lockTimeoutMs));
+    console.warn("metrics flush saved its error counters", shown);
+    return [];
   } catch (e) {
-    if (!isConnectError(e) || committing) throw e;
-    console.warn("metrics flush lost its connection before COMMIT; trying once more", label, (e as { code?: string }).code ?? "", (e as Error).message);
-    await attempt();
+    console.error("metrics flush could not save its error counters; carrying them to the next flush", (e as { code?: string }).code ?? "", (e as Error).message, shown);
+    return counters;
   }
 }
 

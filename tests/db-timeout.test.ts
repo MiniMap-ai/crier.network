@@ -9,7 +9,7 @@ process.env.CRIER_DB_RESET_AFTER_TIMEOUTS = "3";
 // between, so the two shapes the guard has to tell apart are both reachable here.
 process.env.CRIER_DB_RESET_AFTER_MS = "100";
 
-const { DB_SIDE_TIMEOUT_MS, DB_TIMEOUT_MS, DbTimeoutError, __resetDbHealth, budget, isDbFailure, retryIfConnectionLost, withTimeout, withTimeoutOr } = await import("../lib/db-timeout.ts");
+const { DB_SIDE_TIMEOUT_MS, DB_TIMEOUT_MS, DbTimeoutError, __resetDbHealth, budget, isDbFailure, onOwnClient, retryIfConnectionLost, withTimeout, withTimeoutOr } = await import("../lib/db-timeout.ts");
 
 type FakeQuery<T> = PromiseLike<T> & {
   execute: () => void;
@@ -98,6 +98,23 @@ test("a cancel that throws or rejects does not mask the timeout", async () => {
   }
 });
 
+const { mayCancel } = await import("../lib/db-timeout.ts");
+
+test("a query written behind another is left to run when it times out, never cancelled", async () => {
+  __resetDbHealth();
+  const pipelined = Object.assign(fakeQuery<string>(), { state: { pid: 1 }, active: false });
+  const err = await withTimeout(pipelined, { label: "pipelined" }).then(() => null, (e: unknown) => e);
+  assert.ok(err instanceof DbTimeoutError, "the caller still gets its timeout");
+  assert.equal(pipelined.cancelled, 0, "a cancel here would hand its answer to the query after it");
+});
+
+test("a query still queued, or the one its connection is answering, is cancelled", () => {
+  assert.ok(mayCancel({ state: null }), "queued: cancel() takes it out of the queue");
+  assert.ok(mayCancel({}), "a plain promise has nothing to cancel, and asking is harmless");
+  assert.ok(mayCancel({ state: { pid: 1 }, active: true }), "running: Postgres is asked to stop it");
+  assert.ok(!mayCancel({ state: { pid: 1 }, active: false }), "written behind another: left alone");
+});
+
 test("withTimeoutOr falls back instead of throwing", async () => {
   __resetDbHealth();
   assert.deepEqual(await withTimeoutOr(fakeQuery<string[]>(), [], { label: "side" }), []);
@@ -184,6 +201,28 @@ test("CRI-70: five soft deadlines beside a primary read that answers leave the p
   const soft = await Promise.all(Array.from({ length: 5 }, () => withTimeout(fakeQuery<string>(), { ms: 15, label: "relatedPosts" }).then(() => null, (e: unknown) => e)));
   assert.ok(soft.every((e) => e instanceof DbTimeoutError), "each decorative read rejects with its own timeout, which the page counts and renders around");
   assert.deepEqual(await primary, { id: "n4a2ed3N" }, "the primary read must answer, not fail with CONNECTION_DESTROYED");
+  assert.equal(client.ended.length, 0);
+  assert.equal(currentClient(), client);
+  forgetClient();
+});
+
+test("a read answered on the fallback client does not clear the shared pool's run of timeouts", async () => {
+  __resetDbHealth();
+  const client = fakeClient();
+  const fallback = onOwnClient(budget(1000));
+  await withTimeoutOr(fakeQuery<string>(), null);
+  await withTimeoutOr(fakeQuery<string>(), null);
+  await withTimeout(fakeQuery<string>({ value: "ok", delayMs: 1 }), fallback("getPostRow"));
+  await withTimeoutOr(fakeQuery<string>(), null);
+  assert.equal(client.ended.length, 1, "a wedged shared pool must still be replaced while its reads are rescued elsewhere");
+  forgetClient();
+});
+
+test("timeouts on the fallback client do not replace the shared pool", async () => {
+  __resetDbHealth();
+  const client = fakeClient();
+  const fallback = onOwnClient(budget(60));
+  for (let i = 0; i < 4; i++) await withTimeoutOr(fakeQuery<string>(), null, fallback("getPostRow"));
   assert.equal(client.ended.length, 0);
   assert.equal(currentClient(), client);
   forgetClient();
