@@ -5,7 +5,7 @@ import { sql } from "@/lib/db";
 import { ADAPTERS, describeAdapter } from "@/lib/syndication/adapters";
 import { newSourceId, runSource, syndicationPublisher } from "@/lib/syndication/runner";
 import { sourceField } from "@/lib/syndication/source-schema";
-import { asFetched, type SourceRow } from "@/lib/syndication/types";
+import { ADAPTER_NAMES, asFetched, type SourceRow } from "@/lib/syndication/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,14 +18,14 @@ export const GET = handler(async (req) => {
   const items = await sql()<{ source_id: string; n: number }[]>`select source_id, count(*)::int as n from source_items group by source_id`;
   const byId = new Map(items.map((i) => [i.source_id, i.n]));
   return ok({
-    adapters: Object.fromEntries(Object.keys(ADAPTERS).map((a) => [a, describeAdapter(a as SourceRow["adapter"])])),
+    adapters: Object.fromEntries(ADAPTER_NAMES.map((a) => [a, describeAdapter(a)])),
     sources: rows.map((r) => ({ ...r, relayed_items: byId.get(r.id) ?? 0 })),
   });
 });
 
 const CreateSchema = z.object({
   name: sourceField.name,
-  adapter: z.enum(["ticketmaster", "ical", "rss", "localist", "nws"]),
+  adapter: z.enum(ADAPTER_NAMES),
   config: sourceField.config.default({}),
   homepage: sourceField.homepage.optional(),
   license: sourceField.license,   // why we may redistribute this
@@ -56,7 +56,7 @@ export const POST = handler(async (req) => {
   const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), Math.max(0, fetchUntil - Date.now()));
   let sample: unknown[] = []; let error: string | undefined;
   try {
-    const { items } = asFetched(await ADAPTERS[source.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal, fetchUntil }));
+    const { items } = asFetched(await ADAPTERS[input.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal, fetchUntil }));
     sample = items.slice(0, 5).map((i) => ({ uid: i.uid, title: i.title, starts_at: i.starts_at, location: i.location, url: i.url }));
     if (items.length === 0 && !force) error = "The source fetched but yielded no items in the horizon.";
   } catch (e) { error = (e as Error).message; }

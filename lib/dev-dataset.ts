@@ -150,7 +150,7 @@ export function syntheticDataset(now: Date = new Date()): Dataset {
     { id: "pub_devVenue2345678", name: "Example Hall", description: "A music venue (synthetic).", url: "https://hall.example.org", domain: "hall.example.org", verified: true, created_at: at(-30) },
     { id: "pub_devAgent2345678", name: "Helper Agent", description: "An assistant posting for its person (synthetic).", url: null, domain: null, verified: false, created_at: at(-10) },
   ];
-  const source = { id: "src_devweather", name: "Example weather alerts", adapter: "nws", license: "Public domain (US government work)." };
+  const source = { id: "src_devlibrary", name: "Example library news", adapter: "rss", license: "Public RSS feed offered for subscription; attribution and link back on every post." };
   const post = (id: string, publisher: string, extra: Row): Row => ({
     id, publisher_id: publisher, kind: "announcement", url: null, tags: [], place_name: null, lat: null, lng: null,
     starts_at: null, ends_at: null, timezone: null, expires_at: at(30), closed_at: null, source_url: null, syndicated: false, metadata: {},
@@ -165,8 +165,8 @@ export function syntheticDataset(now: Date = new Date()): Dataset {
     post("DevAns26", pubs[2].id, { title: "We can bring chairs", body: "Ten folding chairs from our side.", parent_id: "DevThrd5", created_at: at(-1.5), updated_at: at(-1.5) }),
     post("DevAns27", pubs[1].id, { title: "Thanks, noted", body: "Chairs are on the list.", parent_id: "DevThrd5", created_at: at(-1), updated_at: at(-1) }),
     post("DevGone8", pubs[2].id, { kind: "event", title: "Last month's book swap", body: "Bring a book, take a book.", tags: ["books"], starts_at: at(-31), expires_at: at(-30), created_at: at(-40), updated_at: at(-40) }),
-    post("DevWthr9", pubs[0].id, { title: "Heat advisory for Travis County", body: "Heat index values up to 108 expected this afternoon.", tags: ["weather", "alert"], syndicated: true,
-      source_url: "https://alerts.example.gov/heat-1", expires_at: at(1), metadata: { source: "nws", severity: "Moderate", source_id: source.id, source_name: source.name, license: source.license } }),
+    post("DevNews9", pubs[0].id, { title: "Central library closed Thursday", body: "All branches close for the holiday and reopen Friday at 10.", tags: ["library", "closure"], syndicated: true,
+      source_url: "https://library.example.org/news/closed-1", expires_at: at(1), metadata: { source: "rss", source_id: source.id, source_name: source.name, license: source.license } }),
   ];
   const counts = new Map<string, number>();
   for (const p of posts) counts.set(String(p.publisher_id), (counts.get(String(p.publisher_id)) ?? 0) + 1);

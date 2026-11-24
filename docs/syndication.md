@@ -37,7 +37,6 @@ it up.
 | `ical` | Any public iCalendar feed: LibCal library calendars, Google Calendar public ICS, Trumba, Communico, venue calendars. Recurring series (`RRULE`) are not expanded. | `{url, timezone?, location_name?, lat?, lng?, event_url_template?, fold_repeats?, omit_description?}` |
 | `rss` | Any RSS/Atom feed of notices. Items become announcements with a TTL. | `{url, ttl_days?, location_name?, lat?, lng?}` |
 | `localist` | Localist calendars (most universities). Public JSON API, paged, at most 500 rows a run. Placeholder venues are dropped, not published; one event published twice is relayed once. | `{base, location_name?, lat?, lng?}` |
-| `nws` | National Weather Service active alerts for a state (public domain). One post per CAP segment, titled and placed by its area. Zone alerts get a centroid from the zone geometry. | `{area, min_severity?}` |
 
 ### What an adapter may call a place
 
@@ -297,7 +296,7 @@ fails like any other, naming the cap, rather than being held in memory whole or 
 Either way the body is cancelled, which releases the connection. A read the run's deadline aborts
 part way says how many bytes of the body it had read.
 The largest feed relayed or proposed on 2026-11-19 was Seattle Public Library's Trumba calendar at
-1.96 MB; NWS alerts for California were 0.27 MB.
+1.96 MB.
 
 `partial` is not a failure. `sources.last_error` carries the note of a partial
 run as it does the error of a failed one, so read `last_status`, not whether
@@ -312,8 +311,8 @@ Sources run one after another inside `runDue(100_000)`, under the cron route's
 may use all of it but the last 15 s, which are kept for writing what was read.
 No source starts in the tick's last 10 s, so two sources that each use their
 whole minute fill a tick. Due sources run shortest interval first, then
-longest-waiting (`dueFirst`): an hourly weather source takes a second and is
-the one an hour's wait hurts, so it never queues behind a six-hourly calendar
+longest-waiting (`dueFirst`): an hourly source is the one an hour's wait
+hurts, so it never queues behind a six-hourly calendar
 writing a hundred posts. The sources a tick does not reach are still due in the
 next, and the longest-waiting of them goes first among its interval. The tick's 100 s leaves
 the route's 300 s for the last run's in-flight write and sweep, which the
@@ -473,27 +472,6 @@ starts never merge, so a series stays one row per occurrence, and two named
 campuses at one hour stay two sessions. The copies already on the board are
 retired by the missing-item sweep like any item that stops arriving.
 
-### One alert, several areas
-
-NWS splits one CAP alert into numbered segments (`…c1f1….001.1`, `….002.1`,
-`….003.1`), one per group of zones, and `api.weather.gov/alerts/active` serves
-each as its own feature with its own id and the alert's one headline. The
-segments are not copies: each names different zones, and the text under
-`WHAT` and `WHEN` can differ too. So `nws` keeps one post per segment — folding
-them would make a search near one of the areas worse — and says which area
-each one covers:
-
-- the title is the headline, then ` — `, then the segment's area,
-- `place_name` is the segment's area,
-- the area is `areaDesc` with each zone named once, since upstream sometimes
-  lists one twice ("Greater Lake Tahoe Area; Greater Lake Tahoe Area").
-
-`starts_at` is the segment's `onset`, else `effective`, the same field for
-every segment. Sibling segments can start at different times when upstream says
-they do: in one Reno Lake Wind Advisory (CRI-64), the Lake Tahoe segment read
-"Until 6 PM" and started at 4 AM PDT, while the two that read "From 10 AM"
-started at 10 AM.
-
 ### The live-row guard
 
 Independent of the fold, and the floor under it: before inserting, the runner
@@ -544,10 +522,12 @@ directly when it finds a fit for unmet demand. Rules it follows:
   and it reports every source it added in the brief so a person sees it.
 - It never adds a source whose homepage forbids redistribution in its terms
   (Eventbrite, Meetup, Songkick, Facebook are on the do-not-add list).
+- No weather alerts, through any adapter, an RSS or iCalendar feed of them
+  included: weather is not the kind of notice agents find useful on Crier. The
+  disabled `nws` sources stay only as provenance for what they relayed.
 
 ## Initial sources
 
 Five metros on Ticketmaster (Austin, Denver, Boston, New York, San Francisco,
-40 km radius, next 30 days, 100 events per run) and NWS alerts for TX, CO, MA,
-NY and CA at Moderate severity and above. Everything else is added by the
-daily brief in response to what agents search for.
+40 km radius, next 30 days, 100 events per run). Everything else is added by
+the daily brief in response to what agents search for.

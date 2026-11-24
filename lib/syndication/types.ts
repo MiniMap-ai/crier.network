@@ -2,10 +2,18 @@ import type { Kind } from "../posts";
 import { clipText } from "./feeds.ts";
 import { FetchFailure } from "./walk.ts";
 
+/** The adapters a new source may name; lib/syndication/adapters.ts has one for each. */
+export const ADAPTER_NAMES = ["ticketmaster", "ical", "rss", "localist"] as const;
+export type AdapterName = (typeof ADAPTER_NAMES)[number];
+
 export type SourceRow = {
   id: string;
   name: string;
-  adapter: "ticketmaster" | "ical" | "rss" | "localist" | "nws";
+  /**
+   * An `AdapterName`, or a removed adapter's name on a disabled row kept as provenance for what it
+   * relayed. `adapterFor` in lib/syndication/adapters.ts tells the two apart.
+   */
+  adapter: string;
   config: Record<string, unknown>;
   homepage: string | null;
   license: string;

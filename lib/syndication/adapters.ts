@@ -4,10 +4,10 @@ import { contentFlags, stripHiddenUnicode } from "../flags.ts";
 import { cancelledTitle, clipText, decodeEntities, descriptionText, dropControls, eventUrl, eventUrlTemplateProblem, httpLink, icalDate, icalList, icalText, parseFeed, parseICal, placeText, placeWithoutContacts, withoutCancelMarker } from "./feeds.ts";
 import type { VEvent } from "./feeds.ts";
 import { ticketmasterItems } from "./ticketmaster.ts";
-import { fetchJson, fetchText, inHorizon, plainText, runLimit } from "./types.ts";
+import { ADAPTER_NAMES, fetchJson, fetchText, inHorizon, plainText, runLimit } from "./types.ts";
 import { walkNote, walkPages } from "./walk.ts";
 // Split out: node's type stripping erases `import type` but cannot spot types inside a mixed list.
-import type { Adapter, AdapterContext, Item, SourceRow } from "./types.ts";
+import type { Adapter, AdapterContext, AdapterName, Item } from "./types.ts";
 
 const str = (v: unknown, d = ""): string => (typeof v === "string" ? v : d);
 const num = (v: unknown): number | undefined => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v)) ? Number(v) : undefined);
@@ -334,150 +334,23 @@ export function localistCoveredBefore(rows: Record<string, unknown>[]): string {
   return Number.isFinite(last) ? new Date(last).toISOString() : COVERS_NOTHING;
 }
 
-/* ---------------- NWS active alerts (public domain) ----------------
-   config: { area: "TX" (state or marine zone), min_severity?: "Severe" | "Moderate" | "Extreme" } */
-const SEVERITY_RANK: Record<string, number> = { Extreme: 4, Severe: 3, Moderate: 2, Minor: 1, Unknown: 0 };
-
-function centroid(geometry: Record<string, unknown> | null | undefined): { lat: number; lng: number } | undefined {
-  if (!geometry) return undefined;
-  const coords = geometry.coordinates as unknown;
-  const ring = geometry.type === "Polygon" ? (coords as number[][][])[0] : geometry.type === "MultiPolygon" ? (coords as number[][][][])[0]?.[0] : undefined;
-  if (!ring || ring.length === 0) return undefined;
-  const n = ring.length;
-  const lng = ring.reduce((a, p) => a + p[0], 0) / n, lat = ring.reduce((a, p) => a + p[1], 0) / n;
-  return { lat, lng };
-}
-
-const zoneCentroidCache = new Map<string, { lat: number; lng: number } | null>();
+export const ADAPTERS: Record<AdapterName, Adapter> = { ticketmaster, ical, rss, localist };
 
 /**
- * When an NWS post stops being shown. CAP `expires` is the *product's* refresh deadline — the office
- * reissues a multi-day watch every few hours, so `expires` lands the same day while `ends` is days
- * out — and a post that expires on it leaves the board while the hazard it describes is in effect:
- * 46% of active alerts on 2026-09-29, a Coastal Flood Warning three days early on 10-26 (CRI-50).
- * The post's expiry is "stop showing this", which for a hazard is the later of the two, plus an hour
- * so it does not vanish the minute the hazard does. An alert with no `ends` (a Special Weather
- * Statement) keeps the refresh deadline as its only bound. The rows written before this were
- * floored the same way by migrations/0010_nws_expiry_floor.sql.
- *
- * Only a floor. Whether an alert whose `expires` outlives its `ends` should stay up that long is a
- * separate question, and this does not answer it.
+ * The adapter a source row names, or undefined when there is none: a disabled row kept as
+ * provenance can name a removed one. The runner fails such a source's run before fetching, and
+ * the admin route refuses to enable or run it.
  */
-export const NWS_END_GRACE_MS = 3600e3;
-export function nwsExpiry(capExpires: string, ends: string): string | undefined {
-  const e = Date.parse(capExpires), d = Date.parse(ends);
-  const t = Math.max(Number.isNaN(e) ? -Infinity : e, Number.isNaN(d) ? -Infinity : d + NWS_END_GRACE_MS);
-  return Number.isFinite(t) ? new Date(t).toISOString() : undefined;
+export function adapterFor(name: string): Adapter | undefined {
+  return (ADAPTER_NAMES as readonly string[]).includes(name) ? ADAPTERS[name as AdapterName] : undefined;
 }
 
-/**
- * The zone an alert's times are in, from the abbreviation NWS puts in every headline ("issued
- * November 2 at 3:13AM MST until ... by NWS Denver CO"). The CAP timestamps carry an offset, which
- * says nothing about the name; the headline says MST, and the page renders the post's times in its
- * `timezone` when it has one — which, for NWS, it never did. MST alone is ambiguous: Arizona keeps
- * it all year, so an Arizona office means America/Phoenix.
- */
-const NWS_ZONES: Record<string, string> = {
-  EST: "America/New_York", EDT: "America/New_York",
-  CST: "America/Chicago", CDT: "America/Chicago",
-  MST: "America/Denver", MDT: "America/Denver",
-  PST: "America/Los_Angeles", PDT: "America/Los_Angeles",
-  AKST: "America/Anchorage", AKDT: "America/Anchorage",
-  HST: "Pacific/Honolulu",
-  AST: "America/Puerto_Rico",
-  CHST: "Pacific/Guam",
-  SST: "Pacific/Pago_Pago",
-};
-export function nwsTimezone(headline: string, senderName: string): string | undefined {
-  const m = /\b\d{1,2}:\d{2}\s?[AP]M\s+([A-Za-z]{2,5})\b/.exec(headline);
-  const abbr = m?.[1].toUpperCase();
-  if (!abbr) return undefined;
-  if (abbr === "MST" && /\bAZ$/.test(senderName.trim())) return "America/Phoenix";
-  return NWS_ZONES[abbr];
-}
-
-/**
- * The places one CAP segment covers, from its `areaDesc`: the zone names, each once, in upstream
- * order. NWS splits one alert into a segment per group of zones and serves each as its own feature
- * under the same headline, so this is what tells sibling segments apart. A zone listed twice
- * ("Greater Lake Tahoe Area; Greater Lake Tahoe Area") is named once. Empty when upstream names none.
- */
-export function nwsArea(areaDesc: string): string {
-  const seen = new Set<string>();
-  const parts: string[] = [];
-  for (const raw of plainText(areaDesc, 2000).split(";")) {
-    const part = raw.trim();
-    if (!part || seen.has(part.toLowerCase())) continue;
-    seen.add(part.toLowerCase());
-    parts.push(part);
-  }
-  return parts.join("; ");
-}
-
-/** Zone-based alerts carry no geometry; resolve the first affected zone's centroid (cached per process, capped per run). */
-async function zoneCentroid(zoneUrls: string[], ctx: AdapterContext, budget: { left: number }): Promise<{ lat: number; lng: number } | undefined> {
-  for (const url of zoneUrls.slice(0, 3)) {
-    if (zoneCentroidCache.has(url)) { const c = zoneCentroidCache.get(url); if (c) return c; continue; }
-    if (budget.left <= 0) return undefined;
-    budget.left--;
-    try {
-      const z = await fetchJson<{ geometry: Record<string, unknown> | null }>(url, ctx, { Accept: "application/geo+json" });
-      const c = centroid(z.geometry) ?? null;
-      zoneCentroidCache.set(url, c);
-      if (c) return c;
-    } catch { zoneCentroidCache.set(url, null); }
-  }
-  return undefined;
-}
-
-export const nws: Adapter = async (source, ctx) => {
-  const area = str(source.config.area);
-  if (!area) throw new Error("config.area is required (e.g. TX)");
-  const minSev = SEVERITY_RANK[str(source.config.min_severity, "Severe")] ?? 3;
-  type F = { features: { properties: Record<string, unknown>; geometry: Record<string, unknown> | null }[] };
-  const data = await fetchJson<F>(`https://api.weather.gov/alerts/active?area=${encodeURIComponent(area)}&status=actual&message_type=alert,update`, ctx, { Accept: "application/geo+json" });
-  const items: Item[] = [];
-  const zoneBudget = { left: 15 };
-  for (const f of data.features ?? []) {
-    const p = f.properties;
-    if ((SEVERITY_RANK[str(p.severity)] ?? 0) < minSev) continue;
-    const id = str(p.id); if (!id) continue;
-    const c = centroid(f.geometry) ?? (await zoneCentroid((p.affectedZones as string[] | undefined) ?? [], ctx, zoneBudget));
-    const expires = nwsExpiry(str(p.expires), str(p.ends));
-    const where = nwsArea(str(p.areaDesc));
-    const headline = str(p.headline);
-    items.push({
-      uid: id,
-      title: plainText([headline || str(p.event), where].filter(Boolean).join(headline ? " — " : ": "), 200),
-      body: [
-        `${str(p.event)} · ${str(p.severity)} · ${str(p.urgency)}.${where ? ` Areas: ${plainText(where, 200)}.` : ""}`,
-        plainText(str(p.description), 700),
-        str(p.instruction) ? `Instruction: ${plainText(str(p.instruction), 300)}` : "",
-        `Issued by ${str(p.senderName)}. Source: National Weather Service (public domain), relayed by Crier.`,
-      ].filter(Boolean).join("\n"),
-      url: `https://alerts.weather.gov/search?id=${encodeURIComponent(id)}`,
-      kind: "announcement",
-      starts_at: str(p.onset) || str(p.effective) || undefined,
-      ends_at: str(p.ends) || undefined,
-      timezone: nwsTimezone(str(p.headline), str(p.senderName)),
-      expires_at: expires,
-      location: { name: plainText(where, 120) || undefined, lat: c?.lat, lng: c?.lng },
-      tags: [...source.tags, "weather", "alert", str(p.event).toLowerCase().replace(/[^a-z0-9]+/g, "-")].filter((t) => t.length >= 2 && t.length <= 40),
-      metadata: { source: "nws", severity: p.severity, urgency: p.urgency, certainty: p.certainty, event: p.event },
-    });
-  }
-  return items;
-};
-
-export const ADAPTERS: Record<SourceRow["adapter"], Adapter> = { ticketmaster, ical, rss, localist, nws };
-
-export function describeAdapter(a: SourceRow["adapter"]): string {
+export function describeAdapter(a: AdapterName): string {
   return {
     ticketmaster: "Ticketmaster Discovery API: concerts, sports, theatre near a point. Needs TICKETMASTER_API_KEY. config: {lat, lng, radius_km, city, segment?}",
     ical: "Any public iCalendar feed (LibCal, Google Calendar public ICS, Trumba, Communico, venue calendars). Each event links to the first of its URL, Trumba's X-TRUMBA-LINK and event_url_template (an https URL containing {uid}, filled with the event's UID) that is an http(s) URL with no username or password. Contact fields, email addresses and phone numbers are removed from descriptions; a title that opens or closes with CANCELLED or POSTPONED retires the event. Contact details are also removed from the place. fold_repeats: true relays the instances of one title at one place as one post, for feeds that give each instance its own UID and link. omit_description: true relays no description text, for feeds whose descriptions are staff notes. config: {url, timezone?, location_name?, lat?, lng?, event_url_template?, fold_repeats?, omit_description?}",
     rss: "Any RSS or Atom feed of notices. Items are announcements with a TTL. config: {url, ttl_days?, location_name?, lat?, lng?}",
     localist: "Localist-powered calendars (most university event sites). Placeholder venues (\"Sign in to download the location\", \"TBD\") are dropped. config: {base, location_name?, lat?, lng?} — the name and point to fall back on for the events upstream gives no coordinates for; not applied to online events.",
-    nws: "National Weather Service active alerts for a state, public domain. config: {area, min_severity?}",
   }[a];
 }
 

@@ -11,7 +11,7 @@ import { track } from "../metrics";
 import { dropPostListings } from "../cache-tags";
 import { PostInput, PostInputSchema, createPost, getPostRow, normalizeSourceKey, updatePost } from "../posts";
 import { PublisherRow } from "../publishers";
-import { ADAPTERS } from "./adapters";
+import { adapterFor } from "./adapters";
 import { RowIndex, cancelTargets, planItem, sameAliases } from "./aliases";
 import type { StoredRow } from "./aliases";
 import { collapseInstances } from "./collapse";
@@ -139,11 +139,13 @@ export async function runSource(source: SourceRow, publisher: PublisherRow, dead
     return { source: source.id, status, ...counts, error, ms: Date.now() - started };
   };
   try {
+    const adapter = adapterFor(source.adapter);
+    if (!adapter) throw new Error(`no adapter named "${source.adapter}", so this source cannot run; docs/syndication.md lists the adapters`);
     const now = new Date();
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), Math.max(0, window.fetchUntil - Date.now()));
     let fetched: Fetched;
-    try { fetched = asFetched(await ADAPTERS[source.adapter](source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal, fetchUntil: window.fetchUntil })); }
+    try { fetched = asFetched(await adapter(source, { now, horizonEnd: new Date(now.getTime() + source.horizon_days * 86400e3), signal: ctrl.signal, fetchUntil: window.fetchUntil })); }
     finally { clearTimeout(t); }
     let items: Item[] = fetched.items;
     counts.fetched = items.length;
