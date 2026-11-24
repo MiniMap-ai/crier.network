@@ -104,6 +104,14 @@ jobs:
           SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
         run: npm run check:repliers
 
+      # The metrics flush through the real postgres.js against the same schema: what it sends lands
+      # from a pooled client without a BEGIN, its waits are bounded, and a read that times out while
+      # pipelined leaves its connection answering the right queries (CRI-106, CRI-97, CRI-76).
+      - name: The metrics flush lands, opens no transaction, and bounds its waits
+        env:
+          SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+        run: npm run check:flush
+
   secret-scan:
     runs-on: ubuntu-latest
     permissions:

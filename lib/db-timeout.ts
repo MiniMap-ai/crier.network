@@ -91,7 +91,16 @@ export function isDbFailure(e: unknown): boolean {
 }
 
 /** What this module needs from a postgres.js pending query. Plain promises are accepted too. */
-type Pending<T> = PromiseLike<T> & { execute?: () => unknown; cancel?: () => unknown };
+type Pending<T> = PromiseLike<T> & { execute?: () => unknown; cancel?: () => unknown; state?: unknown; active?: boolean };
+
+/**
+ * May a timed-out query be cancelled? Not once it is written (`state`) behind the one its connection
+ * is answering (`active`): postgres.js 3.4.9 would hand its answer to the next query, desynchronising
+ * the connection for good (porsager/postgres#1252; docs/metrics.md, "When a counter is real").
+ */
+export function mayCancel(query: { state?: unknown; active?: boolean }): boolean {
+  return !query.state || query.active === true;
+}
 
 /** The one method this module needs from the shared client, kept structural to avoid an import cycle. */
 type PoolClient = { end: (opts: { timeout: number }) => unknown };
@@ -138,8 +147,12 @@ function noteTimeout() {
  * The clock starts when the query is queued rather than when it gets a connection: a request that
  * never gets a connection has to fail on the same budget as one that does. `execute()` enqueues the
  * query here instead of leaving it until the first `await`.
+ *
+ * `sharedPool: false` is for a query on a client other than `sql()`: its answer says nothing about
+ * the shared pool, so it neither advances nor resets the run of timeouts that replaces that pool.
  */
-export function withTimeout<T>(query: Pending<T>, opts: { ms?: number; label?: string } = {}): Promise<T> {
+export function withTimeout<T>(query: Pending<T>, opts: { ms?: number; label?: string; sharedPool?: boolean } = {}): Promise<T> {
+  const shared = opts.sharedPool !== false;
   const ms = opts.ms ?? DB_TIMEOUT_MS;
   try { query.execute?.(); } catch { /* not a postgres.js query; race it as it is */ }
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -148,13 +161,13 @@ export function withTimeout<T>(query: Pending<T>, opts: { ms?: number; label?: s
       // For a query still in the queue, cancel() removes it and rejects it. For one already sent, it
       // opens a side connection and asks Postgres to cancel. Either way the slot comes back instead
       // of staying busy behind a wait nobody is reading any more.
-      try { void Promise.resolve(query.cancel?.()).catch(() => {}); } catch { /* best effort */ }
+      if (mayCancel(query)) try { void Promise.resolve(query.cancel?.()).catch(() => {}); } catch { /* best effort */ }
       reject(new DbTimeoutError(ms, opts.label));
     }, ms);
   });
   return Promise.race([query, expiry]).then(
-    (value) => { clearTimeout(timer); noteHealthy(); return value as T; },
-    (e: unknown) => { clearTimeout(timer); if (e instanceof DbTimeoutError) noteTimeout(); throw e; },
+    (value) => { clearTimeout(timer); if (shared) noteHealthy(); return value as T; },
+    (e: unknown) => { clearTimeout(timer); if (shared && e instanceof DbTimeoutError) noteTimeout(); throw e; },
   );
 }
 
@@ -189,8 +202,8 @@ export function budget(totalMs: number = DB_TIMEOUT_MS): Budget {
 /**
  * Run a read once more if it died with its connection rather than its budget: a class-08 or
  * postgres.js connection code means the socket went away, and the next `sql()` hands out a live
- * one. A timeout is not retried; the budget is spent. Reads only — a write lost during COMMIT may
- * have applied, so the metrics flush retries with `transactOnce` (lib/flush-batch.ts), which stops at COMMIT.
+ * one. A timeout is not retried; the budget is spent. Reads only: a write whose connection was lost
+ * may have applied, which is why the metrics flush never retries its statements.
  */
 export async function retryIfConnectionLost<T>(attempt: () => Promise<T>): Promise<T> {
   try {

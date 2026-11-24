@@ -26,8 +26,8 @@ const sideWriteWith = (keepalive: (task: () => Promise<void>) => void) =>
  * resolvable outside the bundler (the same reason tests/metrics-view.test.ts keeps its subject in a
  * module of its own). So the flush's counter half lives in lib/side-writes.ts, and what is checked
  * here is the statements it issues against a recorder: what the flush delegates is what the flush
- * does. The rest of flush() — the transaction, the budget, the drain order — is the part a unit
- * test could only restate.
+ * does. The rest of flush() — the budget, the drain order — is the part a unit test could only
+ * restate.
  */
 
 /** Stands in for a postgres.js transaction: records the statements, and can be told to fail on one. */
@@ -135,7 +135,7 @@ test("a failed per-post statement is thrown to the flush, which counts and logs 
   reset();
   noteView("aaaaaaaa");
   const t = fakeTx({ failOn: /update posts/ });
-  await assert.rejects(applyCounts(t.tx, drainCounts()), /statement timeout/);
+  await assert.rejects(Promise.resolve(applyCounts(t.tx, drainCounts())), /statement timeout/);
   assert.equal(drainSideWritesLost(), 0, "not counted here as well");
   assert.equal(t.statements.length, 1, "exactly one attempt, not a retry that could double-count");
 });

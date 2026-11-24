@@ -281,7 +281,9 @@ writes:
   `metrics:snapshot_failed`, `metrics:stale_served` (see "How fresh the numbers
   are" below), `inbox:reach_skipped`, `inbox:reach_failed`,
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:db_connect`, `error:503`,
-  `error:side_write_timeout`, `error:embed_abort`, `error:embed_error`,
+  `error:side_write_timeout`, `error:metrics_flush_failed` (a metrics flush whose
+  daily-table write failed; see "When a counter is real"), `error:embed_abort`,
+  `error:embed_error`,
   `embed:failed:<search|subscription|post_create|post_update|backfill>`,
   `embed:retried`, `embed:recovered`, `search:embed_failed`,
   `post:closed` (a post its publisher closed, through `PATCH /posts/{id}` or
@@ -428,9 +430,9 @@ Two rules now, both in `lib/side-writes.ts`:
 
 - **Counters go in the flush.** `posts.views` and `posts.retrievals` accumulate
   per id in the process and are applied by the same `after(flush)` call that
-  writes the daily counters: one statement via `unnest`, in a transaction of
-  its own that starts once the daily counters' transaction has finished
-  ("Lock order" below says why). Rows locked by something else are still
+  writes the daily counters: one statement via `unnest`, sent once the daily
+  counters' statement has answered ("Lock order" below says why). Rows locked
+  by something else are still
   skipped rather than waited on, and crawlers are still not counted. Nothing is
   sampled.
 - **Everything else is registered.** `sideWrite(label, query)` in `lib/db.ts`
@@ -443,86 +445,118 @@ failed flush, a per-post update skipped because the flush had too little of its
 budget left, or a bump dropped because the buffer was full. It rides the next successful flush, so it is a floor rather
 than an exact count: if the database is unreachable for an hour, the losses in
 that hour are counted once it is back, and losses in a flush that itself fails
-are carried forward rather than dropped. Near zero is the expectation.
+are saved with its other error counters or carried forward ("When a counter is
+real"), rather than dropped. Near zero is the expectation.
 
 ### When a counter is real
 
-A count reaches `daily_counters` only when the flush carrying it commits. The
-flush runs after its request's response, on whichever client `sql()` hands it
-at that moment. If it fails, everything it carried goes with it, and one
-`error:side_write_timeout` is carried forward in its place.
+A count reaches `daily_counters` only when the statement carrying it commits.
+The flush runs after its request's response, on whichever client `sql()` hands
+it at that moment, as two statements and no transaction ("Lock order" below).
 
-That is why the two CRI-70 incidents of 2026-11-05 left different evidence.
-Both times the pool guard destroyed the client with flushes in flight. At 03:50
-fourteen were, the five `error:db_timeout` that caused the recycle among them:
+When the daily statement fails, its route, page and search counts, its actors
+and its stats go with it. Its `error:` counters do not. The flush writes them
+at once, with one `error:metrics_flush_failed`, in a statement of their own:
+one simple-protocol query whose keys are SQL literals, on a client of one
+connection that nothing else uses (`errorCounterSql` in `lib/db.ts`), within
+1.5 s held back from the flush's 6 s. It binds no parameters and sends no
+BEGIN, so none of the failures below can fail it, and a stalled shared pool is
+not in its way. If it fails too, the counters go back into the process's buffer
+and ride the next flush. Nothing is retried inside the request that failed,
+which may be dying. A process that dies before either (CRI-98, or a function
+the platform kills) still takes them with it.
+
+So, for reading the error counters as a clean-day gate (CRI-57): on a day with
+`error:metrics_flush_failed` above zero, the error counters are still complete
+unless a process died with them, which only the runtime log shows. They can
+count one error twice: a statement whose answer was lost (a timeout, a dropped
+connection) may still have committed, and its error counters are saved anyway.
+Every other counter undercounts and never overcounts. `/api/v1/metrics` does not
+report `error:metrics_flush_failed` yet; read it from `daily_counters`.
+
+**Why the flush opens no transaction.** postgres.js 3.4.9 can lose `sql.begin`'s
+hold on its connection. When a read times out while it waits behind another
+query on the same connection, cancelling it makes the library skip its answer
+and hand that answer to the next query (porsager/postgres#1252). From then on,
+every query on that connection reads the answer meant for the one before it. A
+BEGIN can also be written without the connection being reserved (#1189). Either
+way, the flush's BEGIN can end up on a connection the pool is also handing to
+other requests. That accounts for the errors filed against the flush:
+`UNSAFE_TRANSACTION` (CRI-106), `25001 there is already a transaction in
+progress` and sessions left idle in transaction (CRI-76), and two signs of a
+connection reading the wrong answers (CRI-97). One is `Cannot read properties
+of undefined (reading 'length')`; the other is `22P02 malformed array literal:
+"error:5xx"`, a statement bound with the parameter types of the one before it.
+All of them reproduce against Postgres 16 with postgres.js 3.4.9 when
+`withTimeout` cancels a read that has no parameters while it waits behind
+another query. `boardStats` is such a read. Two changes follow. `withTimeout` no
+longer cancels a query in that position (`mayCancel` in `lib/db-timeout.ts`).
+And the flush sends no BEGIN at all, so whatever else desynchronises a
+connection cannot strand a flush transaction on it. Both defects are fixed
+upstream only in postgres.js 4 (CRI-72). `npm run check:flush` holds all of
+this against a real database.
+
+Before the error counters were saved this way, a failed flush took everything
+it carried and left one `error:side_write_timeout` in its place. That is why the
+two CRI-70 incidents of 2026-11-05 left different evidence. Both times the pool
+guard destroyed the client with flushes in flight. At 03:50 fourteen were, the
+five `error:db_timeout` that caused the recycle among them:
 `error:side_write_timeout` 14, `error:db_timeout` 0. At 21:27 one was:
 `error:db_timeout` 3, `error:side_write_timeout` +1. The `error:5xx` and
 `error:db_connect` rows came from the requests the recycle itself failed, whose
-flushes ran after it.
-
-The guard now drains the old client instead of destroying it, and a flush that
-loses its connection before COMMIT is on the wire is retried once on the fresh
-one. A flush lost during COMMIT, or one the database would not take within its
-wait, is counted as lost rather than risked twice. So, for reading the error
-counters as a clean-day gate (CRI-57): on a day with `error:side_write_timeout`
-at or near zero they are complete; otherwise each unit is one flush whose
-contents are unknown, and the runtime log answers for that window.
+flushes ran after it. The guard now drains the old client instead of destroying
+it.
 
 ### Lock order
 
 Every instance flushes into the same few rows: today's `route:` and `search:`
 keys in `daily_counters`, today's single `stats_daily` row. Each flush holds the
-row locks it takes until it commits, and waits at most `FLUSH_LOCK_TIMEOUT_MS`
-(1.5 s) for a row lock another flush holds. So the flush (`lib/flush-batch.ts`)
-keeps the time it holds them short and the order it takes them fixed:
+row locks it takes until its statement ends, and waits at most 1.5 s for a row
+lock another flush holds. So the flush (`lib/flush-batch.ts`) keeps the time it
+holds them short and the order it takes them fixed:
 
-- **One transaction, daily tables only.** This is the fix that matters.
-  `daily_counters`, then `daily_actors`, then `bump_stat` per column, then
-  `bump_search` per shape. The per-post `views` and `retrievals` update is a
-  second transaction, started once the first has finished. They used to share
-  one, and an update of `posts` that ran to the 3 s statement timeout held every
+- **One statement, daily tables only.** `metrics_flush(jsonb)`
+  (`migrations/0024_metrics_flush.sql`) writes `daily_counters`, then
+  `daily_actors`, then `bump_stat` per column, then `bump_search` per shape, in
+  one call that is its own transaction. Its row locks last as long as the server
+  takes to run it, never across a round trip, so a client that stalls or dies
+  cannot keep them. The per-post `views` and `retrievals` update is a second
+  statement, sent once the first has answered. They used to share one
+  transaction, and an update of `posts` that ran to its timeout held every
   counter row the flush had already upserted; that was the holder in all three
   lock timeouts of the week CRI-45 was examined (Supabase logs: the waiter on
   `insert into daily_counters`, the holder cancelled on
   `update posts ... retrievals`).
-- **Sorted.** Each list is sorted by key, so two flushes that share rows lock
-  them in the same order: one can only queue behind the other, never wait in a
-  cycle.
-- **One statement at a time.** With `prepare: false` (`lib/db.ts`) postgres.js
-  does not pipeline parameterized statements: each is described before it is
-  bound, and a transaction sends the next only once the last has answered. So
-  the statements are awaited in turn, which costs nothing, and a failure is the
-  last thing the transaction sends: its ROLLBACK goes straight after, rather
-  than behind statements queued for a transaction already aborted. Each
-  statement costs about two round trips (describe, then bind and execute), so
-  a holder keeps its locks for that many per statement: two, plus one per stats
-  column and one per search shape, all on small rows.
+- **Sorted.** Each list is sorted by key, and `metrics_flush` keeps that order,
+  so two flushes that share rows lock them in the same order: one can only
+  queue behind the other, never wait in a cycle.
+- **Bounded on both sides.** The function sets its own `lock_timeout` of
+  1.5 s. With no transaction block there is nowhere to put a SET LOCAL, and a
+  `statement_timeout` set on a function does not bound the statement that calls
+  it (checked on Postgres 16). The client waits at most 4.5 s for the two
+  statements together: `FLUSH_WAIT_MS` less the 1.5 s held back for saving
+  error counters. It cancels a statement still running at that deadline.
 
-The two transactions run in sequence, not side by side. They share no rows, so
+The two statements run in sequence, not side by side. They share no rows, so
 side by side would be faster, but the pool is four connections per instance and
-the requests it serves need them more than a flush needs the time. In sequence,
-the second must not start on what is left of a budget the first used up: if the
-first ran out of its 6 s wait, or less than one statement timeout plus 500 ms is
-left (`COUNTS_MIN_MS`), the per-post update is skipped and its counts are lost.
-Otherwise the client could give up on a `begin()` it cannot cancel while the
-server was still running it. That margin bounds the common case, a connection
-already open, not every case: when the pool must open a connection first (TLS
-and auth, up to the 10 s `connect_timeout`), the client can still give up while
-the server commits, and the loss is reported for counts that landed. A margin
-that covered a cold open would be larger than the flush's whole 6 s wait. A
-per-post transaction that loses its connection before COMMIT is retried once,
-like the first.
+the requests it serves need them more than a flush needs the time. If the first
+used up the flush's wait, the per-post update is skipped and its counts are
+lost. When the pool must open a connection first (TLS and auth, up to the 10 s
+`connect_timeout`), the client can give up while the server commits, and the
+loss is reported for counts that landed.
 
 What the bound on a waiter does not cover is a holder whose connection goes
-away mid-transaction (the pooler incidents in "When a counter is real"): its
-locks last until the server notices, and the waiter is counted as lost.
+away mid-statement: its locks last until the server notices, and the waiter is
+counted as lost.
 
 When a flush fails, the runtime log carries `metrics flush <message>` (an error)
 and `metrics flush lost <sqlstate> counters [key=n, …]` (a warning) naming up to
 40 counter keys it took with it. The `route:` keys among them are the requests
-whose counts were lost. A per-post update that failed or was skipped logs
-`side write failed flush:counts <n> views, <n> retrievals; <reason>`. A flush
-that lost anything, in either transaction or both, is one
+whose counts were lost. Then comes `metrics flush saved its error counters
+<key=n, …>` (a warning), or `metrics flush could not save its error counters;
+carrying them to the next flush` (an error). A per-post update that failed or
+was skipped logs `side write failed flush:counts <n> views, <n> retrievals;
+<reason>`. A flush that lost anything, in either statement or both, is one
 `error:side_write_timeout`.
 
 ### What these counters cannot see
@@ -579,7 +613,8 @@ while it is live. A subscription is stored without a query embedding and
 matches by text only for its lifetime.
 
 These counters inherit the flush's limits ("When a counter is real"): a flush
-that dies takes them with it.
+that fails saves `error:embed_abort` and `error:embed_error` with its other error
+counters, and takes the `embed:` counters with it.
 
 What still cannot be seen: a request the platform kills — Vercel's `Task timed
 out after N seconds`, a 504 at the edge — runs no code of ours, so nothing here
