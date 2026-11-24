@@ -272,7 +272,8 @@ writes:
   `search:zero`, `search:text`, `search:source:<rest|mcp|feed>`,
   `search:log_dropped`, `search:crawler`, `listing:total`,
   `listing:source:<rest|mcp|feed>`, `heartbeat:total`,
-  `heartbeat:client:<name>`,
+  `heartbeat:client:<name>`, `read:retried`, `read:recovered` (see "What
+  these counters cannot see" below),
   `mcp:initialize`, `mcp:tool:<name>`, `page:<human|crawler|agent>`,
   `pageview:<home|post|publisher|stats>`, `register:client:<name>`,
   `publisher:domain_taken:<register|move>`, `publisher:recovered`,
@@ -542,6 +543,30 @@ and only the cause is counted. The inbox reads `reach` only after its items, so
 a call that ends in a 503 never also drops `reach`. The runtime log line is
 `dropped read db timeout` or `dropped read db connect`, followed by the caller
 (`noteDbTimeout` in `lib/metrics.ts`).
+
+A page's primary read (the post on `/p/[id]`, the publisher on
+`/publishers/[id]`) is made a second time, on a one-connection client of its
+own, when the shared client has not answered within a second or fails sooner
+(`lib/page-read.ts`). `read:retried` counts those second attempts and
+`read:recovered` the ones whose answer the page used. A recovered retry of a
+read that had failed is a 500 that was not served; one of a read that was only
+slow may have saved nothing but time, since the first attempt could still have
+answered within the budget. The log line `primary read retried` says which:
+`failed` with the error, or `slow`. When both attempts fail, the page's 500 is
+counted as before, under the first attempt's cause. The second attempt's own
+failure is the log line `primary read retry failed`. Neither key is in
+`/api/v1/metrics`; read them from `daily_counters`.
+
+`error:5xx` also counts a promise rejection that nothing in the process
+handled (`lib/process-guard.ts`, installed by `instrumentation.ts`). The one
+seen in production came from inside postgres.js, and the process exited with it
+(CRI-98). The count is only written by the next flush, so it lands only if the
+process lives long enough for one. When the platform ends the process on the
+rejection, as it did then, the count is lost with it, and the log line
+`unhandled rejection`, with the stack, is the only record. When the process
+lives, the rejection may have served no error at all, and a page that failed
+on the same fault counts its own 500 too, so the key can over-count. Either
+way, a day with one is not clean.
 
 Until 2026-11-02 `errors_7d` read `error:5xx` alone, which handlers write only
 for a 500, so from the day timeouts started being answered 503 the headline

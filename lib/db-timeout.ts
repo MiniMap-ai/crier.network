@@ -43,7 +43,7 @@ const RESET_AFTER_MS = int("CRIER_DB_RESET_AFTER_MS", DB_TIMEOUT_MS);
  * than either budget, so a query someone is waiting on reaches its own deadline first. The flush's
  * wait in lib/metrics.ts has to stay under this too.
  */
-const DRAIN_TIMEOUT_S = Math.ceil(Math.max(DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS) / 1000) + 2;
+export const DRAIN_TIMEOUT_S = Math.ceil(Math.max(DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS) / 1000) + 2;
 
 /**
  * A read gave up before the database answered. Distinguishable on purpose: handlers turn it into a
@@ -138,8 +138,11 @@ function noteTimeout() {
  * The clock starts when the query is queued rather than when it gets a connection: a request that
  * never gets a connection has to fail on the same budget as one that does. `execute()` enqueues the
  * query here instead of leaving it until the first `await`.
+ *
+ * `ownClient` marks a query sent on a client other than the shared one: its answer or timeout says
+ * nothing about the shared pool, so it neither clears nor extends the run that replaces it.
  */
-export function withTimeout<T>(query: Pending<T>, opts: { ms?: number; label?: string } = {}): Promise<T> {
+export function withTimeout<T>(query: Pending<T>, opts: WaitOpts = {}): Promise<T> {
   const ms = opts.ms ?? DB_TIMEOUT_MS;
   try { query.execute?.(); } catch { /* not a postgres.js query; race it as it is */ }
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -153,13 +156,13 @@ export function withTimeout<T>(query: Pending<T>, opts: { ms?: number; label?: s
     }, ms);
   });
   return Promise.race([query, expiry]).then(
-    (value) => { clearTimeout(timer); noteHealthy(); return value as T; },
-    (e: unknown) => { clearTimeout(timer); if (e instanceof DbTimeoutError) noteTimeout(); throw e; },
+    (value) => { clearTimeout(timer); if (!opts.ownClient) noteHealthy(); return value as T; },
+    (e: unknown) => { clearTimeout(timer); if (e instanceof DbTimeoutError && !opts.ownClient) noteTimeout(); throw e; },
   );
 }
 
 /** Same budget as withTimeout, for a read whose absence the caller can render around. */
-export function withTimeoutOr<T, F>(query: Pending<T>, fallback: F, opts: { ms?: number; label?: string } = {}): Promise<T | F> {
+export function withTimeoutOr<T, F>(query: Pending<T>, fallback: F, opts: WaitOpts = {}): Promise<T | F> {
   return withTimeout(query, opts).catch((e: unknown) => {
     console.error("db read failed", opts.label ?? "", (e as Error).message);
     return fallback;
@@ -171,7 +174,15 @@ export function withTimeoutOr<T, F>(query: Pending<T>, fallback: F, opts: { ms?:
  * reads has a four-times budget and can still outlive the route's maxDuration; with it, the whole
  * render is bounded by the same number the route is.
  */
-export type Budget = (label: string) => { ms: number; label: string };
+export type Budget = (label: string) => { ms: number; label: string; ownClient?: boolean };
+
+/** What withTimeout takes: a budget's answer, or a bare `ms` and `label`. */
+type WaitOpts = { ms?: number; label?: string; ownClient?: boolean };
+
+/** The same deadline as `at`, for queries sent on a client other than the shared one. */
+export function onOwnClient(at: Budget): Budget {
+  return (label) => ({ ...at(label), ownClient: true });
+}
 
 /**
  * A read started after the budget is spent is meant to fail immediately — the request has already

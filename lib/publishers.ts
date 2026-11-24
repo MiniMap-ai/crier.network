@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { Resolver } from "node:dns/promises";
 import { DB_SIDE_TIMEOUT_MS, budget, sql, withTimeout } from "./db";
-import type { Budget } from "./db";
+import type { Budget, Sql } from "./db";
 import type { TransactionSql } from "postgres";
 import { env } from "./env";
 import { HttpError, bearer } from "./http";
@@ -212,8 +212,8 @@ export const LOST_KEY_HINT =
   "If you lost your key and registered with a bare domain url (no path), register again with the same url: the 409 publisher_exists answer names your publisher and the steps to prove the domain and take a new key for it. " +
   "If you registered without a url or with a url that has a path, register again; old posts stay attached to the old publisher.";
 
-export async function getPublisher(id: string, at: Budget = budget()): Promise<PublisherRow | null> {
-  const [row] = await withTimeout(sql()<PublisherRow[]>`select * from publishers where id = ${id}`, at("getPublisher"));
+export async function getPublisher(id: string, at: Budget = budget(), s: Sql = sql()): Promise<PublisherRow | null> {
+  const [row] = await withTimeout(s<PublisherRow[]>`select * from publishers where id = ${id}`, at("getPublisher"));
   return row ?? null;
 }
 

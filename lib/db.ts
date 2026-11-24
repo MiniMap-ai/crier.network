@@ -1,7 +1,9 @@
 import postgres from "postgres";
 import { after } from "next/server";
 import { env } from "./env";
-import { DB_SIDE_TIMEOUT_MS, withTimeout } from "./db-timeout";
+import { DB_SIDE_TIMEOUT_MS, DRAIN_TIMEOUT_S, withTimeout } from "./db-timeout";
+import { disposableClient } from "./fallback-read";
+import type { DisposableClient } from "./fallback-read";
 import { makeSideWrite } from "./side-writes";
 
 // One client per process. On Vercel each function instance is its own process; the
@@ -9,10 +11,12 @@ import { makeSideWrite } from "./side-writes";
 declare global {
   // eslint-disable-next-line no-var
   var __crier_sql: ReturnType<typeof postgres> | undefined;
+  // eslint-disable-next-line no-var
+  var __crier_fallback_sql: DisposableClient<ReturnType<typeof postgres>> | undefined;
 }
 
 // Every wait on this client is bounded; see db-timeout.ts for why postgres.js cannot do it for us.
-export { DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS, DbTimeoutError, budget, isDbConnectError, isDbFailure, retryIfConnectionLost, withTimeout, withTimeoutOr } from "./db-timeout";
+export { DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS, DbTimeoutError, budget, isDbConnectError, isDbFailure, onOwnClient, retryIfConnectionLost, withTimeout, withTimeoutOr } from "./db-timeout";
 export type { Budget } from "./db-timeout";
 
 /**
@@ -31,10 +35,24 @@ export const sideWrite = makeSideWrite({
 });
 
 export function sql() {
-  if (!globalThis.__crier_sql) {
-    globalThis.__crier_sql = postgres(env.DATABASE_URL, {
+  globalThis.__crier_sql ??= connect(4); // one instance serves many concurrent requests; the Supabase pooler is the real pool
+  return globalThis.__crier_sql;
+}
+
+/**
+ * A one-connection client that shares no socket with sql(), for the second attempt at a page's
+ * primary read (lib/page-read.ts). Retire it after any failure on it, so the next attempt opens a
+ * new connection instead of queueing behind one that just failed.
+ */
+export function fallbackSql(): DisposableClient<Sql> {
+  globalThis.__crier_fallback_sql ??= disposableClient(() => connect(1), DRAIN_TIMEOUT_S);
+  return globalThis.__crier_fallback_sql;
+}
+
+function connect(max: number) {
+  return postgres(env.DATABASE_URL, {
       prepare: false,        // required for transaction-mode pooling
-      max: 4,               // one instance serves many concurrent requests; the Supabase pooler is the real pool
+      max,
       // Held low deliberately. A socket kept across a Fluid suspension is how the 2026-09-10 wedge
       // started, and the safe way to hold one longer — `attachDatabasePool` from @vercel/functions,
       // which releases idle clients before an instance suspends — does not accept this client: it
@@ -49,11 +67,9 @@ export function sql() {
       ssl: env.DATABASE_URL.includes("localhost") || env.DATABASE_URL.includes("host=/") ? undefined : "require",
       transform: { undefined: null },
     });
-  }
-  return globalThis.__crier_sql;
 }
 
-export type Sql = ReturnType<typeof sql>;
+export type Sql = ReturnType<typeof connect>;
 
 export function toVectorLiteral(v: number[]): string {
   return "[" + v.map((x) => (Number.isFinite(x) ? x.toFixed(6) : "0")).join(",") + "]";
