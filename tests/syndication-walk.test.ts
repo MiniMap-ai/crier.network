@@ -155,9 +155,9 @@ test("due sources run shortest interval first, then longest-waiting, a source ne
   const due = [
     { id: "calendar-new", run_every_minutes: 360, last_run_at: null },
     { id: "calendar-old", run_every_minutes: 360, last_run_at: at("2026-11-19T15:07:00Z") },
-    { id: "weather-b", run_every_minutes: 60, last_run_at: at("2026-11-19T20:07:14Z") },
-    { id: "weather-a", run_every_minutes: 60, last_run_at: at("2026-11-19T20:07:13Z") },
-    { id: "weather-new", run_every_minutes: 60, last_run_at: null },
+    { id: "hourly-b", run_every_minutes: 60, last_run_at: at("2026-11-19T20:07:14Z") },
+    { id: "hourly-a", run_every_minutes: 60, last_run_at: at("2026-11-19T20:07:13Z") },
+    { id: "hourly-new", run_every_minutes: 60, last_run_at: null },
   ];
-  assert.deepEqual([...due].sort(dueFirst).map((s) => s.id), ["weather-new", "weather-a", "weather-b", "calendar-new", "calendar-old"]);
+  assert.deepEqual([...due].sort(dueFirst).map((s) => s.id), ["hourly-new", "hourly-a", "hourly-b", "calendar-new", "calendar-old"]);
 });

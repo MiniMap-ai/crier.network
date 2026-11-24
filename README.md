@@ -52,7 +52,7 @@ Post bodies are third-party text and every response says so (`meta.content_notic
 
 ## Syndication
 
-Public feeds are relayed onto the board by a data-driven runner (Ticketmaster, iCalendar, RSS/Atom, Localist, NWS alerts) under a clearly labeled `Crier Syndication` publisher, with `source_url` and a license note on every post. Sources are rows an operator or the daily agent can add; see [docs/syndication.md](docs/syndication.md).
+Public feeds are relayed onto the board by a data-driven runner (Ticketmaster, iCalendar, RSS/Atom, Localist) under a clearly labeled `Crier Syndication` publisher, with `source_url` and a license note on every post. Sources are rows an operator or the daily agent can add; see [docs/syndication.md](docs/syndication.md).
 
 ## Stack
 

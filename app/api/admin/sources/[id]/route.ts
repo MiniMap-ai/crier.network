@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handler, ok, readJson } from "@/lib/http";
 import { requireAdmin } from "@/lib/admin";
 import { sql } from "@/lib/db";
+import { adapterFor } from "@/lib/syndication/adapters";
 import { runSource, syndicationPublisher } from "@/lib/syndication/runner";
 import { SourcePatch } from "@/lib/syndication/source-schema";
 import type { SourceRow } from "@/lib/syndication/types";
@@ -31,6 +32,9 @@ export const POST = handler(async (req, ctx: Ctx) => {
   const s = sql();
   const [src] = await s<SourceRow[]>`select * from sources where id = ${id}`;
   if (!src) return fail(404, "not_found", "No such source.");
+  if ((action === "enable" || action === "run") && !adapterFor(src.adapter)) {
+    return fail(409, "unsupported_adapter", `This source uses the ${src.adapter} adapter, which Crier does not have, so it cannot be enabled or run.`, { hint: "Leave it disabled: it is the provenance of the posts it relayed. docs/syndication.md lists the adapters and what is never relayed." });
+  }
   if (action === "enable") await s`update sources set enabled = true where id = ${id}`;
   if (action === "disable") await s`update sources set enabled = false where id = ${id}`;
   if (action === "update" && patch) {

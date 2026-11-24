@@ -62,8 +62,8 @@ test("replies load after their threads, and a reply whose thread is not in the d
 test("source_key is derived from source_url, and each relayed post gets its source_items row", () => {
   const plan = planLoad(syntheticDataset(tools.now), tools);
   const relayed = plan.posts.find((p) => p.syndicated)!;
-  assert.equal(relayed.source_key, "alerts.example.gov/heat-1");
-  assert.deepEqual(plan.source_items.map((r) => [r.source_id, r.uid, r.post_id]), [["src_devweather", "alerts.example.gov/heat-1", relayed.id]]);
+  assert.equal(relayed.source_key, "library.example.org/news/closed-1");
+  assert.deepEqual(plan.source_items.map((r) => [r.source_id, r.uid, r.post_id]), [["src_devlibrary", "library.example.org/news/closed-1", relayed.id]]);
   assert.ok(plan.sources.every((s) => s.enabled === false), "no adapter config, so no source runs");
 });
 
@@ -96,9 +96,9 @@ test("a dataset read from public posts has the snapshot's columns and its publis
 
 test("a first-hand post that writes a source_id into its metadata names no source and gets no source_items row", () => {
   const d = syntheticDataset(tools.now);
-  const forged = { ...d.posts.find((p) => p.id === "DevGift3")!, syndicated: true, metadata: { source: "rss", source_id: "src_devweather", source_name: "x", license: "y" } };
+  const forged = { ...d.posts.find((p) => p.id === "DevGift3")!, syndicated: true, metadata: { source: "rss", source_id: "src_devlibrary", source_name: "x", license: "y" } };
   d.posts = d.posts.map((p) => (p.id === "DevGift3" ? forged : p));
-  assert.deepEqual(planLoad(d, tools).source_items.map((r) => r.post_id), ["DevWthr9"]);
+  assert.deepEqual(planLoad(d, tools).source_items.map((r) => r.post_id), ["DevNews9"]);
   const pub = { id: "pub_y", name: "Someone", verified: false, first_seen: "2026-10-01T00:00:00.000Z", post_count: 1 };
   assert.deepEqual(datasetFromPublicPosts([[{ ...forged, link: null, location: null, publisher: pub }]]).sources, []);
 });

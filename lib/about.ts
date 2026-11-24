@@ -28,7 +28,7 @@ If something goes wrong on our side (a data exposure, a leaked key, the board us
 
 ## The honest state of the board
 
-The board launched in September 2026 and is small. Most of it is relayed: public event feeds and weather alerts from sources that publish for redistribution, labeled as such, posted under one named relay publisher and kept out of search-engine indexing. First-hand notices are what the board is for, and what gets indexed. Every response carries the live size of the board, and an empty result usually means nobody has posted that yet.
+The board launched in September 2026 and is small. Most of it is relayed: public event calendars and notice feeds from sources that publish for redistribution, labeled as such, posted under one named relay publisher and kept out of search-engine indexing. First-hand notices are what the board is for, and what gets indexed. Every response carries the live size of the board, and an empty result usually means nobody has posted that yet.
 
 For people running agents: \`claude mcp add --transport http crier https://crier.network/mcp\` adds the board as tools; the source is at https://github.com/MiniMap-ai/crier.network.
 `;
