@@ -15,6 +15,7 @@ import { lastResult, nearestLiveStatement, relatedPostsStatement } from "./live-
 import { mentionsCalendarDate } from "./date-mention";
 import { mergeEdit, postEmbeddingText } from "./post-schema";
 import type { Kind, PostEdit, PostInput } from "./post-schema";
+import { bodySha256, writeEdit } from "./post-version";
 
 export { normalizeSourceKey };
 export { KINDS, PostInputSchema, PostPatchSchema } from "./post-schema";
@@ -54,6 +55,7 @@ export type PostRow = {
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
+  revision: number;
   // joined
   distance_km?: number | null;
   score?: number | null;
@@ -87,6 +89,8 @@ export type PublicPost = {
   flags: string[];          // heuristic content flags, e.g. possible_instruction. Never used for ranking.
   created_at: string;
   updated_at: string;
+  revision: number;         // docs/scenarios.md, scenario 20
+  body_sha256: string;      // of `body` as served; lib/post-version.ts
   distance_km?: number;
   relevance?: number;       // reranker score for the query, 0..1, on text searches only
   publisher: PublicPublisher;
@@ -121,6 +125,8 @@ export function publicPost(r: PostRow, opts: { withDistance?: boolean } = {}): P
     flags: r.flags ?? [],
     created_at: r.created_at.toISOString(),
     updated_at: r.updated_at.toISOString(),
+    revision: r.revision,
+    body_sha256: bodySha256(r.body),
     publisher: {
       id: r.publisher_id,
       name: r.pub_name ?? "",
@@ -249,6 +255,8 @@ export async function createPost(publisher: PublisherRow, input: PostInput, opts
  * A change to the embedded text re-embeds it; if Cohere fails, the embedding is cleared rather than
  * left describing the old text, and backfillEmbeddings fills it in. `embedDeadline` and `flags` as
  * in createPost; `wholeWindow` as in mergeEdit, for a relay whose item carries the event's whole schedule.
+ * The PATCH route and the syndication runner both edit through here, and writeEdit raises the
+ * post's revision only when the stored content changes.
  */
 export async function updatePost(publisher: PublisherRow, id: string, patch: PostEdit, opts: { embedDeadline?: number; flags?: string[]; wholeWindow?: boolean } = {}): Promise<PublicPost> {
   const existing = await getPostRow(id);
@@ -263,23 +271,13 @@ export async function updatePost(publisher: PublisherRow, id: string, patch: Pos
   validateWindow({ starts_at: merged.starts_at?.toISOString(), ends_at: merged.ends_at?.toISOString() });
   const expires_at = patch.expires_at || patch.ends_at || patch.starts_at
     ? computeExpiry({ expires_at: patch.expires_at, ends_at: merged.ends_at?.toISOString(), starts_at: merged.starts_at?.toISOString() })
-    : existing.expires_at;
+    : null;
   let vecLiteral: string | null | undefined = undefined;
   if (textChanged) {
     const [vec] = await embedDocuments([postEmbeddingText({ ...merged })], { site: "post_update", deadline: opts.embedDeadline });
     vecLiteral = vec ? toVectorLiteral(vec) : null;
   }
-  await sql()`
-    update posts set
-      kind = ${merged.kind}, title = ${merged.title}, body = ${merged.body}, url = ${merged.url}, tags = ${merged.tags},
-      place_name = ${merged.place_name}, lat = ${merged.lat}, lng = ${merged.lng},
-      starts_at = ${merged.starts_at}, ends_at = ${merged.ends_at}, timezone = ${merged.timezone},
-      expires_at = ${expires_at}, source_url = ${merged.source_url}, source_key = ${normalizeSourceKey(merged.source_url)},
-      syndicated = ${merged.syndicated}, metadata = ${sql().json(merged.metadata as never)},
-      embedding = ${vecLiteral === undefined ? sql()`embedding` : sql()`${vecLiteral}::vector`},
-      flags = ${flags},
-      updated_at = now()
-    where id = ${id}`;
+  await writeEdit(sql(), id, { ...merged, expires_at, source_key: normalizeSourceKey(merged.source_url), flags, embedding: vecLiteral });
   dropPostCache(id);
   return publicPost((await getPostRow(id))!);
 }

@@ -104,6 +104,13 @@ jobs:
           SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
         run: npm run check:repliers
 
+      # What raises a post's revision and what leaves it alone, run through the statement the app
+      # uses for every edit, against the same schema.
+      - name: A post's revision counts content changes and nothing else
+        env:
+          SCRATCH_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+        run: npm run check:revision
+
   secret-scan:
     runs-on: ubuntu-latest
     permissions:
