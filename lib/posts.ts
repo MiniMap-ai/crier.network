@@ -13,6 +13,7 @@ import { track } from "./metrics";
 import { indexNow } from "./indexnow";
 import { lastResult, nearestLiveStatement, relatedPostsStatement } from "./live-sql";
 import { mentionsCalendarDate } from "./date-mention";
+import { postExpiry } from "./expiry";
 import { mergeEdit, postEmbeddingText } from "./post-schema";
 import type { Kind, PostEdit, PostInput } from "./post-schema";
 
@@ -142,22 +143,11 @@ export const POST_COLUMNS = `
   p.*, u.name as pub_name, u.url as pub_url, u.domain as pub_domain, u.description as pub_description,
   u.domain_verified_at as pub_verified_at, u.created_at as pub_created_at, u.post_count as pub_post_count`;
 
-const DEFAULT_TTL_DAYS = 30;
-const MAX_TTL_DAYS = 365;
-
-function computeExpiry(input: { expires_at?: string; ends_at?: string; starts_at?: string }): Date {
-  const now = Date.now();
-  if (input.expires_at) {
-    const e = new Date(input.expires_at);
-    if (e.getTime() <= now) throw new HttpError(400, "invalid_expiry", "expires_at is in the past.");
-    return new Date(Math.min(e.getTime(), now + MAX_TTL_DAYS * 86400e3));
-  }
-  const end = input.ends_at ? new Date(input.ends_at) : input.starts_at ? new Date(input.starts_at) : null;
-  if (end) {
-    // Keep events around a day after they end so "what did I miss" still works.
-    return new Date(Math.max(end.getTime() + 86400e3, now + 3600e3));
-  }
-  return new Date(now + DEFAULT_TTL_DAYS * 86400e3);
+/** postExpiry (lib/expiry.ts) at the current time; an explicit expires_at in the past is a 400. */
+function computeExpiry(input: { expires_at?: string; ends_at?: string; starts_at?: string }, threadExpiresAt?: Date): Date {
+  const at = postExpiry(input, Date.now(), threadExpiresAt);
+  if (!at) throw new HttpError(400, "invalid_expiry", "expires_at is in the past.");
+  return at;
 }
 
 function validateWindow(input: { starts_at?: string; ends_at?: string }) {
@@ -183,16 +173,18 @@ export async function createPost(publisher: PublisherRow, input: PostInput, opts
     if (existing) return { post: publicPost(existing), created: false, notes };
   }
   let parentId: string | null = null;
+  let threadExpiresAt: Date | undefined;
   if (input.parent_id) {
     const pid = input.parent_id.replace(/^.*\/p\//, "").replace(/\.json$/, "");
     const parent = await getPostRow(pid);
     if (!parent || parent.deleted_at) throw new HttpError(404, "parent_not_found", `No post ${pid} to reply to.`);
     if (parent.parent_id) throw new HttpError(400, "nested_reply", "Replies are one level deep; reply to the thread itself.", `Use parent_id ${parent.parent_id}.`);
     parentId = parent.id;
+    threadExpiresAt = parent.expires_at;
     if (parent.closed_at) notes.push(`The post you replied to was closed by its publisher at ${parent.closed_at.toISOString()}; they may no longer be looking. Your reply was posted.`);
   }
   const id = newPostId();
-  const expires_at = computeExpiry(input);
+  const expires_at = computeExpiry(input, threadExpiresAt);
   if (!parentId && !input.starts_at && !input.ends_at && !input.expires_at && (mentionsCalendarDate(input.title) || mentionsCalendarDate(input.body))) {
     notes.push(`This post names a date in its text but sets no starts_at, ends_at or expires_at. It will be served as live until its expires_at, ${expires_at.toISOString()}, whatever date its text names: ` +
       `if that date comes first the post stays live after it, and if it comes later the post expires before it. ` +

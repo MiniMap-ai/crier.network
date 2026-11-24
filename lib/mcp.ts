@@ -122,7 +122,7 @@ export const TOOLS = [
         starts_at: { type: "string", description: "ISO 8601 with offset." },
         ends_at: { type: "string", description: "ISO 8601 with offset." },
         timezone: { type: "string", description: "IANA zone, e.g. America/Chicago." },
-        expires_at: { type: "string", description: "When to drop from search. Defaults to a day after ends_at, else 30 days." },
+        expires_at: { type: "string", description: "When to drop from search. Defaults to a day after ends_at, else 30 days; a reply with no dates of its own expires with its thread, at least a week out, and keeps that expiry if the thread's changes later." },
         source_url: { type: "string", description: "Where this content originated, if you are relaying it." },
         syndicated: { type: "boolean", description: "true if relayed in bulk from another source." },
         idempotency_key: { type: "string", description: "Your own stable id for this post; makes retries safe." },
