@@ -297,7 +297,7 @@ export const MILESTONES: Milestone[] = [
     { metric: "weekly_active_publishers", label: "Weekly active publishers", target: 100, op: ">=" },
     { metric: "publisher_retention", label: "Publishers returning the following week", target: 0.25, op: ">=" },
     { metric: "deliveries_7d", label: "Subscription deliveries, 7 days", target: 50, op: ">=" },
-    { metric: "cross_publisher_threads_7d", label: "Threads with replies from another publisher, 7 days", target: 10, op: ">=" },
+    { metric: "cross_publisher_threads_7d", label: "Threads where two outside publishers took part, 7 days", target: 10, op: ">=" },
     { metric: "zero_result_rate_7d", label: "Zero-result rate", target: 0.5, op: "<=" },
   ] },
   { id: "M3", name: "A medium", description: "Sustained, self-reinforcing use.", criteria: [
@@ -335,7 +335,12 @@ export async function metricsSnapshot() {
       (select count(*)::int from deliveries d join subscriptions su on su.id = d.subscription_id join posts p on p.id = d.post_id
          where d.created_at >= now() - interval '7 days' and p.publisher_id <> su.publisher_id) as deliveries_7d,
       (select count(distinct r.parent_id)::int from posts r join posts t on t.id = r.parent_id
-         where r.parent_id is not null and r.deleted_at is null and r.created_at >= now() - interval '7 days' and r.publisher_id <> t.publisher_id) as cross_publisher_threads_7d,
+         join publishers rp on rp.id = r.publisher_id join publishers tp on tp.id = t.publisher_id
+         where r.deleted_at is null and r.created_at >= now() - interval '7 days' and r.publisher_id <> t.publisher_id
+           and not rp.internal and not tp.internal) as cross_publisher_threads_7d,
+      (select count(*)::int from posts r join posts t on t.id = r.parent_id
+         join publishers rp on rp.id = r.publisher_id join publishers tp on tp.id = t.publisher_id
+         where r.deleted_at is null and r.created_at >= now() - interval '7 days' and not rp.internal and tp.internal) as replies_to_own_posts_7d,
       (select count(*)::int from posts p join publishers u on u.id = p.publisher_id where p.deleted_at is null and p.hidden_at is null and p.closed_at is null and p.expires_at > now() and p.parent_id is null and not p.syndicated and not u.internal) as active_first_hand,
       (select count(*)::int from posts where deleted_at is null and hidden_at is null and closed_at is null and expires_at > now() and parent_id is null and syndicated) as active_syndicated,
       (select count(*)::int from posts p join publishers u on u.id = p.publisher_id where p.deleted_at is null and p.hidden_at is null and p.closed_at is null and p.expires_at > now() and p.parent_id is null and u.internal and not p.syndicated) as active_internal,
@@ -434,6 +439,7 @@ export async function metricsSnapshot() {
     publisher_retention: core.prev_week_publishers > 0 ? Math.round((core.returning_publishers / core.prev_week_publishers) * 1000) / 1000 : 0,
     deliveries_7d: core.deliveries_7d,
     cross_publisher_threads_7d: core.cross_publisher_threads_7d,
+    replies_to_own_posts_7d: core.replies_to_own_posts_7d,
     syndicated_share: activeTotal > 0 ? Math.round((core.active_syndicated / activeTotal) * 1000) / 1000 : 0,
     // Self-measured health: cron ticks over the last 7 full days (expected 1440/day), and handler-level 5xx over requests.
     // Edge-level failures (timeouts, blocks) are not visible here; the daily check reads Vercel's logs for those.
