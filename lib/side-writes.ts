@@ -158,8 +158,19 @@ export function applyCounts(tx: Tx, counts: PendingCounts): unknown {
     if (cur) cur.retrievals += n; else byId.set(id, { views: 0, retrievals: n });
   }
   const ids = [...byId.keys()].sort();
+  const idList = arrayLiteral(ids);
   return tx`update posts p set views = p.views + c.v, retrievals = p.retrievals + c.r
-             from unnest(${ids}::text[], ${ids.map((id) => byId.get(id)!.views)}::bigint[], ${ids.map((id) => byId.get(id)!.retrievals)}::bigint[]) as c(id, v, r)
+             from unnest(${idList}::text[], ${arrayLiteral(ids.map((id) => byId.get(id)!.views))}::bigint[], ${arrayLiteral(ids.map((id) => byId.get(id)!.retrievals))}::bigint[]) as c(id, v, r)
             where p.id = c.id
-              and p.id in (select id from posts where id = any(${ids}::text[]) for update skip locked)`;
+              and p.id in (select id from posts where id = any(${idList}::text[]) for update skip locked)`;
+}
+
+/**
+ * `values` as a Postgres array literal, to bind as text. postgres.js serializes a JS array only
+ * after a new connection's array-types query has succeeded; once that query fails, it sends `["a"]`
+ * as `a`, and Postgres rejects that as a malformed array literal (docs/metrics.md, "When a counter
+ * is real"). A literal goes through either way. Numbers must be integers.
+ */
+export function arrayLiteral(values: readonly (string | number)[]): string {
+  return `{${values.map((v) => (typeof v === "number" ? String(v) : `"${v.replace(/[\\"]/g, "\\$&")}"`)).join(",")}}`;
 }

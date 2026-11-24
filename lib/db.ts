@@ -9,11 +9,7 @@ import { makeSideWrite } from "./side-writes";
 declare global {
   // eslint-disable-next-line no-var
   var __crier_sql: ReturnType<typeof postgres> | undefined;
-  // eslint-disable-next-line no-var
-  var __crier_error_counter_sql: ReturnType<typeof postgres> | undefined;
 }
-
-const ssl = () => (env.DATABASE_URL.includes("localhost") || env.DATABASE_URL.includes("host=/") ? undefined : "require");
 
 // Every wait on this client is bounded; see db-timeout.ts for why postgres.js cannot do it for us.
 export { DB_TIMEOUT_MS, DB_SIDE_TIMEOUT_MS, DbTimeoutError, budget, isDbConnectError, isDbFailure, retryIfConnectionLost, withTimeout, withTimeoutOr } from "./db-timeout";
@@ -50,35 +46,41 @@ export function sql() {
       idle_timeout: 20,
       connect_timeout: 10,   // TCP and auth only: past that, a silent pooler looks like a live connection
       max_lifetime: 300,     // retire pooled connections sooner so a bad one has less time to do harm
-      ssl: ssl(),
+      ssl: env.DATABASE_URL.includes("localhost") || env.DATABASE_URL.includes("host=/") ? undefined : "require",
       transform: { undefined: null },
     });
   }
   return globalThis.__crier_sql;
 }
 
+export type Sql = ReturnType<typeof sql>;
+
+export function toVectorLiteral(v: number[]): string {
+  return "[" + v.map((x) => (Number.isFinite(x) ? x.toFixed(6) : "0")).join(",") + "]";
+}
+
+declare global {
+  // eslint-disable-next-line no-var
+  var __crier_error_counter_sql: ReturnType<typeof postgres> | undefined;
+}
+
 /**
  * One connection, used only to save the error counters of a metrics batch the shared client failed
  * to write (saveErrorCounters in lib/flush-batch.ts). It is kept apart so that whatever failed the
  * batch there, a queue of stalled reads or a desynchronised connection, is not in its way. It sends
- * one simple-protocol statement and nothing else. Its timeouts are the shared client's, for the
+ * one simple-protocol statement and nothing else. Its timeouts and TLS rule are sql()'s, for the
  * reasons given there.
  */
 export function errorCounterSql() {
   globalThis.__crier_error_counter_sql ??= postgres(env.DATABASE_URL, {
     prepare: false,
     max: 1,
-    fetch_types: false,   // it binds no arrays, so fetching their types is a round trip it would waste
+    // It binds nothing, and a new connection's array-types query is one more thing that can fail first.
+    fetch_types: false,
     idle_timeout: 20,
     connect_timeout: 10,
     max_lifetime: 300,
-    ssl: ssl(),
+    ssl: env.DATABASE_URL.includes("localhost") || env.DATABASE_URL.includes("host=/") ? undefined : "require",
   });
   return globalThis.__crier_error_counter_sql;
-}
-
-export type Sql = ReturnType<typeof sql>;
-
-export function toVectorLiteral(v: number[]): string {
-  return "[" + v.map((x) => (Number.isFinite(x) ? x.toFixed(6) : "0")).join(",") + "]";
 }

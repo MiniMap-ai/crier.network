@@ -93,7 +93,7 @@ async function flush() {
       outOfTime = e instanceof DbTimeoutError;
       console.error("metrics flush", (e as Error).message);
       console.warn("metrics flush lost", (e as { code?: string }).code ?? "", describeBatch(batch));
-      const unsaved = await saveErrorCounters(batch, (statement) => withTimeout(errorCounterSql().unsafe(statement).simple(), { ms: SAVE_ERRORS_MS, label: "metrics:flush:save", sharedPool: false }), SAVE_LOCK_TIMEOUT_MS);
+      const unsaved = await saveErrorCounters(batch, (statement) => withTimeout(errorCounterSql().unsafe(statement).simple(), { ms: SAVE_ERRORS_MS, label: "metrics:flush:save", ownClient: true }), SAVE_LOCK_TIMEOUT_MS);
       // Not scheduled: a flush that schedules one from inside its own failure can loop.
       for (const [k, n] of unsaved) pendingCounters.set(k, (pendingCounters.get(k) ?? 0) + n);
     }

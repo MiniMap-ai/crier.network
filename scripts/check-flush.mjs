@@ -14,6 +14,7 @@
 import postgres from "postgres";
 import { orderBatch, saveCountersStatement, writeBatch } from "../lib/flush-batch.ts";
 import { withTimeout } from "../lib/db-timeout.ts";
+import { applyCounts } from "../lib/side-writes.ts";
 
 const url = process.env.SCRATCH_DATABASE_URL;
 if (!url) {
@@ -45,6 +46,8 @@ async function holdCounter(key) {
 const KEYS = "chkflush:%";
 const SAVED = "error:chkflush_saved";
 const SEARCH_Q = "chkflush shape";
+const PUBLISHER = "pub_chkflush";
+const POST = "chkflush";
 const [searchesBefore] = await probe`select coalesce((select searches from stats_daily where day = current_date), 0)::int as n`;
 
 try {
@@ -89,6 +92,20 @@ try {
   check(blocked.error?.code === "55P03" && savedWaited < 1500, `its SET LOCAL bounds its own lock wait (${blocked.error?.code ?? "no error"}, ${savedWaited} ms)`);
   await rescue.end();
 
+  console.log("a process whose array types never loaded");
+  // A failed array-types query on a new connection leaves postgres.js where fetch_types: false starts.
+  const untyped = postgres(url, { prepare: false, max: 1, fetch_types: false, transform: { undefined: null }, onnotice: () => {} });
+  await probe`insert into publishers (id, name, verify_token, api_key_hash, api_key_prefix, internal)
+              values (${PUBLISHER}, 'check-flush', 'check', 'check:check-flush', 'check', true) on conflict do nothing`;
+  await probe`insert into posts (id, publisher_id, kind, title, body, expires_at)
+              values (${POST}, ${PUBLISHER}, 'announcement', 'check-flush post', 'seeded by scripts/check-flush.mjs', now() + interval '1 day')`;
+  const daily = await settle(writeBatch(untyped, batch([["chkflush:untyped", 1]])));
+  check(!daily.error && String(await counter("chkflush:untyped")) === "1", `the daily statement still lands (${daily.error?.message ?? "ok"})`);
+  const perPost = await settle(applyCounts(untyped, { views: [[POST, 2]], retrievals: [[POST, 3]] }));
+  const [post] = await probe`select views::int, retrievals::int from posts where id = ${POST}`;
+  check(!perPost.error && post.views === 2 && post.retrievals === 3, `so does the per-post update (${perPost.error?.message ?? `${post.views} views, ${post.retrievals} retrievals`})`);
+  await untyped.end();
+
   console.log("a read that times out while pipelined");
   // Two connections, both occupied: one by a statement without parameters, which postgres.js
   // pipelines behind, the other by one with parameters, which it does not.
@@ -115,6 +132,8 @@ try {
   await probe`delete from daily_actors where day = current_date and actor = 'chkflush-actor'`;
   await probe`delete from search_log where day = current_date and q = ${SEARCH_Q}`;
   await probe`update stats_daily set searches = ${searchesBefore.n} where day = current_date`;
+  await probe`delete from posts where id = ${POST}`;
+  await probe`delete from publishers where id = ${PUBLISHER}`;
   await sql.end({ timeout: 1 });
   await probe.end();
 }

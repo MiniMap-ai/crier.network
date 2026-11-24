@@ -474,27 +474,37 @@ connection) may still have committed, and its error counters are saved anyway.
 Every other counter undercounts and never overcounts. `/api/v1/metrics` does not
 report `error:metrics_flush_failed` yet; read it from `daily_counters`.
 
-**Why the flush opens no transaction.** postgres.js 3.4.9 can lose `sql.begin`'s
-hold on its connection. When a read times out while it waits behind another
-query on the same connection, cancelling it makes the library skip its answer
-and hand that answer to the next query (porsager/postgres#1252). From then on,
-every query on that connection reads the answer meant for the one before it. A
-BEGIN can also be written without the connection being reserved (#1189). Either
-way, the flush's BEGIN can end up on a connection the pool is also handing to
-other requests. That accounts for the errors filed against the flush:
-`UNSAFE_TRANSACTION` (CRI-106), `25001 there is already a transaction in
-progress` and sessions left idle in transaction (CRI-76), and two signs of a
-connection reading the wrong answers (CRI-97). One is `Cannot read properties
-of undefined (reading 'length')`; the other is `22P02 malformed array literal:
-"error:5xx"`, a statement bound with the parameter types of the one before it.
-All of them reproduce against Postgres 16 with postgres.js 3.4.9 when
-`withTimeout` cancels a read that has no parameters while it waits behind
-another query. `boardStats` is such a read. Two changes follow. `withTimeout` no
-longer cancels a query in that position (`mayCancel` in `lib/db-timeout.ts`).
-And the flush sends no BEGIN at all, so whatever else desynchronises a
-connection cannot strand a flush transaction on it. Both defects are fixed
-upstream only in postgres.js 4 (CRI-72). `npm run check:flush` holds all of
-this against a real database.
+**Why the flush opens no transaction and binds no arrays.** postgres.js 3.4.9
+can lose `sql.begin`'s hold on its connection. When a read times out while it
+waits behind another query on the same connection, cancelling it makes the
+library skip its answer and hand that answer to the next query
+(porsager/postgres#1252). From then on, every query on that connection reads the
+answer meant for the one before it. `withTimeout` did this to reads with no
+parameters, `boardStats` among them. A BEGIN can also be written without the
+connection being reserved (#1189). Either way, the flush's BEGIN can end up on a
+connection the pool is also handing to other requests. That accounts for
+`UNSAFE_TRANSACTION` (CRI-106), and for `25001 there is already a transaction
+in progress` and sessions left idle in transaction (CRI-76).
+
+The library can also lose its array serializer. A stray row that arrives while
+a new connection runs postgres.js's array-types query throws `Cannot read
+properties of undefined (reading 'length')`. It fails that connection's first
+query and leaves the library's own promise unhandled (CRI-98). And the process
+never registers how to send an array: from then on `['error:5xx']` binds as
+`error:5xx`, and Postgres answers `22P02 malformed array literal` (CRI-97). A
+desynchronised connection can produce both errors too.
+
+All of these reproduce against Postgres 16 with postgres.js 3.4.9. Three
+changes follow:
+- `withTimeout` no longer cancels a query in that position (`mayCancel` in
+  `lib/db-timeout.ts`).
+- The flush sends no BEGIN, so nothing can strand a flush transaction.
+- The flush binds no JavaScript arrays: one `jsonb` for the daily tables, array
+  literals sent as text for the per-post update. So a missing serializer cannot
+  fail it.
+
+The library defects are fixed upstream only in postgres.js 4 (CRI-72). `npm run
+check:flush` holds all of this against a real database.
 
 Before the error counters were saved this way, a failed flush took everything
 it carried and left one `error:side_write_timeout` in its place. That is why the

@@ -8,7 +8,7 @@ process.env.CRIER_DB_SIDE_TIMEOUT_MS = "60";
 const { DB_SIDE_TIMEOUT_MS, withTimeout } = await import("../lib/db-timeout.ts");
 const {
   MAX_PENDING_POSTS,
-  applyCounts, drainCounts, drainSideWritesLost, makeSideWrite, noteRetrievals, noteView,
+  applyCounts, arrayLiteral, drainCounts, drainSideWritesLost, makeSideWrite, noteRetrievals, noteView,
 } = await import("../lib/side-writes.ts");
 type Tx = Parameters<typeof applyCounts>[0];
 
@@ -117,11 +117,17 @@ test("the flush applies views and retrievals in one statement, one row per post"
   const [update] = t.statements;
   assert.match(update.sql, /update posts p set views = p\.views \+ c\.v, retrievals = p\.retrievals \+ c\.r/);
   assert.match(update.sql, /for update skip locked/, "a view bump still never waits on a row lock");
-  assert.deepEqual(update.args[0], ["aaaaaaaa", "bbbbbbbb", "cccccccc"], "ids go in as one array, sorted");
-  assert.deepEqual(update.args[1], [2, 1, 0], "views alongside, in the same order");
-  assert.deepEqual(update.args[2], [1, 0, 1], "and retrievals");
-  assert.deepEqual(update.args[3], ["aaaaaaaa", "bbbbbbbb", "cccccccc"], "the lock subquery takes the same ids");
+  assert.equal(update.args[0], '{"aaaaaaaa","bbbbbbbb","cccccccc"}', "ids go in as one array literal, sorted");
+  assert.equal(update.args[1], "{2,1,0}", "views alongside, in the same order");
+  assert.equal(update.args[2], "{1,0,1}", "and retrievals");
+  assert.equal(update.args[3], update.args[0], "the lock subquery takes the same ids");
   assert.equal(drainSideWritesLost(), 0, "nothing was lost");
+});
+
+test("an array literal quotes each text element and escapes what would end it", () => {
+  assert.equal(arrayLiteral(["a", 'b"c', "d\\e", "f,g"]), '{"a","b\\"c","d\\\\e","f,g"}');
+  assert.equal(arrayLiteral([3, 0]), "{3,0}");
+  assert.equal(arrayLiteral([]), "{}");
 });
 
 test("nothing pending issues nothing at all", async () => {
