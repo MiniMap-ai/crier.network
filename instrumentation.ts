@@ -6,6 +6,6 @@ export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const { guardUnhandledRejections } = await import("./lib/process-guard");
     const { track } = await import("./lib/metrics");
-    guardUnhandledRejections(process, () => track.counter("error:5xx"));
+    guardUnhandledRejections(process, () => track.counter("error:unhandled_rejection"));
   }
 }

@@ -283,6 +283,7 @@ writes:
   are" below), `inbox:reach_skipped`, `inbox:reach_failed`,
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:db_connect`, `error:503`,
   `error:side_write_timeout`, `error:embed_abort`, `error:embed_error`,
+  `error:unhandled_rejection`,
   `embed:failed:<search|subscription|post_create|post_update|backfill>`,
   `embed:retried`, `embed:recovered`, `search:embed_failed`,
   `post:closed` (a post its publisher closed, through `PATCH /posts/{id}` or
@@ -557,16 +558,18 @@ counted as before, under the first attempt's cause. The second attempt's own
 failure is the log line `primary read retry failed`. Neither key is in
 `/api/v1/metrics`; read them from `daily_counters`.
 
-`error:5xx` also counts a promise rejection that nothing in the process
-handled (`lib/process-guard.ts`, installed by `instrumentation.ts`). The one
-seen in production came from inside postgres.js, and the process exited with it
-(CRI-98). The count is only written by the next flush, so it lands only if the
-process lives long enough for one. When the platform ends the process on the
-rejection, as it did then, the count is lost with it, and the log line
-`unhandled rejection`, with the stack, is the only record. When the process
-lives, the rejection may have served no error at all, and a page that failed
-on the same fault counts its own 500 too, so the key can over-count. Either
-way, a day with one is not clean.
+`error:unhandled_rejection` counts a promise rejection that nothing in the
+process handled (`lib/process-guard.ts`, installed by `instrumentation.ts`).
+It is a cause, like `error:db_timeout`, not a served error: it is not in
+`SERVED_ERROR_KEYS`, so `errors_7d` and `error_rate_7d` do not sum it. A page
+that fails on the same fault counts its own `error:5xx`, and a rejection can
+also serve no error at all. The one seen in production came from inside
+postgres.js, and the process exited with it (CRI-98). The count is only
+written by the next flush, so it lands only if the process lives long enough
+for one. When the platform ends the process on the rejection, the count is
+lost with it, and the log line `unhandled rejection`, with the stack, is the
+only record. The key is not in `/api/v1/metrics`; read it from
+`daily_counters`. Whether a day with one counts as clean is CRI-57's to say.
 
 Until 2026-11-02 `errors_7d` read `error:5xx` alone, which handlers write only
 for a 500, so from the day timeouts started being answered 503 the headline
