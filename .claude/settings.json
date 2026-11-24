@@ -25,6 +25,7 @@
       "mcp__Linear__list_comments",
       "mcp__Linear__save_issue",
       "mcp__Linear__save_comment",
+      "mcp__Supabase_Readonly",
       "mcp__github__pull_request_read",
       "mcp__github__list_pull_requests",
       "mcp__github__get_job_logs",
