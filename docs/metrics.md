@@ -278,12 +278,12 @@ writes:
   `publisher:domain_taken:<register|move>`, `publisher:recovered`,
   `mcp:outcome:<tool>:<ok or error code>`, `mcp:batch_rejected`,
   `rate_limited:<scope>`, `rate_limiter:unavailable`,
+  `error:metrics_flush_failed` (a metrics flush whose daily-table write failed;
+  see "When a counter is real"),
   `metrics:snapshot_failed`, `metrics:stale_served` (see "How fresh the numbers
   are" below), `inbox:reach_skipped`, `inbox:reach_failed`,
   `cron:tick`, `error:5xx`, `error:db_timeout`, `error:db_connect`, `error:503`,
-  `error:side_write_timeout`, `error:metrics_flush_failed` (a metrics flush whose
-  daily-table write failed; see "When a counter is real"), `error:embed_abort`,
-  `error:embed_error`,
+  `error:side_write_timeout`, `error:embed_abort`, `error:embed_error`,
   `embed:failed:<search|subscription|post_create|post_update|backfill>`,
   `embed:retried`, `embed:recovered`, `search:embed_failed`,
   `post:closed` (a post its publisher closed, through `PATCH /posts/{id}` or
